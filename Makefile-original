@@ -1,0 +1,99 @@
+# Makefile
+SHELL =         /bin/sh
+CXX =		c++
+MAKE =		make
+####################
+ARCH = $(shell uname -m)
+ifeq ($(ARCH),arm64)
+     PREFIX = /opt/homebrew
+else
+     PREFIX = /usr/local
+endif     
+##########
+#CFLAGS =	-Ofast -Wall -Wno-deprecated -Wno-\#pragma-messages
+#CFLAGS =	-g -Wall -Wno-deprecated -Wno-\#pragma-messages
+CFLAGS =	-Ofast -Wno-deprecated -Wno-\#pragma-messages \
+      		-Wno-format -Wno-parentheses \
+		-Wno-reorder-ctor -Wno-char-subscripts \
+		-stdlib=libc++ -std=c++14
+##########
+#MACDEFS =	-D__MAC__ -DIL_STD
+MACDEFS =	-D__MAC__
+##########
+MACINC =	-I$(PREFIX)/include \
+		-I./include \
+		`pkg-config --cflags opencv4` \
+		`pkg-config --cflags gmp` \
+	    				     
+##########
+MACLIBS =	-L$(PREFIX)/lib \
+		`pkg-config --libs opencv4` \
+		`pkg-config --libs gmp` \
+		-lglui \
+		-framework OpenGL -framework GLUT \
+		-lgmp \
+		-lm -lpthread
+
+##########
+SRC =           \
+    		Contour.cpp \
+		\
+    		Drawing.cpp \
+		Spatial.cpp \
+		Expansion.cpp \
+		Linkage.cpp \
+		Dijkstra.cpp \
+		Triangulate.cpp \
+		CSVIO.cpp \
+		Set.cpp \
+		main.cpp \
+		\
+		GCoptimization.cpp \
+		LinkedBlockList.cpp \
+		graphcut.cpp \
+
+HDR =	        \
+    		Contour.h \
+		\
+		Drawing.h \
+		Spatial.h \
+		Expansion.h \
+		Linkage.h \
+		Dijkstra.h \
+		Triangulate.h \
+		CSVIO.h \
+		Set.h \
+		Network.h \
+		Directed.h \
+		CGAL.h \
+		Config.h \
+		\
+    		GCoptimization.h \
+		LinkedBlockList.h \
+		graphcut.h \
+		block.h \
+		energy.h \
+		graph.h	\
+
+OBJ =		$(SRC:.cpp=.o)
+BIN =		aggsim
+#
+.cpp.o	:	$(SRC) $(HDR)
+	$(CXX) $(DEFS) $(CFLAGS) $(INC) -c $<
+
+mac	:
+	make $(OBJ) "DEFS = $(MACDEFS)" "INC = $(MACINC)"
+	$(CXX) -o $(BIN) $(MACDEFS) $(MACLINK) $(OBJ) $(MACLIBS)
+
+depend :
+	-if [ -f Make-depend ] ; \
+       	   then rm -f      Make-depend ; \
+	fi
+	$(CXX) -MM $(MACDEFS) $(CFLAGS) $(MACINC) $(SRC) > Make-depend 
+
+clean:
+	rm -f *.o *~* core $(BIN)
+
+#
+include Make-depend
+#
