@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-06 17:36:47 shigeo"
+//				Time-stamp: "2023-08-06 18:55:32 shigeo"
 //
 //==============================================================================
 
@@ -15,6 +15,9 @@
 #include <iostream>
 #include <string>
 using namespace std;
+
+// OpenCV library
+#include <opencv2/opencv.hpp>
 
 #include <FL/filename.H>		// fl_open_uri()
 
@@ -40,15 +43,15 @@ void GLDrawing::draw( void )
 {
     if(!context_valid()){
 	// context_valid() : OpenGLコンテキストが生成された際にfalseとなる．draw関数呼び出し後trueになる．
-	initGL();
+	InitGL();
     }
     if(!valid()){
 	// valid() : OpenGLコンテキストが生成 or リサイズされた際にfalseとなる．draw関数呼び出し後trueになる．
-	resize(w(), h());
+	Resize(w(), h());
     }
     
     // OpenGL描画
-    display();
+    Display();
 }
 
 
@@ -323,6 +326,68 @@ void GLDrawing::_load_drawing( const char * filename )
     cerr << HERE << " Finished loading the data!" << endl;  
 }
 
+// save a drawging into the given file
+void GLDrawing::_save_drawing( const char * filename )
+{
+    ofstream ofs( filename );
+
+    if ( ! ofs ) {
+        cerr << HERE << " cannot open the file " << filename << endl;
+        return;
+    }
+
+    ofs << _fig.poly().size() << endl;
+    for ( unsigned int i = 0; i < _fig.poly().size(); ++i ) {
+	ofs << _fig.poly()[ i ].size() << endl;
+	for ( unsigned int j = 0; j < _fig.poly()[ i ].size(); ++j ) {
+	    ofs << fixed << setprecision( 4 ) << _fig.poly()[ i ][ j ].x();
+	    ofs << "\t";
+	    ofs << fixed << setprecision( 4 ) << _fig.poly()[ i ][ j ].y();
+	    ofs << endl;
+	}
+    }
+    ofs.close();
+
+    cerr << " Finished saving the data!" << endl;  
+}
+
+// Capture the window as a image file
+void GLDrawing::_capture( const char * name )
+{
+    static cv::Mat              image;          // Mesh image
+    static GLubyte *            pixel   = NULL;
+
+    // glutSetWindow( win_drawing );   
+
+    // unsigned int		wx = glutGet( GLUT_WINDOW_X );
+    // unsigned int		wy = glutGet( GLUT_WINDOW_Y );
+    // unsigned int		ww = glutGet( GLUT_WINDOW_WIDTH );
+    // unsigned int		wh = glutGet( GLUT_WINDOW_HEIGHT );
+    unsigned int		ww = this->w();
+    unsigned int		wh = this->h();
+    // const unsigned int          nChannels = 3;
+    const unsigned int          nChannels = 4;
+
+    Display();
+    Display();
+
+    cerr << HERE << " Window size : " << ww << " x " << wh << endl;
+
+    if ( pixel == NULL ) pixel = new GLubyte [ ww * wh * nChannels ];
+    // glReadPixels( 0, 0, ww, wh, GL_RGB, GL_UNSIGNED_BYTE, pixel );
+    glReadPixels( 0, 0, ww, wh, GL_RGBA, GL_UNSIGNED_BYTE, pixel );
+
+    // image = cv::Mat( cv::Size( ww, wh ), CV_8UC3 );
+    image = cv::Mat( cv::Size( ww, wh ), CV_8UC4 );
+    memcpy( image.data, pixel, ww * wh * nChannels );
+
+    cv::cvtColor( image, image, cv::COLOR_BGR2RGB );
+    cv::flip( image, image, 0 );
+    cv::imwrite( name, image );
+
+    cerr << "Capturing the drawing window as " << name << " ... done." << endl;
+}
+
 
 //------------------------------------------------------------------------------
 //	Public Functions
@@ -385,7 +450,7 @@ GLDrawing::~GLDrawing()
 //	OpenGL functions
 //------------------------------------------------------------------------------
 // function for initialized GL setups
-void GLDrawing::initGL( void )
+void GLDrawing::InitGL( void )
 {
     cout << "OpenGL Ver. " << glGetString(GL_VERSION) << endl;
     
@@ -398,7 +463,7 @@ void GLDrawing::initGL( void )
 }
 
 // function fo resizing the window
-void GLDrawing::resize(int w, int h)
+void GLDrawing::Resize(int w, int h)
 {
     cerr << HERE << " Resize " << w << " x " << h << endl;
     glViewport( 0, 0, w, h );
@@ -414,12 +479,13 @@ void GLDrawing::resize(int w, int h)
 
 
 // Function for drawing the window
-void GLDrawing::display( void )
+void GLDrawing::Display( void )
 {
     const double offset = 2.0;
 
     glClear( GL_COLOR_BUFFER_BIT );
     
+#ifdef DEBUG
     // Debug codes
     glPointSize( 15.0 );
     glEnable( GL_POINT_SMOOTH );
@@ -427,6 +493,7 @@ void GLDrawing::display( void )
     glBegin( GL_POINTS );
     glVertex2d( 0.0, 0.0 );
     glEnd();
+#endif	// DEBUG
 
     // for enabling antialiasing
     glEnable( GL_LINE_SMOOTH );

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-06 17:17:33 shigeo"
+//				Time-stamp: "2023-08-06 18:54:26 shigeo"
 //
 //==============================================================================
 
@@ -57,7 +57,10 @@ class GLDrawing : public Fl_Gl_Window {
 
     void draw( void );
     void resize( int x_, int y_, int w_, int h_ );
-
+#ifdef SKIP
+    int  handle( int ev );
+#endif	// SKIP
+    
   protected:
     
     bool		_isConjoined;
@@ -85,7 +88,9 @@ class GLDrawing : public Fl_Gl_Window {
 //	Functions for File I/O
 //------------------------------------------------------------------------------
     void _load_drawing		( const char * filename );
-
+    void _save_drawing		( const char * filename );
+    void _capture		( const char * filename );
+    
   public:
 
 //------------------------------------------------------------------------------
@@ -124,15 +129,27 @@ class GLDrawing : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Fundamental functions for OpenGL Window
 //------------------------------------------------------------------------------
-    void initGL( void );
-    void resize( int w, int h );
-    void display( void );
-
+    void InitGL		( void );
+    void Resize		( int w, int h );
+    void Display	( void );
+#ifdef SKIP
+    void Mouse		( int button, int state, int x, int y );
+    void Motion		( int x, int y );
+    void PassiveMotion	( int x, int y );
+    void Keyboard	( int key, int x, int y );
+#endif	// SKIP
+    
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
     void load_drawing		( const char * filename ) {
 	_load_drawing( filename );
+    }
+    void save_drawing		( const char * filename ) {
+	_save_drawing( filename );
+    }
+    void capture		( const char * filename ) {
+	_capture( filename );
     }
 
 

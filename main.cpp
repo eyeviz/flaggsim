@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-06 17:39:15 shigeo"
+//				Time-stamp: "2023-08-06 18:46:17 shigeo"
 //
 //==============================================================================
 
@@ -44,6 +44,47 @@ using namespace std;
 
 #include "GLDrawing.h"
 
+
+//------------------------------------------------------------------------------
+//	Macro definitions
+//------------------------------------------------------------------------------
+#ifndef HERE
+#define HERE            " " << __FILE__ << ":" << __LINE__ << " "
+#endif  // HERE
+
+#define WINDOW_LEFT_LIMIT	(50)
+#define WINDOW_TOP_LIMIT	(50)
+
+#define HALF_WIDTH		(256)
+#define HALF_HEIGHT		(256)
+#define FULL_WIDTH		(512)
+#define FULL_HEIGHT		(512)
+#define HUGE_WIDTH		(768)
+#define HUGE_HEIGHT		(768)
+#define TEST_WIDTH		(1024)
+#define TEST_HEIGHT		(1024)
+
+#define WINDOW_MARGIN		(0.2)
+#define PICKING_ERROR		(20.0)
+
+
+//------------------------------------------------------------------------------
+//	Type definitions
+//------------------------------------------------------------------------------
+typedef enum {
+    FREE, SELECTED
+} PickMode;
+
+
+//------------------------------------------------------------------------------
+//	GLobal variables
+//------------------------------------------------------------------------------
+GLDrawing * gl_drawing = NULL;
+
+
+//------------------------------------------------------------------------------
+//	
+//------------------------------------------------------------------------------
 #ifdef SKIP
 
 #include "CGAL.h"
@@ -79,58 +120,6 @@ using namespace std;
 #ifndef HERE
 #define HERE            " " << __FILE__ << ":" << __LINE__ << " "
 #endif  // HERE
-
-#define WINDOW_LEFT_LIMIT	(50)
-#define WINDOW_TOP_LIMIT	(50)
-
-#define HALF_WIDTH		(256)
-#define HALF_HEIGHT		(256)
-#define FULL_WIDTH		(512)
-#define FULL_HEIGHT		(512)
-#define HUGE_WIDTH		(768)
-#define HUGE_HEIGHT		(768)
-#define TEST_WIDTH		(1024)
-#define TEST_HEIGHT		(1024)
-
-#define WINDOW_MARGIN		(0.2)
-#define PICKING_ERROR		(20.0)
-
-// IDs for menu items
-#define CLEAR_DRAWING		(201)
-
-#define TEST_TRIAL		(101)
-#define JOIN_GESTALTS		(303)
-#define OPT_DRAWING		(305)
-
-#define LOAD_DRAWING		(401)
-#define SAVE_DRAWING		(402)
-
-#define ADJUST_INTERVAL		(501)
-#define ADJUST_MIN_DATA		(511)
-#define ADJUST_MAX_DATA		(512)
-#define ADJUST_MIN_SMOOTH	(521)
-#define ADJUST_MAX_SMOOTH	(522)
-#define ADJUST_MIN_LABEL	(531)
-#define ADJUST_MAX_LABEL	(532)
-#define ADJUST_CUT_THRESHOLD	(541)
-#define LINKAGE_TYPE_UPDATE	(551)
-
-#define FLIP_CONJOINED		(601)
-#define FLIP_WRAPPED		(602)
-
-#define CAPTURE_DRAWING		(800)
-#define CAPTURE_CHART		(810)
-
-#define INIT_GLUI		(990)
-
-#define QUIT_PROGRAM		(999)
-
-//------------------------------------------------------------------------------
-//	Type definitions
-//------------------------------------------------------------------------------
-typedef enum {
-    FREE, SELECTED
-} PickMode;
 
 //------------------------------------------------------------------------------
 //	variables for GLUT
@@ -322,214 +311,9 @@ void clear_data(void)
 //------------------------------------------------------------------------------
 
 
-
-//------------------------------------------------------------------------------
-//	I/O
-//------------------------------------------------------------------------------
-// Loading data from File
-void load_drawing( const char * filename )
-{
-    ifstream ifs( filename );
-    istringstream istr;
-    string line;
-    
-    if ( ! ifs ) {
-        cerr << HERE << " cannot open the file " << filename << endl;
-        return;
-    }
-
-    // load the number of points first of all
-    getline( ifs, line );
-    istr.clear();
-    istr.str( line );
-    istr >> nPolys;
-    cerr << " Number of polygons = " << nPolys << endl;
-
-    fig.clear();
-    
-    // load the coordinates of the points
-    unsigned int countID = 0;
-    for ( unsigned int i = 0; i < nPolys; ++i ) {
-	unsigned int nPoints;
-	getline( ifs, line );
-	istr.clear();
-	istr.str( line );
-	istr >> nPoints;
-#ifdef DEBUG
-	cerr << "[ " << setw( 3 ) << i << " ] : Number of points = " << nPoints << endl;
-#endif	// DEBUG
-	Polygon2 poly;
-	for ( unsigned int j = 0; j < nPoints; ++j ) {
-	    double px, py;
-	    getline( ifs, line );
-	    istr.clear();
-	    istr.str( line );
-	    istr >> px >> py;
-#ifdef TENTATIVE_COORDINATE_NORMALIZATION
-	    // px = 2.0 * ( double )px/( double )FULL_WIDTH - 1.0;
-	    // py = 1.0 - 2.0 * ( double )py/( double )FULL_HEIGHT;
-	    px = px * 2.0 - 1.0;
-	    py = py * 2.0 - 1.0;
-#endif	// TENTATIVE_COORDINATE_NORMALIZATION
-	    // cerr << HERE << " px = " << px << " py = " << py << endl;
-	    poly.push_back( Point2( px, py ) );
-	}
-
-	if ( poly.orientation() != CGAL::COUNTERCLOCKWISE ) {
-	    cerr << HERE << "%%%%% Polygon No. " << fig.poly().size() << " CW " << endl;
-
-	    poly.reverse_orientation();
-	}
-
-	assert( poly.orientation() == CGAL::COUNTERCLOCKWISE );
-	
-#ifdef RESAMPLE_BOUNDARY
-	const double div = RESAMPLE_INTERVAL;
-	// Resample the polygon boundary;
-	Polygon2 fine;
-	unsigned int sz = poly.size();
-	for ( unsigned int j = 0; j < sz; ++j ) {
-	    fine.push_back( poly[ j ] );
-	    double length = sqrt( ( poly[ (j+1)%sz ] - poly[ j ] ).squared_length() );
-	    int nDiv = ceil( length / div );
-	    for ( unsigned int k = 1; k < nDiv; ++k ) {
-		double t = ( double )k/( double )nDiv;
-		Point2 newP = CGAL::ORIGIN +
-		    (1.0 - t)*( poly[ j ] - CGAL::ORIGIN ) +
-		    t*(poly[ (j+1)%sz ] - CGAL::ORIGIN );
-		fine.push_back( newP );
-	    }
-	}
-	// cerr << HERE << " poly = " << poly << endl;
-	// cerr << HERE << " fine = " << fine << endl;
-	Set glob;
-	for ( unsigned int j = 0; j < fine.size(); ++j ) {
-	    glob.push_back( countID++ );
-	}
-	fig.poly().push_back( fine );
-	fig.glID().push_back( glob );
-#else	// RESAMPLE_BOUNDARY
-	Set glob;
-	for ( unsigned int j = 0; j < poly.size(); ++j ) {
-	    glob.push_back( countID++ );
-	}
-	fig.poly().push_back( poly );
-	fig.glID().push_back( glob );
-#endif	// RESAMPLE_BOUNDARY
-    }
-    ifs.close();
-
-    fig.bound() = fig.poly();
-    cerr << HERE << " Finished loading the data!" << endl;  
-}
-
-
-
-// Saving data to File
-void save_drawing( const char * filename )
-{
-    ofstream ofs( filename );
-
-    if ( ! ofs ) {
-        cerr << HERE << " cannot open the file " << filename << endl;
-        return;
-    }
-
-    ofs << fig.poly().size() << endl;
-    for ( unsigned int i = 0; i < fig.poly().size(); ++i ) {
-	ofs << fig.poly()[ i ].size() << endl;
-	for ( unsigned int j = 0; j < fig.poly()[ i ].size(); ++j ) {
-	    ofs << fixed << setprecision( 4 ) << fig.poly()[ i ][ j ].x();
-	    ofs << "\t";
-	    ofs << fixed << setprecision( 4 ) << fig.poly()[ i ][ j ].y();
-	    ofs << endl;
-	}
-    }
-    ofs.close();
-
-    cerr << " Finished saving the data!" << endl;  
-}
-
-
-//------------------------------------------------------------------------------
-//	Fundamental functions for rendering line drawings
-//	
-//------------------------------------------------------------------------------
-
-void string2D( double x, double y, const char *str )
-{
-    double basex = x;
-    double basey = y;
-    glRasterPos2d( basex, basey );
-
-    for (; *str != 0; str++) {
-        if ( *str == '\n' ) {
-            glRasterPos2i( basex, basey );
-        }
-        else {
-            // glutBitmapCharacter( FUTL_FONT_TYPE, *str );
-            // GLUT_BITMAP_8_BY_13
-            // GLUT_BITMAP_9_BY_15
-            // GLUT_BITMAP_TIMES_ROMAN_10
-            // GLUT_BITMAP_TIMES_ROMAN_24
-            // GLUT_BITMAP_HELVETICA_10
-            // GLUT_BITMAP_HELVETICA_12
-            // GLUT_BITMAP_HELVETICA_18
-            // glutBitmapCharacter( GLUT_BITMAP_8_BY_13, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_9_BY_15, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_12, *str );
-#ifdef DEBUGGING_PHASE
-            glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, *str );
-#else	// DEBUGGING_PHASE
-            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, *str );
-            glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, *str );
-#endif	// DEBUGGING_PHASE
-            // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_10, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, *str );
-        }
-    }
-}
-
-
-
-
-
 //------------------------------------------------------------------------------
 //	initializing textures from thumbnail images
 //------------------------------------------------------------------------------
-void capture_drawing( const char * name )
-{
-    static cv::Mat              image;          // Mesh image
-    static GLubyte *            pixel   = NULL;
-
-    glutSetWindow( win_drawing );   
-
-    // unsigned int		wx = glutGet( GLUT_WINDOW_X );
-    // unsigned int		wy = glutGet( GLUT_WINDOW_Y );
-    unsigned int		ww = glutGet( GLUT_WINDOW_WIDTH );
-    unsigned int		wh = glutGet( GLUT_WINDOW_HEIGHT );
-    // const unsigned int          nChannels = 3;
-    const unsigned int          nChannels = 4;
-
-    display_drawing();
-    display_drawing();
-
-    if ( pixel == NULL ) pixel = new GLubyte [ ww * wh * nChannels ];
-    // glReadPixels( 0, 0, ww, wh, GL_RGB, GL_UNSIGNED_BYTE, pixel );
-    glReadPixels( 0, 0, ww, wh, GL_RGBA, GL_UNSIGNED_BYTE, pixel );
-
-    // image = cv::Mat( cv::Size( ww, wh ), CV_8UC3 );
-    image = cv::Mat( cv::Size( ww, wh ), CV_8UC4 );
-    memcpy( image.data, pixel, ww * wh * nChannels );
-
-    cv::cvtColor( image, image, cv::COLOR_BGR2RGB );
-    cv::flip( image, image, 0 );
-    cv::imwrite( name, image );
-
-    cerr << "Capturing the drawing window as " << name << " ... done." << endl;
-}
-
 void capture_chart( const char * name )
 {
     static cv::Mat              image;          // Mesh image
@@ -2725,6 +2509,10 @@ static void menu_callback( Fl_Widget *w, void * )
     }
     cerr << endl;
 
+    if ( strcmp( ipath, "&Capture/&Drawing" ) == 0 ) {
+	gl_drawing->capture( "drawing.png" );
+    }
+
     if ( strcmp( item->label(), "&Quit" ) == 0 ) { exit(0); }
 }
 
@@ -2787,8 +2575,7 @@ int main( int argc, char *argv[] )
     
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
-    GLDrawing * gl_drawing = new GLDrawing( 0, 25, 480, 480,
-					    "Drawing" );
+    gl_drawing = new GLDrawing( 0, 25, 480, 480, "Drawing" );
     gl_drawing->load_drawing( "akehara-008-case.dat" );
     gl_drawing->fig().triangulate();
     
