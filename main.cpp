@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 21:23:41 shigeo"
+//				Time-stamp: "2023-08-07 22:27:20 shigeo"
 //
 //==============================================================================
 
@@ -44,6 +44,7 @@ using namespace std;
 
 #include "GLDrawing.h"
 #include "GLLayout.h"
+#include "FLControl.h"
 
 
 //------------------------------------------------------------------------------
@@ -2609,28 +2610,11 @@ int main( int argc, char *argv[] )
 //------------------------------------------------------------------------------
 //	Panel window	
 //------------------------------------------------------------------------------
-    Fl_Window * win_panel = new Fl_Window( map_width+design_width, 0,
+    FLControl * win_panel = new FLControl( map_width+design_width, 0,
 					   panel_width, panel_height,
 					   "Panel window" );
-
-    // Create menubar, items..
-    Fl_Menu_Bar *menubar = new Fl_Menu_Bar( 0, 0, win_map->w(), 25 );
-
-    menubar->add( "&File/&Clear",	0,	menu_callback );
-    menubar->add( "&File/&Load",	0,	menu_callback );
-    menubar->add( "&File/&Save",	0,	menu_callback );
-    
-    menubar->add( "&Edit/con&Join",	0,	menu_callback );
-    menubar->add( "&Edit/&Optimize",	0,	menu_callback );
-    
-    menubar->add( "&Switch/Conjoined",	0,	menu_callback );
-    menubar->add( "&Switch/Wrapped",	0,	menu_callback );
-
-    menubar->add( "&Capture/&Drawing",	0,	menu_callback );
-    menubar->add( "&Capture/&Layout",	0,	menu_callback );
-
-    menubar->add( "&Quit",		0,	menu_callback );
-    
+    win_panel->setGLDrawing( gl_drawing );
+    win_panel->setGLLayout ( gl_layout );
     win_panel->end();
     win_panel->show( argc, argv );
     

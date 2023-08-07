@@ -10,7 +10,7 @@ else
      PREFIX = /usr/local
 endif     
 ##########
-# -g
+# -Ofast
 CFLAGS =	-Ofast -Wno-deprecated -Wno-\#pragma-messages \
       		-Wno-format -Wno-parentheses \
 		-Wno-reorder-ctor -Wno-char-subscripts \
@@ -51,6 +51,7 @@ SRC =           \
 		GLBase.cpp \
     		GLDrawing.cpp \
 		GLLayout.cpp \
+		FLControl.cpp \
 		\
 		main.cpp \
 		\
@@ -81,6 +82,7 @@ HDR =	        \
 		GLBase.h \
     		GLDrawing.h \
 		GLLayout.h \
+		FLControl.h \
 		\
     		GCoptimization.h \
 		LinkedBlockList.h \
