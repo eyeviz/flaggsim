@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 21:06:49 shigeo"
+//				Time-stamp: "2023-08-08 02:15:50 shigeo"
 //
 //==============================================================================
 
@@ -182,6 +182,117 @@ void GLLayout::_tile( void )
 
 
 //------------------------------------------------------------------------------
+//	Picking & Selection
+//------------------------------------------------------------------------------
+// Function for selecting the item among the picked ones
+bool GLLayout::_select( int & hitID, int nHits, unsigned int * buf )
+{
+    unsigned int *	ptr		= NULL; //, names;
+    const float		defaultDepth	= 1000.0;
+    float		minDepth	= defaultDepth;
+
+    make_current();
+
+    ptr = buf;
+    hitID = 0;
+
+    for ( int i = 0; i < nHits; ++i ) { // for each bit
+#ifdef SKIP
+	cerr << HERE << " i = " << i
+	     << " [0]: " << ptr[ 0 ]
+	     << " [1]: " << ptr[ 1 ]
+	     << " [2]: " << ptr[ 2 ]
+	     << " [3]: " << ptr[ 3 ] << endl;
+#endif	// SKIP
+	if ( ptr[ 0 ] != 1 ) {
+	    cerr << " Number of names for hit = " << ( int )ptr[ 0 ] << endl;
+	    assert( ptr[ 0 ] == 1 );
+	}
+	float curDepth = (float)ptr[ 1 ]/0xffffffff;
+	int curID = ( int )ptr[ 3 ];
+	if ( ( curDepth < minDepth ) && ( curID != NO_NAME ) ) {
+	    minDepth = curDepth;
+	    hitID = ( unsigned int )ptr[ 3 ];
+	}
+	ptr += 4;
+    }
+
+    // cerr << " hitID = " << hitID << " depth = " << minDepth << endl;
+    // glutSetWindow( win_design );   
+    // glutPostRedisplay();
+    redraw();
+
+    if ( minDepth < defaultDepth ) {
+	return true;
+    }
+    return false;
+}
+
+
+// Function for picking iterms with mouse clicks
+bool GLLayout::_pick( int & hitID, int x, int y, int button )
+{
+    unsigned int selectBuf[ BUFFER_SIZE ];
+    int nHits;
+    int viewport[ 4 ];
+
+    // glutSetWindow( win_design );
+    make_current();
+    
+    hitID = NO_NAME;
+    
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    // Picking begins here
+    glSelectBuffer( BUFFER_SIZE, selectBuf );
+    glRenderMode( GL_SELECT );
+
+    glInitNames();
+    glPushName( NO_NAME );
+
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix(); // <====
+    glLoadIdentity();
+    const double tolerance = PICKING_ERROR;
+#ifdef SKIP
+    cerr << HERE
+	 << " x = " << x << " y = " << y << " viewport = " 
+	 << viewport[ 0 ] << " , " << viewport[ 1 ] << " , "
+	 << viewport[ 2 ] << " , " << viewport[ 3 ] << endl;
+#endif	// SKIP
+    gluPickMatrix( (double)x, (double)(viewport[3]-y), tolerance, tolerance, viewport );
+    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix(); // <====
+    glLoadIdentity();
+
+    // draw the set of items
+    _tile();
+
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix(); // <====
+    glMatrixMode( GL_MODELVIEW );
+    glPopMatrix(); // <====
+
+    glFlush();
+
+    nHits = glRenderMode( GL_RENDER );
+    if ( button == GLUT_LEFT_BUTTON ) {
+	if ( _select( hitID, nHits, selectBuf ) ) {
+	    return true;
+	}
+	else {
+	    hitID = NO_NAME;
+	    return false;
+	}
+    }
+    else {
+	return false;
+    }
+}
+
+
+//------------------------------------------------------------------------------
 //	Public Functions
 //------------------------------------------------------------------------------
 
@@ -203,7 +314,8 @@ GLLayout::GLLayout( int _x, int _y, int _w, int _h, const char *_l )
 {
     _num_options_in_line
 			= DEFAULT_NUM_OPTIONS_IN_LINE;
-
+    _left = _middle = _right = 0;
+    
     resizable( this );
     end();
 }
@@ -338,48 +450,70 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 {
     make_current();
 
-    int keymod = ( Fl::event_state(FL_SHIFT) ? 2 : (Fl::event_state(FL_CTRL) ? 3 : 1 ) );
-    switch ( keymod ) {
-      case 2:
-	  cerr << HERE << " SHIFT button pressed" << endl;
+    switch ( button ) {
+	// left mouse event
+      case FL_LEFT_MOUSE:
+	  if ( state == FL_PUSH ) {
+	      switch ( _worksp->mode() ) {
+		case FREE:
+		    _cursor = Point2( x, y );
+		    if ( _pick( _worksp->pickID(), x, y, button ) ) {
+			; // do nothing
+		    }
+		    break;
+		case SELECTED:
+		    break;
+	      }
+	      _left = 1;
+	      if ( _worksp->pickID() != NO_NAME ) {
+		  _worksp->isPressed() = true;
+	      }
+	  }
+	  else if ( state == FL_RELEASE ) {
+	      if ( ( _worksp->pickID() != NO_NAME ) && _worksp->isPressed() ) {
+		  switch ( _worksp->mode() ) {
+		    case FREE:
+			cerr << HERE << " pickID = " << _worksp->pickID() << endl;
+			_worksp->mode() = SELECTED;
+			cerr << HERE << " mode => selected" << endl;
+			break;
+		    case SELECTED:
+			Keyboard( 'f', 0, 0 );
+			break;
+		  }
+	      }
+	      _worksp->isPressed() = false;
+	      _left = 0;  
+	  }
 	  break;
-      case 3:
-	  cerr << HERE << " CTRL button pressed" << endl;
+	  // middle mouse event
+      case FL_MIDDLE_MOUSE:
+	  if ( state == FL_PUSH ) {
+	      _cursor = Point2( x, y );
+	      _middle = 1;
+	  }
+	  else {
+	      _middle = 0;
+	  }
 	  break;
-      case 1:
-	  cerr << HERE << " No modifier button pressed" << endl;
+	  // right mouse event
+      case FL_RIGHT_MOUSE:
+	  if ( state == FL_PUSH ) {
+	      _cursor = Point2( x, y );
+	      _right = 1;
+	  }
+	  else if ( state == GLUT_UP ) {
+	      _right = 0;
+	      _worksp->pickID() = NO_NAME;
+	      // reoptBit = false;
+	  }
 	  break;
       default:
-	  cerr << HERE << " This case cannot be expected" << endl;
+	  cerr << "Unknown button" << endl;
 	  break;
     }
-    
-    if ( button == FL_LEFT_MOUSE ) {
-        if ( state ) {
-	    cerr << HERE << " Left mouse pressed " << endl;
-        }
-        else{
-	    cerr << HERE << " Left mouse released " << endl;
-        }
-    }
-    else if ( button == FL_MIDDLE_MOUSE ) {
-        if ( state ) {
-	    cerr << HERE << " Middle mouse pressed " << endl;
-        }
-        else{
-	    cerr << HERE << " Middle mouse released " << endl;
-        }
-    }
-    else if ( button == FL_RIGHT_MOUSE ) {
-        if ( state ) {
-	    cerr << HERE << " Right mouse pressed " << endl;
-        }
-        else{
-	    cerr << HERE << " Right mouse released " << endl;
-        }
-    }
 
-    redraw();
+    redrawAll();
 }
 
 
@@ -387,13 +521,32 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 void GLLayout::Motion( int x, int y )
 {
     cerr << HERE << "GLLayout::Motion" << endl;
+
+    // cerr << HERE << " in motion_design" << endl;
+    if ( _left ) {
+	// cerr << HERE << " pointer = ( " << x << " , " << y << " ) " << endl;
+	if ( _pick( _worksp->pickID(), x, y, GLUT_LEFT_BUTTON ) ) {
+	    ; // do nothing
+	    // cerr << HERE << " Point ID " << setw( 2 ) << pickID << " is picked!!" << endl;
+	}
+    }
+    else if ( _middle ) {
+	;
+    }
+    else if ( _right ) {
+	;
+    }
+
+    redrawAll();
 }
+
 
 // Function for handling mouse moving events
 void GLLayout::PassiveMotion( int x, int y )
 {
     cerr << HERE << "GLLayout::PassiveMotion" << endl;
 }
+
 
 // Function for handling keyboard events
 void GLLayout::Keyboard( int key, int x, int y )
@@ -409,11 +562,7 @@ void GLLayout::Keyboard( int key, int x, int y )
 	  break;
     }
 
-    redraw();
-    // Redrawing other associative windows
-    // cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
-    for ( unsigned int i = 0; i < _flwin.size(); ++i )
-	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
+    redrawAll();
 }
 
 

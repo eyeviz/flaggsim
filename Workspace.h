@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 17:23:47 shigeo"
+//				Time-stamp: "2023-08-08 00:55:37 shigeo"
 //
 //==============================================================================
 
@@ -116,6 +116,13 @@ public:
     }
     int &					pickID( void ) {
 	return _pickID;
+    }
+
+    const bool &				isPressed( void ) const {
+	return _isPressed;
+    }
+    bool &					isPressed( void ) {
+	return _isPressed;
     }
 
     const vector< Point2 > &			pickCoord( void ) const {

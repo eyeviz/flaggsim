@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 22:27:20 shigeo"
+//				Time-stamp: "2023-08-08 00:25:24 shigeo"
 //
 //==============================================================================
 
@@ -2491,33 +2491,6 @@ static void system_conf( const string & path )
     //------------------------------------------------------------------------------
 }
 #endif	// SKIP
-
-// Menu callback
-static void menu_callback( Fl_Widget *w, void * )
-{
-    Fl_Menu_Bar *bar = (Fl_Menu_Bar*)w;	      // Get the menubar widget
-    const Fl_Menu_Item *item = bar->mvalue(); // Get the menu item that was picked
-
-    // Get full pathname of picked item
-    char ipath[ 256 ];
-    bar->item_pathname( ipath, sizeof( ipath ) );
-    
-    cerr << "callback: You picked " << item->label(); // Print item picked
-    cerr << ", item_pathname() is " << ipath;	      // ..and full pathname
-
-    // Toggle or radio item?
-    if ( item->flags & (FL_MENU_RADIO|FL_MENU_TOGGLE) )	{
-	cerr << ", value is " << item->value()?"on":"off";
-    }
-    cerr << endl;
-
-    if ( strcmp( ipath, "&Capture/&Drawing" ) == 0 ) {
-	gl_drawing->capture( "drawing.png" );
-    }
-
-    if ( strcmp( item->label(), "&Quit" ) == 0 ) { exit(0); }
-}
-
 
 // main function
 int main( int argc, char *argv[] )

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 17:18:20 shigeo"
+//				Time-stamp: "2023-08-08 00:54:09 shigeo"
 //
 //==============================================================================
 
@@ -33,6 +33,8 @@ using namespace std;
 #define	DEFAULT_NUM_OPTIONS_IN_LINE	(3)
 // #define	DEFAULT_NUM_OPTIONS_IN_LINE	(4)
 
+#define PICKING_ERROR		(20.0)
+
 
 //------------------------------------------------------------------------------
 //	Defining Classes
@@ -44,6 +46,10 @@ class GLLayout : public GLBase {
     int			_num_options_in_line;
 
   protected:
+
+    Point2		_cursor;	// mouse position
+    int			_left, _middle, _right;
+					// mouse buttons
 
 //------------------------------------------------------------------------------
 //	Fundamental functions
@@ -59,7 +65,12 @@ class GLLayout : public GLBase {
 				  const double & label );
     void _tile			( void );
     
-
+//------------------------------------------------------------------------------
+//	Picking & Selection
+//------------------------------------------------------------------------------
+    bool _select		( int & hitID, int nHits, unsigned int * buf );
+    bool _pick			( int & hitID, int x, int y, int button );
+    
 public:
 
 //------------------------------------------------------------------------------

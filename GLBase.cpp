@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 21:01:41 shigeo"
+//				Time-stamp: "2023-08-08 00:35:28 shigeo"
 //
 //==============================================================================
 
@@ -48,13 +48,6 @@ void GLBase::draw( void )
     
     // OpenGL描画
     Display();
-
-#ifdef SKIP
-    // Redrawing other associative windows
-    cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
-    for ( unsigned int i = 0; i < _flwin.size(); ++i )
-	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
-#endif	// SKIP
 }
 
 
@@ -169,6 +162,8 @@ void GLBase::_capture( const char * name )
     unsigned int		wh = this->h();
     // const unsigned int          nChannels = 3;
     const unsigned int          nChannels = 4;
+
+    make_current();
 
     Display();
     Display();
@@ -367,6 +362,15 @@ void GLBase::Keyboard( int key, int x, int y )
     redraw();
 }
 
+// Function for redrawing associative windows as well as this one
+void GLBase::redrawAll( void )
+{
+    redraw();
+    // Redrawing other associative windows
+    // cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
+    for ( unsigned int i = 0; i < _flwin.size(); ++i )
+	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
+}
 
 // end of header file
 // Do not add any stuff under this line.
