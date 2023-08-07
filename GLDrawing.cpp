@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-06 18:55:32 shigeo"
+//				Time-stamp: "2023-08-07 17:24:56 shigeo"
 //
 //==============================================================================
 
@@ -19,15 +19,15 @@ using namespace std;
 // OpenCV library
 #include <opencv2/opencv.hpp>
 
-#include <FL/filename.H>		// fl_open_uri()
+// #include <FL/filename.H>		// fl_open_uri()
 
+#include "CSVIO.h"
 #include "GLDrawing.h"
 
 
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
-
 
 
 //------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Private Functions
 //------------------------------------------------------------------------------
-//! 再描画イベント処理関数
+// function for handling redrawing events
 void GLDrawing::draw( void )
 {
     if(!context_valid()){
@@ -55,7 +55,7 @@ void GLDrawing::draw( void )
 }
 
 
-//! リサイズイベント処理関数
+// function for handling resizing events
 void GLDrawing::resize(int x_, int y_, int w_, int h_)
 {
     Fl_Gl_Window::resize(x_, y_, w_, h_);
@@ -63,9 +63,42 @@ void GLDrawing::resize(int x_, int y_, int w_, int h_)
 }
 
 
+// Event handler
+int GLDrawing::handle( int ev )
+{
+    switch ( ev ) {
+      case FL_PUSH:
+	  Mouse( Fl::event_button(), 1, Fl::event_x(), Fl::event_y() );
+	  break;
+      case FL_RELEASE:
+	  Mouse( Fl::event_button(), 0, Fl::event_x(), Fl::event_y() );
+	  break;
+      case FL_DRAG:
+	  Motion( Fl::event_x(), Fl::event_y() );
+	  break;
+      case FL_MOVE:
+	  PassiveMotion( Fl::event_x(), Fl::event_y() );
+	  break;
+      case FL_KEYDOWN:
+	  Keyboard( Fl::event_key(), Fl::event_x(), Fl::event_y() );
+	  break;
+      case FL_KEYUP:
+      case FL_SHORTCUT:
+	  break;
+      case FL_FOCUS:
+      case FL_UNFOCUS:
+	  break;
+      default:
+	  return Fl_Window::handle( ev );
+    }
+
+    return 1;
+}
+
 //------------------------------------------------------------------------------
 //	Protected Functions
 //------------------------------------------------------------------------------
+// Function for placing character strings
 void GLDrawing::_string2D( double x, double y, const char *str )
 {
     double basex = x;
@@ -229,9 +262,30 @@ void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
+// retrieve the head name of the input file name
+void GLDrawing::_retrieve_headname( const char * args )
+{
+    string inputname = args;
+    vector< string > slashlist = CSVIO::split( inputname, '/' );
+    string lastblock;
+    for ( vector< string >::iterator iterS = slashlist.begin();
+	  iterS != slashlist.end(); iterS++ ) {
+	lastblock = (*iterS);
+    }
+    vector< string > dotlist = CSVIO::split( lastblock, '.' );
+    vector< string >::iterator iterD = dotlist.begin();
+    if ( iterD != dotlist.end() ) {
+	_headname = (*iterD);
+    }
+    cerr << HERE << " headname ======> : " << _headname << endl;
+}
+
+
 // load a drawging from the given file
 void GLDrawing::_load_drawing( const char * filename )
 {
+    _retrieve_headname( filename );
+
     ifstream ifs( filename );
     istringstream istr;
     string line;
@@ -248,7 +302,7 @@ void GLDrawing::_load_drawing( const char * filename )
     istr >> _nPolys;
     cerr << " Number of polygons = " << _nPolys << endl;
 
-    _fig.clear();
+    _fig->clear();
     
     // load the coordinates of the points
     unsigned int countID = 0;
@@ -279,7 +333,7 @@ void GLDrawing::_load_drawing( const char * filename )
 	}
 
 	if ( poly.orientation() != CGAL::COUNTERCLOCKWISE ) {
-	    cerr << HERE << "%%%%% Polygon No. " << _fig.poly().size() << " CW " << endl;
+	    cerr << HERE << "%%%%% Polygon No. " << _fig->poly().size() << " CW " << endl;
 
 	    poly.reverse_orientation();
 	}
@@ -309,8 +363,8 @@ void GLDrawing::_load_drawing( const char * filename )
 	for ( unsigned int j = 0; j < fine.size(); ++j ) {
 	    glob.push_back( countID++ );
 	}
-	_fig.poly().push_back( fine );
-	_fig.glID().push_back( glob );
+	_fig->poly().push_back( fine );
+	_fig->glID().push_back( glob );
 #else	// RESAMPLE_BOUNDARY
 	Set glob;
 	for ( unsigned int j = 0; j < poly.size(); ++j ) {
@@ -322,7 +376,7 @@ void GLDrawing::_load_drawing( const char * filename )
     }
     ifs.close();
 
-    _fig.bound() = _fig.poly();
+    _fig->bound() = _fig->poly();
     cerr << HERE << " Finished loading the data!" << endl;  
 }
 
@@ -336,13 +390,13 @@ void GLDrawing::_save_drawing( const char * filename )
         return;
     }
 
-    ofs << _fig.poly().size() << endl;
-    for ( unsigned int i = 0; i < _fig.poly().size(); ++i ) {
-	ofs << _fig.poly()[ i ].size() << endl;
-	for ( unsigned int j = 0; j < _fig.poly()[ i ].size(); ++j ) {
-	    ofs << fixed << setprecision( 4 ) << _fig.poly()[ i ][ j ].x();
+    ofs << _fig->poly().size() << endl;
+    for ( unsigned int i = 0; i < _fig->poly().size(); ++i ) {
+	ofs << _fig->poly()[ i ].size() << endl;
+	for ( unsigned int j = 0; j < _fig->poly()[ i ].size(); ++j ) {
+	    ofs << fixed << setprecision( 4 ) << _fig->poly()[ i ][ j ].x();
 	    ofs << "\t";
-	    ofs << fixed << setprecision( 4 ) << _fig.poly()[ i ][ j ].y();
+	    ofs << fixed << setprecision( 4 ) << _fig->poly()[ i ][ j ].y();
 	    ofs << endl;
 	}
     }
@@ -386,6 +440,61 @@ void GLDrawing::_capture( const char * name )
     cv::imwrite( name, image );
 
     cerr << "Capturing the drawing window as " << name << " ... done." << endl;
+}
+
+// processing the ressults of label cost optimization
+void GLDrawing::_isometric( vector< Expansion > & expand )
+{
+    const double R3P2 = 0.5*sqrt(3.0);
+
+    int maxD = 0, maxS = 0, maxL = 0;
+    for ( unsigned int i = 0; i < expand.size(); ++i ) {
+	if ( maxD < expand[ i ].dataCost() ) maxD = expand[ i ].dataCost();
+	if ( maxS < expand[ i ].smoothCost() ) maxS = expand[ i ].smoothCost();
+	if ( maxL < expand[ i ].labelCost() ) maxL = expand[ i ].labelCost();
+    }    
+    _worksp->pickCoord().clear();
+    for ( unsigned int i = 0; i < expand.size(); ++i ) {
+	double p = expand[ i ].dataCost()/(double)maxD;
+	double q = expand[ i ].smoothCost()/(double)maxS;
+	double r = expand[ i ].labelCost()/(double)maxL;
+	double x = ( R3P2 * ( -p + r ) );
+	double y = -0.5*p + 1.0*q - 0.5*r;
+	_worksp->pickCoord().push_back( Point2( x, y ) );
+    }
+    _worksp->coverHull().clear();
+#ifdef USE_CONCAVE_HULLS
+    _worksp->coverBand().clear();
+#endif	// USE_CONCAVE_HULLS
+    for ( unsigned int i = 0; i < expand.size(); ++i ) {
+	vector< Polygon2 > hullSet;
+#ifdef USE_CONCAVE_HULLS
+	vector< Polygon2 > bandSet;
+	vector< Set >	   globSet;
+#endif	// USE_CONCAVE_HULLS
+	vector< Set > polySet = expand[ i ].cluster();
+	for ( unsigned int j = 0; j < polySet.size(); ++j ) {
+	    Polygon2 eachHull;
+#ifdef USE_CONVEX_HULLS
+	    Drawing::convexForLabel( fig.netNbr(), polySet[ j ], eachHull );
+#endif	// USE_CONVEX_HULLS
+#ifdef USE_CONCAVE_HULLS
+	    Set eachGlob;
+	    _fig->concaveForLabel( _fig->netNbr(), polySet[ j ], eachHull, eachGlob );
+	    bandSet.push_back( eachHull );
+	    globSet.push_back( eachGlob );
+#endif	// USE_CONCAVE_HULLS
+	    hullSet.push_back( eachHull );
+	}
+	_worksp->coverHull().push_back( hullSet );
+#ifdef USE_CONCAVE_HULLS
+	_worksp->coverBand().push_back( bandSet );
+	_worksp->coverGlob().push_back( globSet );
+#endif	// USE_CONCAVE_HULLS
+    }
+#ifndef USE_CONVEX_HULLS
+    cerr << HERE << " coverBand.size = " << _worksp->coverBand().size() << endl;
+#endif	// USE_CONVEX_HULLS
 }
 
 
@@ -506,11 +615,11 @@ void GLDrawing::Display( void )
 	// Filling polygons
 	glLineWidth( 1.0 );
 	glColor3d( 1.0, 1.0, 1.0 );
-	for ( unsigned int i = 0; i < _fig.tri().size(); ++i ) {
-	    for ( unsigned int j = 0; j < _fig.tri()[ i ].size(); ++j ) {
+	for ( unsigned int i = 0; i < _fig->tri().size(); ++i ) {
+	    for ( unsigned int j = 0; j < _fig->tri()[ i ].size(); ++j ) {
 		glBegin( GL_POLYGON );
 		for ( unsigned int k = 0; k < 3; ++k ) {
-		    glVertex2d( _fig.tri()[i][j][k].x(), _fig.tri()[i][j][k].y() );
+		    glVertex2d( _fig->tri()[i][j][k].x(), _fig->tri()[i][j][k].y() );
 		    // cerr << HERE << fig.tri()[i][j][k] << endl;
 		}
 		glEnd();
@@ -521,11 +630,11 @@ void GLDrawing::Display( void )
 	// Drawing polygons
 	glLineWidth( 1.0 );
 	glColor3d( 0.0, 0.0, 0.0 );
-	cerr << HERE << " _fig.bound().size() = " << _fig.bound().size() << endl;
-	for ( unsigned int i = 0; i < _fig.bound().size(); ++i ) {
+	cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
+	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
 	    glBegin( GL_LINE_LOOP );
-	    for ( unsigned int j = 0; j < _fig.bound()[ i ].size(); j++ ) {
-		glVertex2d( _fig.bound()[ i ][ j ].x(), _fig.bound()[ i ][ j ].y() );
+	    for ( unsigned int j = 0; j < _fig->bound()[ i ].size(); j++ ) {
+		glVertex2d( _fig->bound()[ i ][ j ].x(), _fig->bound()[ i ][ j ].y() );
 	    }
 	    glEnd();
 	}
@@ -537,9 +646,9 @@ void GLDrawing::Display( void )
 	glPointSize( 9.0 );
 	glColor3d( 0.4, 0.8, 0.0 );
 	glBegin( GL_POINTS );
-	for ( unsigned int i = 0; i < _fig.bound().size(); ++i ) {
-	    for ( unsigned int j = 0; j < _fig.bound()[ i ].size(); j++ ) {
-		glVertex2d( _fig.bound()[ i ][ j ].x(), _fig.bound()[ i ][ j ].y() );
+	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
+	    for ( unsigned int j = 0; j < _fig->bound()[ i ].size(); j++ ) {
+		glVertex2d( _fig->bound()[ i ][ j ].x(), _fig->bound()[ i ][ j ].y() );
 	    }
 	}
 	glEnd();
@@ -567,7 +676,7 @@ void GLDrawing::Display( void )
 	glLineWidth( 2.0 );
 	// glColor3d( 0.0, 1.0, 0.5 );
 #endif	// DEBUGGING_PHASE
-	_draw_directed( _fig.wrapper() );
+	_draw_directed( _fig->wrapper() );
 #ifdef SHOW_SAMPLE_IDS
 	glColor3d( 1.0, 0.5, 0.0 );
 	draw_vertex_ids( _fig.wrapper() );
@@ -581,20 +690,20 @@ void GLDrawing::Display( void )
     if ( _isConjoined ) {
 	glColor4d( 0.0, 0.0, 0.0, 1.0 );
 	// draw_vertex_ids( netN );
-	_draw_vertex_ids( _fig.netNbr() );
+	_draw_vertex_ids( _fig->netNbr() );
 	
 	// glColor4d( 1.0, 0.5, 0.0, 0.4 );
 	glColor4d( 0.3, 0.3, 0.3, 0.4 );
 	glLineWidth( 1.0 );
 	// draw_network( netN );
-	_draw_network( _fig.netNbr() );
+	_draw_network( _fig->netNbr() );
 	
 	glPushMatrix();
 	glTranslated( -offset, -offset, 0.0 );
 	glColor4d( 1.0, 0.5, 0.0, 0.7 );
 	glLineWidth( 5.0 );
 	// draw_network( netP );
-	_draw_network( _fig.netPrx() );
+	_draw_network( _fig->netPrx() );
 	glPopMatrix();
     
 #ifdef USING_SIMILARITY_CONJOINING
@@ -603,16 +712,16 @@ void GLDrawing::Display( void )
 	glColor4d( 0.0, 0.0, 1.0, 0.7 );
 	glLineWidth( 5.0 );
 	// draw_network( netS );
-	_draw_network( _fig.netSim() );
+	_draw_network( _fig->netSim() );
 	glPopMatrix();
 #endif	// USING_SIMILARITY_CONJOINING
 	
 	// drawing concave polygons
 	glColor4d( 0.0, 0.5, 0.0, 0.8 );
 	glLineWidth( 2.0 );
-	_draw_hulls( _fig.hullPrx() );
+	_draw_hulls( _fig->hullPrx() );
 #ifdef USING_SIMILARITY_CONJOINING
-	_draw_hulls( _fig.hullSim() );
+	_draw_hulls( _fig->hullSim() );
 #endif	// USING_SIMILARITY_CONJOINING
     }
 
@@ -623,6 +732,241 @@ void GLDrawing::Display( void )
 
     // Skip the swap buffers
     // glutSwapBuffers();
+}
+
+// Function for handling mouse events
+void GLDrawing::Mouse( int button, int state, int x, int y )
+{
+    make_current();
+
+    int keymod = ( Fl::event_state(FL_SHIFT) ? 2 : (Fl::event_state(FL_CTRL) ? 3 : 1 ) );
+    switch ( keymod ) {
+      case 2:
+	  cerr << HERE << " SHIFT button pressed" << endl;
+	  break;
+      case 3:
+	  cerr << HERE << " CTRL button pressed" << endl;
+	  break;
+      case 1:
+	  cerr << HERE << " No modifier button pressed" << endl;
+	  break;
+      default:
+	  cerr << HERE << " This case cannot be expected" << endl;
+	  break;
+    }
+    
+    if ( button == FL_LEFT_MOUSE ) {
+        if ( state ) {
+	    cerr << HERE << " Left mouse pressed " << endl;
+        }
+        else{
+	    cerr << HERE << " Left mouse released " << endl;
+        }
+    }
+    else if ( button == FL_MIDDLE_MOUSE ) {
+        if ( state ) {
+	    cerr << HERE << " Middle mouse pressed " << endl;
+        }
+        else{
+	    cerr << HERE << " Middle mouse released " << endl;
+        }
+    }
+    else if ( button == FL_RIGHT_MOUSE ) {
+        if ( state ) {
+	    cerr << HERE << " Right mouse pressed " << endl;
+        }
+        else{
+	    cerr << HERE << " Right mouse released " << endl;
+        }
+    }
+
+    redraw();
+}
+
+
+// Function for handling mouse dragging events
+void GLDrawing::Motion( int x, int y )
+{
+    // cerr << HERE << "GLDrawing::Motion" << endl;
+}
+
+// Function for handling mouse moving events
+void GLDrawing::PassiveMotion( int x, int y )
+{
+    // cerr << HERE << "GLDrawing::PassiveMotion" << endl;
+}
+
+// Function for handling keyboard events
+void GLDrawing::Keyboard( int key, int x, int y )
+{
+    static unsigned int	counter = 0;		
+    ostringstream	ostr;
+    istringstream	istr;
+    string		line;
+    vector< Polygon2 >  bandSet;
+    vector< Set >	globSet;
+    string		inname, outname, imgname, dirname;
+    struct stat		statbuf;
+    
+    cerr << HERE << "GLDrawing::Keyboard" << endl;
+    make_current();
+
+    switch ( key ) {
+      case 'c':
+	  _fig->clear();
+	  _nPolys = 0;
+	  break;
+      // Calls this after loading the line drawing data
+      case 'a':
+      case 'A':
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  _fig->conjoin();
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  _fig->optimize();
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  _isometric( _fig->expand() );
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+#ifdef RECORD_SNAPSHOTS
+	  inname = "data/" + headname + "-in.dat";
+	  cerr << HERE << " inname data ======> : " << inname << endl;
+	  save_drawing( inname.c_str() );
+	  dirname = "png/" + headname;
+	  if ( ! stat( dirname.c_str(), &statbuf ) ) {
+	      cerr << HERE << dirname << " already created" << endl;
+	  }
+	  else {
+	      if ( ! mkdir( dirname.c_str(), 0755 ) ) {
+		  cerr << HERE << dirname << " successfully created" << endl;
+	      }
+	  }
+	  inname = dirname + "/in.png";
+	  cerr << HERE << " inname png ======> : " << inname << endl;
+	  capture_drawing( inname.c_str() );
+#endif	// RECORD_SNAPSHOTS
+	  // Delete the last aggregation
+	  // fig.expand().erase( fig.expand().end() - 1 );
+	  // Hierarchical clustering
+	  _worksp->dendrogram().set( _fig->expand() );
+	  _worksp->dendrogram().merge();
+	  _worksp->cluster() = _worksp->dendrogram().retrieve( _cut_threshold );
+	  // cerr << HERE << " cluster.size = " << cluster.size() << endl;
+	  break;
+      case 'e':			// exhaustive simplify
+	  _fig->simplify();
+	  _fig->triangulate();
+	  break;
+      case 'r':			// squaring building polygons
+	  _fig->square();
+	  _fig->triangulate();
+	  break;
+      case 'o':
+	  _fig->optimize();
+	  _isometric( _fig->expand() );
+	  break;
+      case 'l':
+	  cerr << "Input the file name for loading data : ";
+	  getline( cin, line );
+	  _load_drawing( line.c_str() );
+	  // isLoaded = false;
+	  break;      
+      case 's':
+	  cerr << "Input the file name for saving data : ";
+	  getline( cin, line );
+	  _save_drawing( line.c_str() );
+	  break;
+      case 'j':
+	  _isConjoined = !_isConjoined;
+	  if ( _isConjoined ) cerr << HERE << " isConjoined TRUE" << endl;
+	  else cerr << HERE << " isConjoined FALSE" << endl;
+	  break;
+      case 'F':
+	  _isFilled = !_isFilled;
+#ifdef SKIP
+	  if ( _isFilled ) {
+	      cerr << HERE << " isFilled TRUE" << endl;
+	      glutSetWindow( win_drawing );
+	      glClearColor( 0.0, 0.0, 0.0, 1.0 );
+	      glutSetWindow( win_design );
+	      glClearColor( 0.0, 0.0, 0.0, 1.0 );
+	      glutSetWindow( win_chart );
+	      glClearColor( 0.0, 0.0, 0.0, 1.0 );
+	  }
+	  else {
+	      cerr << HERE << " isFilled FALSE" << endl;
+	      glutSetWindow( win_drawing );
+	      glClearColor( 1.0, 1.0, 1.0, 1.0 );
+	      glutSetWindow( win_design );
+	      glClearColor( 1.0, 1.0, 1.0, 1.0 );
+	      glutSetWindow( win_chart );
+	      glClearColor( 1.0, 1.0, 1.0, 1.0 );
+	  }
+#endif	// SKIP
+	  break;
+      case 'W':
+	  _isWrapped = !_isWrapped;
+	  if ( _isWrapped ) cerr << HERE << " isWrapped TRUE" << endl;
+	  else cerr << HERE << " isWrapped FALSE" << endl;
+	  if ( _isWrapped ) _fig->initWrapper();
+	  break;
+      case 'P':
+	  _isPlotted = !_isPlotted;
+	  if ( _isPlotted ) cerr << HERE << " isPlotted TRUE" << endl;
+	  else cerr << HERE << " isPlotted FALSE" << endl;
+	  break;
+      case 'D':
+	  ostr << setw( 3 ) << setfill( '0' ) << counter++ << ends;
+	  imgname = _headname + "-drawing-" + ostr.str().c_str() + ".png";
+	  // cerr << " Input file name : " << ends;
+	  // getline( cin, line );
+	  // capture_drawing( line.c_str() );
+	  cerr << " Capture the drawing window and save to " << imgname.c_str() << endl;
+	  _capture( imgname.c_str() );
+	  return;
+#ifdef SKIP
+      case 'f':
+	  cerr << HERE << " pickID = " << pickID << endl;
+	  bandSet.clear();
+	  globSet.clear();
+#ifdef USE_CONVEX_HULLS
+	  fig.aggregate( pickID );
+	  fig.triangulate();
+#else // USE_CONVEX_HULLS
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  cerr << HERE << " Number of polygons = " << coverBand[ pickID ].size() << endl;
+	  for ( unsigned int k = 0; k < coverBand[ pickID ].size(); ++k ) {
+	      bandSet.push_back( coverBand[ pickID ][ k ] );
+	      globSet.push_back( coverGlob[ pickID ][ k ] );
+	  }
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  fig.aggregate( pickID, bandSet, globSet );
+	  fig.triangulate();
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+#endif	// USE_CONVEX_HULLS
+	  isometric( fig.expand() );
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  pickID = NO_NAME;
+	  // bandID = NO_NAME;
+	  mode = FREE;
+	  cerr << HERE << " mode => free" << endl;
+#ifdef RECORED_SNAPSHOTS
+	  outname = "data/" + headname + "-out.dat";
+	  cerr << HERE << " outname ======> : " << outname << endl;
+	  save_drawing( outname.c_str() );
+	  dirname = "png/" + headname;
+	  outname = dirname + "/out.png";
+	  cerr << HERE << " outname ======> : " << outname << endl;
+	  capture_drawing( outname.c_str() );
+#endif	// RECORED_SNAPSHOTS
+	  break;
+#endif	// SKIP
+      case 'q':
+	  exit( 0 );
+	  break;
+      default:
+	  break;
+    }
+
+    redraw();
 }
 
 

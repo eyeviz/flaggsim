@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-06 18:46:17 shigeo"
+//				Time-stamp: "2023-08-07 15:47:52 shigeo"
 //
 //==============================================================================
 
@@ -43,6 +43,7 @@ using namespace std;
 #include <opencv2/opencv.hpp>
 
 #include "GLDrawing.h"
+#include "GLLayout.h"
 
 
 //------------------------------------------------------------------------------
@@ -71,16 +72,21 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Type definitions
 //------------------------------------------------------------------------------
-typedef enum {
-    FREE, SELECTED
-} PickMode;
+//typedef enum {
+//FREE, SELECTED
+//} PickMode;
 
 
 //------------------------------------------------------------------------------
 //	GLobal variables
 //------------------------------------------------------------------------------
-GLDrawing * gl_drawing = NULL;
+Fl_Window *	win_map		= NULL;
+GLDrawing *	gl_drawing	= NULL;
+Fl_Window *	win_design	= NULL;
+GLLayout *	gl_layout	= NULL;
 
+Drawing *	fig		= NULL;
+Workspace *	worksp		= NULL;
 
 //------------------------------------------------------------------------------
 //	
@@ -189,7 +195,7 @@ static bool		isWrapped	= false;
 //static bool		isWrapped	= true;
 static bool		isPlotted	= false;
 
-int num_options_in_line	= NUM_OPTIONS_IN_LINE;
+//int num_options_in_line	= NUM_OPTIONS_IN_LINE;
 
 
 //#define WITH_MIN_LIMITS
@@ -295,12 +301,6 @@ void redraw_all_windows( void )
 //	Graph construction
 //
 //------------------------------------------------------------------------------
-// Clear all data
-void clear_data(void)
-{
-    fig.clear();
-    nPolys = 0;
-}
 
 //------------------------------------------------------------------------------
 //	Label assignment
@@ -2543,6 +2543,12 @@ int main( int argc, char *argv[] )
 #endif	// SKIP
 
     //------------------------------------------------------------------------------
+    //	Allocating memory for variables
+    //------------------------------------------------------------------------------
+    fig		= new Drawing();
+    worksp	= new Workspace();
+
+    //------------------------------------------------------------------------------
     //	Read the configuration file
     //------------------------------------------------------------------------------
     // sytem_config( path );
@@ -2551,12 +2557,17 @@ int main( int argc, char *argv[] )
     Fl::visual( FL_DOUBLE | FL_RGB );
     Fl::get_system_colors();
 
-    Fl_Window * win = new Fl_Window( 100, 100, 480, 480 + 25, "Parent window" );
+//------------------------------------------------------------------------------
+//	Drawing window
+//------------------------------------------------------------------------------
+    Fl_Window * win_map = new Fl_Window( 100, 100, 480, 480 + 25, "Map window" );
 
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
     // Fl_Menu_Bar *menu = new Fl_Menu_Bar(0,0,400,25);		// Create menubar, items..
-    Fl_Menu_Bar *menubar = new Fl_Menu_Bar( 0, 0, win->w(), 25 );		// Create menubar, items..
+
+    // Create menubar, items..
+    Fl_Menu_Bar *menubar = new Fl_Menu_Bar( 0, 0, win_map->w(), 25 );
 
     menubar->add( "&File/&Clear",	"^c",	menu_callback );
     menubar->add( "&File/&Load",	"^l",	menu_callback );
@@ -2571,23 +2582,47 @@ int main( int argc, char *argv[] )
     menubar->add( "&Capture/&Drawing",	"^d",	menu_callback );
     menubar->add( "&Capture/&Layout",	"^l",	menu_callback );
 
-    menubar->add( "&Quit",		"^q",	menu_callback );
+    menubar->add( "&Quit",		"Alt+q",	menu_callback );
     
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
     gl_drawing = new GLDrawing( 0, 25, 480, 480, "Drawing" );
+
+    gl_drawing->setFig		( fig );
+    gl_drawing->setWorkspace	( worksp );
+
     gl_drawing->load_drawing( "akehara-008-case.dat" );
-    gl_drawing->fig().triangulate();
+    // gl_drawing->fig()->triangulate();
+    fig->triangulate();
     
     // gl_drawing->box( FL_FLAT_BOX );
     gl_drawing->begin();
 
     // gl_drawing->mode( FL_RGB | FL_ALPHA | FL_DOUBLE | FL_DEPTH );
     gl_drawing->mode( FL_RGB | FL_DOUBLE );
-    gl_drawing->resizable( win );
+    gl_drawing->resizable( win_map );
 
-    win->end();
-    win->show( argc, argv );
+    win_map->end();
+    win_map->show( argc, argv );
+
+//------------------------------------------------------------------------------
+//	Layout window	
+//------------------------------------------------------------------------------
+    Fl_Window * win_design = new Fl_Window( 580, 100 + 25, 480, 480, "Design window" );
+
+    gl_layout = new GLLayout( 0, 0, 480, 480, "Layout" );
+
+    gl_layout->setFig		( fig );
+    gl_layout->setWorkspace	( worksp );
+
+    gl_layout->begin();
+
+    gl_layout->mode( FL_RGB | FL_DOUBLE );
+    gl_layout->resizable( win_design );
+
+    win_design->end();
+    win_design->show( argc, argv );
+
     return Fl::run();
 }
 

@@ -10,6 +10,7 @@ else
      PREFIX = /usr/local
 endif     
 ##########
+# -g
 CFLAGS =	-Ofast -Wno-deprecated -Wno-\#pragma-messages \
       		-Wno-format -Wno-parentheses \
 		-Wno-reorder-ctor -Wno-char-subscripts \
@@ -40,11 +41,16 @@ SRC =           \
 		Dijkstra.cpp \
 		Triangulate.cpp \
 		\
+		CSVIO.cpp \
+		\
 		Spatial.cpp \
 		Contour.cpp \
 		Drawing.cpp \
+		Workspace.cpp \
 		\
+		GLBase.cpp \
     		GLDrawing.cpp \
+		GLLayout.cpp \
 		\
 		main.cpp \
 		\
@@ -65,11 +71,16 @@ HDR =	        \
 		Dijkstra.h \
 		Triangulate.h \
 		\
+		CSVIO.h \
+		\
 		Spatial.h \
 		Contour.h \
 		Drawing.h \
+		Workspace.h \
 		\
+		GLBase.h \
     		GLDrawing.h \
+		GLLayout.h \
 		\
     		GCoptimization.h \
 		LinkedBlockList.h \

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-06 18:54:26 shigeo"
+//				Time-stamp: "2023-08-07 17:21:26 shigeo"
 //
 //==============================================================================
 
@@ -32,7 +32,10 @@ using namespace std;
 
 
 #include "Common.h"
+#include "CGAL.h"
 #include "Drawing.h"
+#include "Workspace.h"
+
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -55,23 +58,61 @@ class GLDrawing : public Fl_Gl_Window {
 
   private:
 
-    void draw( void );
-    void resize( int x_, int y_, int w_, int h_ );
-#ifdef SKIP
-    int  handle( int ev );
-#endif	// SKIP
+    void draw	( void );
+    void resize	( int x_, int y_, int w_, int h_ );
+    int  handle	( int ev );
     
   protected:
     
+    Drawing		* _fig;
+    Workspace		* _worksp;
+
     bool		_isConjoined;
     bool		_isFilled;
     bool		_isWrapped;
     bool		_isPlotted;
 
-    Drawing		_fig;
+    string		_headname;
+
     unsigned int	_nPolys;
-
-
+    
+#ifdef SKIP
+    const double	interval_scale		= 100.0;
+    float		interval_spinner =
+	( float )( interval_scale * Drawing::interval_threshold );
+    const float	interval_ceil		=  1.0;
+    const float	interval_roof		= 20.0;
+    // ------------------------------
+    const float	data_cost_gap		=  1.0;
+    float		min_data_spinner	= ( float )Drawing::data_cost_lower;
+    float		max_data_spinner	= ( float )Drawing::data_cost_upper;
+    const float	data_cost_ceil		=  2.0;
+    // const float	data_cost_roof		= 12.0;
+    const float	data_cost_roof		= 16.0;
+    // ------------------------------
+    const float	smooth_cost_gap		=  1.0;
+    float		min_smooth_spinner	= ( float )Drawing::smooth_cost_lower;
+    float		max_smooth_spinner	= ( float )Drawing::smooth_cost_upper;
+    const float	smooth_cost_ceil	=  1.0;
+    // const float	smooth_cost_roof	=  5.0;
+    const float	smooth_cost_roof	= 10.0;
+    // ------------------------------
+    const float	label_cost_gap		=  1.0;
+    float		min_label_spinner	= ( float )Drawing::label_cost_lower;
+    float		max_label_spinner	= ( float )Drawing::label_cost_upper;
+    const float	label_cost_ceil		=  2.0;
+    //const float	label_cost_roof		= 10.0;
+    const float	label_cost_roof		= 16.0;
+    // ------------------------------
+#endif	// SKIP
+    double		_cut_threshold		= 20.0;
+#ifdef SKIP
+    float		cut_threshold_spinner	= ( float )cut_threshold;
+    const float	cut_threshold_ceil	=  5.0;
+    const float	cut_threshold_roof	= 50.0;
+    // ------------------------------
+#endif	// SKIP
+    
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
@@ -87,11 +128,19 @@ class GLDrawing : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
+    void _retrieve_headname	( const char * args );
     void _load_drawing		( const char * filename );
     void _save_drawing		( const char * filename );
     void _capture		( const char * filename );
+
     
-  public:
+//------------------------------------------------------------------------------
+//	Functions for label cost optimization
+//------------------------------------------------------------------------------
+    void _isometric		( vector< Expansion > & expand );
+
+
+public:
 
 //------------------------------------------------------------------------------
 //	Constructors
@@ -107,6 +156,18 @@ class GLDrawing : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
+    void setFig		( Drawing * __fig )	{ _fig = __fig; }
+    void setWorkspace	( Workspace * __worksp )
+						{ _worksp = __worksp; }
+
+    Drawing * fig	( void )		{ return _fig; }
+
+    const Linkage & dendrogram( void ) const	{ return _worksp->dendrogram(); }
+    Linkage & dendrogram( void )		{ return _worksp->dendrogram(); }
+
+    const vector< Set > & cluster( void ) const	{ return _worksp->cluster(); }
+    vector< Set > & cluster( void )		{ return _worksp->cluster(); }
+
     const bool & isConjoined( void ) const 	{ return _isConjoined; }
     void setConjoined( void )			{ _isConjoined = true; }
     void clearConjoined( void )			{ _isConjoined = false; }
@@ -123,21 +184,16 @@ class GLDrawing : public Fl_Gl_Window {
     void setPlotted( void )			{ _isPlotted = true; }
     void clearPlotted( void )			{ _isPlotted = false; }
 
-    const Drawing & fig( void ) const		{ return _fig; }
-    Drawing & fig( void )			{ return _fig; }
-
 //------------------------------------------------------------------------------
 //	Fundamental functions for OpenGL Window
 //------------------------------------------------------------------------------
     void InitGL		( void );
     void Resize		( int w, int h );
     void Display	( void );
-#ifdef SKIP
     void Mouse		( int button, int state, int x, int y );
     void Motion		( int x, int y );
     void PassiveMotion	( int x, int y );
     void Keyboard	( int key, int x, int y );
-#endif	// SKIP
     
 //------------------------------------------------------------------------------
 //	Functions for File I/O
