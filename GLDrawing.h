@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 17:21:26 shigeo"
+//				Time-stamp: "2023-08-07 19:00:44 shigeo"
 //
 //==============================================================================
 
@@ -25,17 +25,7 @@ using namespace std;
 #include <GL/glut.h>
 #endif
 
-#include <FL/gl.h>
-#include <FL/Fl.H>
-#include <FL/Fl_Gl_Window.H>
-#include <FL/Fl_Menu_Bar.H>
-
-
-#include "Common.h"
-#include "CGAL.h"
-#include "Drawing.h"
-#include "Workspace.h"
-
+#include "GLBase.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -54,25 +44,15 @@ using namespace std;
 //	Defining Classes
 //------------------------------------------------------------------------------
 
-class GLDrawing : public Fl_Gl_Window {
+class GLDrawing : public GLBase {
 
   private:
 
-    void draw	( void );
-    void resize	( int x_, int y_, int w_, int h_ );
-    int  handle	( int ev );
-    
   protected:
     
-    Drawing		* _fig;
-    Workspace		* _worksp;
-
     bool		_isConjoined;
-    bool		_isFilled;
     bool		_isWrapped;
     bool		_isPlotted;
-
-    string		_headname;
 
     unsigned int	_nPolys;
     
@@ -116,12 +96,10 @@ class GLDrawing : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
-    void _string2D		( double x, double y, const char * str );
     void _draw_vertex_ids	( Network & g );
     void _draw_vertex_ids	( Directed & g );
     void _draw_network		( Network & g );
     void _draw_directed		( Directed & g );
-    void _draw_polygon		( Polygon2 & poly );
     void _draw_polygon_ids	( const Drawing & fig );
     void _draw_hulls		( vector< Polygon2 > & hull );
 
@@ -131,7 +109,6 @@ class GLDrawing : public Fl_Gl_Window {
     void _retrieve_headname	( const char * args );
     void _load_drawing		( const char * filename );
     void _save_drawing		( const char * filename );
-    void _capture		( const char * filename );
 
     
 //------------------------------------------------------------------------------
@@ -156,25 +133,9 @@ public:
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
-    void setFig		( Drawing * __fig )	{ _fig = __fig; }
-    void setWorkspace	( Workspace * __worksp )
-						{ _worksp = __worksp; }
-
-    Drawing * fig	( void )		{ return _fig; }
-
-    const Linkage & dendrogram( void ) const	{ return _worksp->dendrogram(); }
-    Linkage & dendrogram( void )		{ return _worksp->dendrogram(); }
-
-    const vector< Set > & cluster( void ) const	{ return _worksp->cluster(); }
-    vector< Set > & cluster( void )		{ return _worksp->cluster(); }
-
     const bool & isConjoined( void ) const 	{ return _isConjoined; }
     void setConjoined( void )			{ _isConjoined = true; }
     void clearConjoined( void )			{ _isConjoined = false; }
-
-    const bool & isFilled( void ) const 	{ return _isFilled; }
-    void setFilled( void )			{ _isFilled = true; }
-    void clearFilled( void )			{ _isFilled = false; }
 
     const bool & isWrapped( void ) const 	{ return _isWrapped; }
     void setWrapped( void )			{ _isWrapped = true; }
@@ -204,17 +165,7 @@ public:
     void save_drawing		( const char * filename ) {
 	_save_drawing( filename );
     }
-    void capture		( const char * filename ) {
-	_capture( filename );
-    }
 
-
-#ifdef WITH_MENU
-    void initMenus( void );
-#endif	// WITH_MENU
-    
-
-    
 //------------------------------------------------------------------------------
 //	Class name
 //------------------------------------------------------------------------------

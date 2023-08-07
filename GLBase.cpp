@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 16:58:09 shigeo"
+//				Time-stamp: "2023-08-07 21:01:41 shigeo"
 //
 //==============================================================================
 
@@ -37,17 +37,24 @@ string GLBase::_headname;
 // function for handling redrawing events
 void GLBase::draw( void )
 {
-    if(!context_valid()){
+    if ( !context_valid() ) {
 	// context_valid() : OpenGLコンテキストが生成された際にfalseとなる．draw関数呼び出し後trueになる．
 	InitGL();
     }
-    if(!valid()){
+    if ( !valid() ) {
 	// valid() : OpenGLコンテキストが生成 or リサイズされた際にfalseとなる．draw関数呼び出し後trueになる．
 	Resize(w(), h());
     }
     
     // OpenGL描画
     Display();
+
+#ifdef SKIP
+    // Redrawing other associative windows
+    cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
+    for ( unsigned int i = 0; i < _flwin.size(); ++i )
+	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
+#endif	// SKIP
 }
 
 
@@ -72,9 +79,11 @@ int GLBase::handle( int ev )
       case FL_DRAG:
 	  Motion( Fl::event_x(), Fl::event_y() );
 	  break;
+#ifdef WITH_PASSIVE_MOTION
       case FL_MOVE:
 	  PassiveMotion( Fl::event_x(), Fl::event_y() );
 	  break;
+#endif	// SKIP_PASSIVE_MOTION
       case FL_KEYDOWN:
 	  Keyboard( Fl::event_key(), Fl::event_x(), Fl::event_y() );
 	  break;
@@ -130,7 +139,7 @@ void GLBase::_string2D( double x, double y, const char *str )
 // Draw the set of convex hulls
 void GLBase::_draw_polygon( Polygon2 & poly )
 {
-    cerr << HERE << " Number of corners = " << poly.size() << endl;
+    // cerr << HERE << " Number of corners = " << poly.size() << endl;
 
     glBegin( GL_LINE_LOOP );
     for ( unsigned int i = 0; i < poly.size(); ++i ) {
@@ -202,6 +211,7 @@ void GLBase::_capture( const char * name )
 GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
     : Fl_Gl_Window( _x, _y, _w, _h, _l )  	
 {
+    _flwin.clear();
     _isFilled		= false;
 
     resizable( this );
@@ -224,7 +234,7 @@ GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
 //
 GLBase::~GLBase()
 {
-
+    _flwin.clear();
 }
 
 
@@ -329,13 +339,13 @@ void GLBase::Mouse( int button, int state, int x, int y )
 // Function for handling mouse dragging events
 void GLBase::Motion( int x, int y )
 {
-    // cerr << HERE << "GLBase::Motion" << endl;
+    cerr << HERE << "GLBase::Motion" << endl;
 }
 
 // Function for handling mouse moving events
 void GLBase::PassiveMotion( int x, int y )
 {
-    // cerr << HERE << "GLBase::PassiveMotion" << endl;
+    cerr << HERE << "GLBase::PassiveMotion" << endl;
 }
 
 // Function for handling keyboard events

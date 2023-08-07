@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 17:21:09 shigeo"
+//				Time-stamp: "2023-08-07 21:05:59 shigeo"
 //
 //==============================================================================
 
@@ -16,6 +16,7 @@
 //------------------------------------------------------------------------------
 #include <iostream>
 #include <string> 
+#include <vector> 
 using namespace std;
 
 // OpenGL library
@@ -55,12 +56,14 @@ class GLBase : public Fl_Gl_Window {
 
   protected:
 
-    Drawing		* _fig;
-    Workspace		* _worksp;
+    vector< Fl_Gl_Window * >	_flwin;
 
-    bool		_isFilled;
+    Drawing			* _fig;
+    Workspace			* _worksp;
 
-    static string	_headname;
+    bool			_isFilled;
+
+    static string		_headname;
 
 //------------------------------------------------------------------------------
 //	Fundamental functions
@@ -90,6 +93,9 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
+    void addFlWin	( Fl_Gl_Window * ptr )  { _flwin.push_back( ptr ); }
+    void clearFlWin	( void )		{ _flwin.clear(); }
+
     void setFig		( Drawing * __fig )	{ _fig = __fig; }
     void setWorkspace	( Workspace * __worksp )
 						{ _worksp = __worksp; }

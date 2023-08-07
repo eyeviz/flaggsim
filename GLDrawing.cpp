@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 17:24:56 shigeo"
+//				Time-stamp: "2023-08-07 21:06:22 shigeo"
 //
 //==============================================================================
 
@@ -38,98 +38,11 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Private Functions
 //------------------------------------------------------------------------------
-// function for handling redrawing events
-void GLDrawing::draw( void )
-{
-    if(!context_valid()){
-	// context_valid() : OpenGLコンテキストが生成された際にfalseとなる．draw関数呼び出し後trueになる．
-	InitGL();
-    }
-    if(!valid()){
-	// valid() : OpenGLコンテキストが生成 or リサイズされた際にfalseとなる．draw関数呼び出し後trueになる．
-	Resize(w(), h());
-    }
-    
-    // OpenGL描画
-    Display();
-}
 
-
-// function for handling resizing events
-void GLDrawing::resize(int x_, int y_, int w_, int h_)
-{
-    Fl_Gl_Window::resize(x_, y_, w_, h_);
-    //Resize(w_, h_);	// リサイズ処理はこちらにおいてもよい．
-}
-
-
-// Event handler
-int GLDrawing::handle( int ev )
-{
-    switch ( ev ) {
-      case FL_PUSH:
-	  Mouse( Fl::event_button(), 1, Fl::event_x(), Fl::event_y() );
-	  break;
-      case FL_RELEASE:
-	  Mouse( Fl::event_button(), 0, Fl::event_x(), Fl::event_y() );
-	  break;
-      case FL_DRAG:
-	  Motion( Fl::event_x(), Fl::event_y() );
-	  break;
-      case FL_MOVE:
-	  PassiveMotion( Fl::event_x(), Fl::event_y() );
-	  break;
-      case FL_KEYDOWN:
-	  Keyboard( Fl::event_key(), Fl::event_x(), Fl::event_y() );
-	  break;
-      case FL_KEYUP:
-      case FL_SHORTCUT:
-	  break;
-      case FL_FOCUS:
-      case FL_UNFOCUS:
-	  break;
-      default:
-	  return Fl_Window::handle( ev );
-    }
-
-    return 1;
-}
 
 //------------------------------------------------------------------------------
 //	Protected Functions
 //------------------------------------------------------------------------------
-// Function for placing character strings
-void GLDrawing::_string2D( double x, double y, const char *str )
-{
-    double basex = x;
-    double basey = y;
-    glRasterPos2d( basex, basey );
-
-    for (; *str != 0; str++) {
-        if ( *str == '\n' ) {
-            glRasterPos2i( basex, basey );
-        }
-        else {
-            // glutBitmapCharacter( FUTL_FONT_TYPE, *str );
-            // GLUT_BITMAP_8_BY_13
-            // GLUT_BITMAP_9_BY_15
-            // GLUT_BITMAP_TIMES_ROMAN_10
-            // GLUT_BITMAP_TIMES_ROMAN_24
-            // GLUT_BITMAP_HELVETICA_10
-            // GLUT_BITMAP_HELVETICA_12
-            // GLUT_BITMAP_HELVETICA_18
-            // glutBitmapCharacter( GLUT_BITMAP_8_BY_13, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_9_BY_15, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_12, *str );
-            glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_10, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, *str );
-        }
-    }
-}
-
-
 // Draw the neighbor graph
 void GLDrawing::_draw_vertex_ids( Network & g )
 {
@@ -213,18 +126,6 @@ void GLDrawing::_draw_directed( Directed & g )
 	glVertex2d( pointS.x(), pointS.y() );
 	glVertex2d( pointT.x(), pointT.y() );
 	glColor3d( 0.0, 0.4, 0.8 );
-    }
-    glEnd();
-}
-
-
-// Draw the set of convex hulls
-void GLDrawing::_draw_polygon( Polygon2 & poly )
-{
-    // cerr << HERE << " Number of corners = " << poly.size() << endl;
-    glBegin( GL_LINE_LOOP );
-    for ( unsigned int i = 0; i < poly.size(); ++i ) {
-	glVertex2d( poly[ i ].x(), poly[ i ].y() );
     }
     glEnd();
 }
@@ -405,42 +306,6 @@ void GLDrawing::_save_drawing( const char * filename )
     cerr << " Finished saving the data!" << endl;  
 }
 
-// Capture the window as a image file
-void GLDrawing::_capture( const char * name )
-{
-    static cv::Mat              image;          // Mesh image
-    static GLubyte *            pixel   = NULL;
-
-    // glutSetWindow( win_drawing );   
-
-    // unsigned int		wx = glutGet( GLUT_WINDOW_X );
-    // unsigned int		wy = glutGet( GLUT_WINDOW_Y );
-    // unsigned int		ww = glutGet( GLUT_WINDOW_WIDTH );
-    // unsigned int		wh = glutGet( GLUT_WINDOW_HEIGHT );
-    unsigned int		ww = this->w();
-    unsigned int		wh = this->h();
-    // const unsigned int          nChannels = 3;
-    const unsigned int          nChannels = 4;
-
-    Display();
-    Display();
-
-    cerr << HERE << " Window size : " << ww << " x " << wh << endl;
-
-    if ( pixel == NULL ) pixel = new GLubyte [ ww * wh * nChannels ];
-    // glReadPixels( 0, 0, ww, wh, GL_RGB, GL_UNSIGNED_BYTE, pixel );
-    glReadPixels( 0, 0, ww, wh, GL_RGBA, GL_UNSIGNED_BYTE, pixel );
-
-    // image = cv::Mat( cv::Size( ww, wh ), CV_8UC3 );
-    image = cv::Mat( cv::Size( ww, wh ), CV_8UC4 );
-    memcpy( image.data, pixel, ww * wh * nChannels );
-
-    cv::cvtColor( image, image, cv::COLOR_BGR2RGB );
-    cv::flip( image, image, 0 );
-    cv::imwrite( name, image );
-
-    cerr << "Capturing the drawing window as " << name << " ... done." << endl;
-}
 
 // processing the ressults of label cost optimization
 void GLDrawing::_isometric( vector< Expansion > & expand )
@@ -516,10 +381,9 @@ void GLDrawing::_isometric( vector< Expansion > & expand )
 //	none
 //
 GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l ) 
-    : Fl_Gl_Window( _x, _y, _w, _h, _l )  	
+    : GLBase( _x, _y, _w, _h, _l )  	
 {
     _isConjoined	= false;
-    _isFilled		= false;
     _isWrapped		= false;
     _isPlotted		= false;
 
@@ -787,13 +651,13 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 // Function for handling mouse dragging events
 void GLDrawing::Motion( int x, int y )
 {
-    // cerr << HERE << "GLDrawing::Motion" << endl;
+    cerr << HERE << "GLDrawing::Motion" << endl;
 }
 
 // Function for handling mouse moving events
 void GLDrawing::PassiveMotion( int x, int y )
 {
-    // cerr << HERE << "GLDrawing::PassiveMotion" << endl;
+    cerr << HERE << "GLDrawing::PassiveMotion" << endl;
 }
 
 // Function for handling keyboard events
@@ -967,6 +831,10 @@ void GLDrawing::Keyboard( int key, int x, int y )
     }
 
     redraw();
+    // Redrawing other associative windows
+    // cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
+    for ( unsigned int i = 0; i < _flwin.size(); ++i )
+	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
 }
 
 

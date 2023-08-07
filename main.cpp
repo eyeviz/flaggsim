@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 15:47:52 shigeo"
+//				Time-stamp: "2023-08-07 21:23:41 shigeo"
 //
 //==============================================================================
 
@@ -88,8 +88,15 @@ GLLayout *	gl_layout	= NULL;
 Drawing *	fig		= NULL;
 Workspace *	worksp		= NULL;
 
+int		map_width	= HUGE_WIDTH;
+int		map_height	= HUGE_HEIGHT;
+int		design_width	= HUGE_WIDTH;
+int		design_height	= HUGE_HEIGHT;
+int		panel_width	= HUGE_WIDTH/2;
+int		panel_height	= HUGE_HEIGHT;
+
 //------------------------------------------------------------------------------
-//	
+//	SKIPPING FROM HERE
 //------------------------------------------------------------------------------
 #ifdef SKIP
 
@@ -131,12 +138,6 @@ Workspace *	worksp		= NULL;
 //	variables for GLUT
 //------------------------------------------------------------------------------
 
-int		drawing_width	= HUGE_WIDTH;
-int		drawing_height	= HUGE_HEIGHT;
-int		design_width	= HUGE_WIDTH;
-int		design_height	= HUGE_HEIGHT;
-int		chart_width	= HUGE_WIDTH;
-int		chart_height	= HUGE_HEIGHT;
 
 // mouse position
 Point2		drawing_cursor;
@@ -2558,35 +2559,15 @@ int main( int argc, char *argv[] )
     Fl::get_system_colors();
 
 //------------------------------------------------------------------------------
-//	Drawing window
+//	Map window
 //------------------------------------------------------------------------------
-    Fl_Window * win_map = new Fl_Window( 100, 100, 480, 480 + 25, "Map window" );
+    Fl_Window * win_map = new Fl_Window( 0, 0,
+					 map_width, map_height,
+					 "Map window" );
 
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
-    // Fl_Menu_Bar *menu = new Fl_Menu_Bar(0,0,400,25);		// Create menubar, items..
-
-    // Create menubar, items..
-    Fl_Menu_Bar *menubar = new Fl_Menu_Bar( 0, 0, win_map->w(), 25 );
-
-    menubar->add( "&File/&Clear",	"^c",	menu_callback );
-    menubar->add( "&File/&Load",	"^l",	menu_callback );
-    menubar->add( "&File/&Save",	"^s",	menu_callback );
-    
-    menubar->add( "&Edit/con&Join",	"^j",	menu_callback );
-    menubar->add( "&Edit/&Optimize",	"^o",	menu_callback );
-    
-    menubar->add( "&Switch/Conjoined",	0,	menu_callback );
-    menubar->add( "&Switch/Wrapped",	0,	menu_callback );
-
-    menubar->add( "&Capture/&Drawing",	"^d",	menu_callback );
-    menubar->add( "&Capture/&Layout",	"^l",	menu_callback );
-
-    menubar->add( "&Quit",		"Alt+q",	menu_callback );
-    
-    //------------------------------------------------------------------------------
-    //------------------------------------------------------------------------------
-    gl_drawing = new GLDrawing( 0, 25, 480, 480, "Drawing" );
+    gl_drawing = new GLDrawing( 0, 0, map_width, map_height, "Drawing" );
 
     gl_drawing->setFig		( fig );
     gl_drawing->setWorkspace	( worksp );
@@ -2606,23 +2587,59 @@ int main( int argc, char *argv[] )
     win_map->show( argc, argv );
 
 //------------------------------------------------------------------------------
-//	Layout window	
+//	Design window	
 //------------------------------------------------------------------------------
-    Fl_Window * win_design = new Fl_Window( 580, 100 + 25, 480, 480, "Design window" );
+    Fl_Window * win_design = new Fl_Window( map_width, 0,
+					    design_width, design_height,
+					    "Design window" );
 
-    gl_layout = new GLLayout( 0, 0, 480, 480, "Layout" );
+    gl_layout = new GLLayout( 0, 0, design_width, design_height, "Layout" );
 
     gl_layout->setFig		( fig );
     gl_layout->setWorkspace	( worksp );
 
     gl_layout->begin();
 
-    gl_layout->mode( FL_RGB | FL_DOUBLE );
-    gl_layout->resizable( win_design );
+    gl_layout->mode		( FL_RGB | FL_DOUBLE );
+    gl_layout->resizable	( win_design );
 
     win_design->end();
     win_design->show( argc, argv );
 
+//------------------------------------------------------------------------------
+//	Panel window	
+//------------------------------------------------------------------------------
+    Fl_Window * win_panel = new Fl_Window( map_width+design_width, 0,
+					   panel_width, panel_height,
+					   "Panel window" );
+
+    // Create menubar, items..
+    Fl_Menu_Bar *menubar = new Fl_Menu_Bar( 0, 0, win_map->w(), 25 );
+
+    menubar->add( "&File/&Clear",	0,	menu_callback );
+    menubar->add( "&File/&Load",	0,	menu_callback );
+    menubar->add( "&File/&Save",	0,	menu_callback );
+    
+    menubar->add( "&Edit/con&Join",	0,	menu_callback );
+    menubar->add( "&Edit/&Optimize",	0,	menu_callback );
+    
+    menubar->add( "&Switch/Conjoined",	0,	menu_callback );
+    menubar->add( "&Switch/Wrapped",	0,	menu_callback );
+
+    menubar->add( "&Capture/&Drawing",	0,	menu_callback );
+    menubar->add( "&Capture/&Layout",	0,	menu_callback );
+
+    menubar->add( "&Quit",		0,	menu_callback );
+    
+    win_panel->end();
+    win_panel->show( argc, argv );
+    
+//------------------------------------------------------------------------------
+//	Set mutual redraw functions
+//------------------------------------------------------------------------------
+    gl_drawing->addFlWin	( gl_layout );
+    gl_layout->addFlWin		( gl_drawing );
+    
     return Fl::run();
 }
 

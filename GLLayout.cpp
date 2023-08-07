@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 17:25:21 shigeo"
+//				Time-stamp: "2023-08-07 21:06:49 shigeo"
 //
 //==============================================================================
 
@@ -386,13 +386,13 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 // Function for handling mouse dragging events
 void GLLayout::Motion( int x, int y )
 {
-    // cerr << HERE << "GLLayout::Motion" << endl;
+    cerr << HERE << "GLLayout::Motion" << endl;
 }
 
 // Function for handling mouse moving events
 void GLLayout::PassiveMotion( int x, int y )
 {
-    // cerr << HERE << "GLLayout::PassiveMotion" << endl;
+    cerr << HERE << "GLLayout::PassiveMotion" << endl;
 }
 
 // Function for handling keyboard events
@@ -410,6 +410,10 @@ void GLLayout::Keyboard( int key, int x, int y )
     }
 
     redraw();
+    // Redrawing other associative windows
+    // cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
+    for ( unsigned int i = 0; i < _flwin.size(); ++i )
+	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
 }
 
 
