@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 19:00:44 shigeo"
+//				Time-stamp: "2023-08-08 02:31:19 shigeo"
 //
 //==============================================================================
 
@@ -49,6 +49,8 @@ class GLDrawing : public GLBase {
   private:
 
   protected:
+    
+    GLBase *		_glLayout;
     
     bool		_isConjoined;
     bool		_isWrapped;
@@ -133,6 +135,10 @@ public:
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
+    void setGLLayout( GLBase * __glLayout )	{
+	_glLayout = __glLayout;
+    }
+
     const bool & isConjoined( void ) const 	{ return _isConjoined; }
     void setConjoined( void )			{ _isConjoined = true; }
     void clearConjoined( void )			{ _isConjoined = false; }
@@ -156,6 +162,11 @@ public:
     void PassiveMotion	( int x, int y );
     void Keyboard	( int key, int x, int y );
     
+//------------------------------------------------------------------------------
+//	Redrawing function
+//------------------------------------------------------------------------------
+    virtual void redrawAll	( void );
+
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------

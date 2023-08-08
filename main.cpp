@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 00:25:24 shigeo"
+//				Time-stamp: "2023-08-08 02:34:20 shigeo"
 //
 //==============================================================================
 
@@ -2571,12 +2571,12 @@ int main( int argc, char *argv[] )
 
     gl_layout->setFig		( fig );
     gl_layout->setWorkspace	( worksp );
-
+    
     gl_layout->begin();
 
     gl_layout->mode		( FL_RGB | FL_DOUBLE );
     gl_layout->resizable	( win_design );
-
+    
     win_design->end();
     win_design->show( argc, argv );
 
@@ -2594,8 +2594,10 @@ int main( int argc, char *argv[] )
 //------------------------------------------------------------------------------
 //	Set mutual redraw functions
 //------------------------------------------------------------------------------
-    gl_drawing->addFlWin	( gl_layout );
-    gl_layout->addFlWin		( gl_drawing );
+    gl_layout->setGLDrawing	( gl_drawing );
+    gl_drawing->setGLLayout	( gl_layout );
+    // gl_drawing->addFlWin	( gl_layout );
+    // gl_layout->addFlWin		( gl_drawing );
     
     return Fl::run();
 }

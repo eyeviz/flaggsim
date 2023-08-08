@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 21:06:22 shigeo"
+//				Time-stamp: "2023-08-08 11:19:20 shigeo"
 //
 //==============================================================================
 
@@ -494,7 +494,7 @@ void GLDrawing::Display( void )
 	// Drawing polygons
 	glLineWidth( 1.0 );
 	glColor3d( 0.0, 0.0, 0.0 );
-	cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
+	// cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
 	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
 	    glBegin( GL_LINE_LOOP );
 	    for ( unsigned int j = 0; j < _fig->bound()[ i ].size(); j++ ) {
@@ -518,17 +518,15 @@ void GLDrawing::Display( void )
 	glEnd();
     }
 
-#ifdef SKIP
-    if ( pickID != NO_NAME ) {
-	unsigned int nSegs = coverBand[ pickID ].size();
+    if ( _worksp->pickID() != NO_NAME ) {
+	unsigned int nSegs = _worksp->coverBand()[ _worksp->pickID() ].size();
 	for ( unsigned int i = 0; i < nSegs; ++i ) {
 	    glColor3d( 1.0, 0.5, 0.0 );
 	    glLineWidth( 7.0 );
-	    Polygon2 curPoly = coverBand[ pickID ][ i ];
-	    draw_polygon( curPoly );
+	    Polygon2 curPoly = _worksp->coverBand()[ _worksp->pickID() ][ i ];
+	    _draw_polygon( curPoly );
 	}
     }
-#endif	// SKIP
 
     if ( _isWrapped ) {
 	glDepthFunc( GL_ALWAYS );
@@ -786,31 +784,32 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  cerr << " Capture the drawing window and save to " << imgname.c_str() << endl;
 	  _capture( imgname.c_str() );
 	  return;
-#ifdef SKIP
       case 'f':
-	  cerr << HERE << " pickID = " << pickID << endl;
+	  cerr << HERE << " pickID = " << _worksp->pickID() << endl;
 	  bandSet.clear();
 	  globSet.clear();
 #ifdef USE_CONVEX_HULLS
-	  fig.aggregate( pickID );
+	  fig.aggregate( _worksp->pickID() );
 	  fig.triangulate();
 #else // USE_CONVEX_HULLS
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  cerr << HERE << " Number of polygons = " << coverBand[ pickID ].size() << endl;
-	  for ( unsigned int k = 0; k < coverBand[ pickID ].size(); ++k ) {
-	      bandSet.push_back( coverBand[ pickID ][ k ] );
-	      globSet.push_back( coverGlob[ pickID ][ k ] );
+	  cerr << HERE << " Number of polygons = "
+	       << _worksp->coverBand()[ _worksp->pickID() ].size() << endl;
+	  for ( unsigned int k = 0;
+		k < _worksp->coverBand()[ _worksp->pickID() ].size(); ++k ) {
+	      bandSet.push_back( _worksp->coverBand()[ _worksp->pickID() ][ k ] );
+	      globSet.push_back( _worksp->coverGlob()[ _worksp->pickID() ][ k ] );
 	  }
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  fig.aggregate( pickID, bandSet, globSet );
-	  fig.triangulate();
+	  _fig->aggregate( _worksp->pickID(), bandSet, globSet );
+	  _fig->triangulate();
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 #endif	// USE_CONVEX_HULLS
-	  isometric( fig.expand() );
+	  _isometric( _fig->expand() );
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  pickID = NO_NAME;
+	  _worksp->pickID() = NO_NAME;
 	  // bandID = NO_NAME;
-	  mode = FREE;
+	  _worksp->mode() = FREE;
 	  cerr << HERE << " mode => free" << endl;
 #ifdef RECORED_SNAPSHOTS
 	  outname = "data/" + headname + "-out.dat";
@@ -822,7 +821,6 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  capture_drawing( outname.c_str() );
 #endif	// RECORED_SNAPSHOTS
 	  break;
-#endif	// SKIP
       case 'q':
 	  exit( 0 );
 	  break;
@@ -830,11 +828,15 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  break;
     }
 
+    redrawAll();
+}
+
+
+// Function for redrawing associative windows as well as this one
+void GLDrawing::redrawAll( void )
+{
     redraw();
-    // Redrawing other associative windows
-    // cerr << HERE << " size of associative windows = " << _flwin.size() << endl;
-    for ( unsigned int i = 0; i < _flwin.size(); ++i )
-	if ( _flwin[ i ]->valid() ) _flwin[ i ]->redraw();
+    if ( _glLayout != NULL ) _glLayout->redraw();
 }
 
 

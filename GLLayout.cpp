@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 02:15:50 shigeo"
+//				Time-stamp: "2023-08-08 11:11:56 shigeo"
 //
 //==============================================================================
 
@@ -89,10 +89,10 @@ void GLLayout::_place_option( unsigned int idRow, unsigned int idCol,
 			      vector< Polygon2 > & polys,
 			      const double & data, const double & smooth, const double & label )
 {
-    // #ifdef DEBUG
+#ifdef DEBUG
     cerr << HERE 
 	 << " idRow = " << idRow << " idCol = " << idCol << endl;
-    // #endif	// DEBUG
+#endif	// DEBUG
     // int quarterW = design_width  / _num_options_in_line;
     // int quarterH = design_height / _num_options_in_line;
     int quarterW = this->w() / _num_options_in_line;
@@ -100,16 +100,16 @@ void GLLayout::_place_option( unsigned int idRow, unsigned int idCol,
     int minW = idCol * quarterW;
     int minH = idRow * quarterH;
     
-    // #ifdef DEBUG
+#ifdef DEBUG
     cerr << HERE << " minH = " << minH << " minW = " << minW << endl;
-    // #endif	// DEBUG
+#endif	// DEBUG
     glViewport( minW, minH, quarterW, quarterH );
     gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
     
     if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
     else glColor3d( 0.0, 0.0, 0.0 );
     glLineWidth( 1.0 );
-    cerr << HERE << " polys.size() = " << polys.size() << endl;
+    // cerr << HERE << " polys.size() = " << polys.size() << endl;
     for ( unsigned int i = 0; i < polys.size(); ++i ) {
 	_draw_polygon( polys[ i ] );
     }
@@ -314,6 +314,8 @@ GLLayout::GLLayout( int _x, int _y, int _w, int _h, const char *_l )
 {
     _num_options_in_line
 			= DEFAULT_NUM_OPTIONS_IN_LINE;
+    _glDrawing = NULL;
+
     _left = _middle = _right = 0;
     
     resizable( this );
@@ -379,7 +381,7 @@ void GLLayout::Resize( int w, int h )
 // Function for drawing the window
 void GLLayout::Display( void )
 {
-    cerr << HERE << " in GLLayout::Display" << endl;
+    // cerr << HERE << " in GLLayout::Display" << endl;
 
     vector< Set > & group = _worksp->cluster();
     vector< Expansion > & expand = _fig->expand();
@@ -398,11 +400,11 @@ void GLLayout::Display( void )
 	    matrix_size++;
 	    _num_options_in_line = matrix_size;
 	}
-	cerr << HERE << " matrix_size = " << matrix_size << endl;
-	cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
+	// cerr << HERE << " matrix_size = " << matrix_size << endl;
+	// cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
     } while ( out_of_limit );
 
-    cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
+    // cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
     
 #ifdef SKIP
     if ( coverBand.size() > 9 ) _num_options_in_line = 4;
@@ -453,11 +455,12 @@ void GLLayout::Mouse( int button, int state, int x, int y )
     switch ( button ) {
 	// left mouse event
       case FL_LEFT_MOUSE:
-	  if ( state == FL_PUSH ) {
+	  if ( state ) {
 	      switch ( _worksp->mode() ) {
 		case FREE:
 		    _cursor = Point2( x, y );
 		    if ( _pick( _worksp->pickID(), x, y, button ) ) {
+			cerr << HERE << " select pickID = " << _worksp->pickID() << endl;
 			; // do nothing
 		    }
 		    break;
@@ -465,11 +468,15 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 		    break;
 	      }
 	      _left = 1;
+	      cerr << HERE << " Left is ON " << endl;
 	      if ( _worksp->pickID() != NO_NAME ) {
+		  cerr << HERE << " Button is PRESSED" << endl;
 		  _worksp->isPressed() = true;
 	      }
+	      if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
+	      else cerr << HERE << " mode is SELECTED" << endl;
 	  }
-	  else if ( state == FL_RELEASE ) {
+	  else {
 	      if ( ( _worksp->pickID() != NO_NAME ) && _worksp->isPressed() ) {
 		  switch ( _worksp->mode() ) {
 		    case FREE:
@@ -478,17 +485,23 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 			cerr << HERE << " mode => selected" << endl;
 			break;
 		    case SELECTED:
-			Keyboard( 'f', 0, 0 );
+			cerr << HERE << " Selected the choice No. "
+			     << _worksp->pickID() << endl;
+			_glDrawing->Keyboard( 'f', 0, 0 );
 			break;
 		  }
 	      }
 	      _worksp->isPressed() = false;
+	      cerr << HERE << " Button is RELEASED" << endl;
 	      _left = 0;  
+	      cerr << HERE << " Left is OFF " << endl;
+	      if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
+	      else cerr << HERE << " mode is SELECTED" << endl;
 	  }
 	  break;
 	  // middle mouse event
       case FL_MIDDLE_MOUSE:
-	  if ( state == FL_PUSH ) {
+	  if ( state ) {
 	      _cursor = Point2( x, y );
 	      _middle = 1;
 	  }
@@ -498,11 +511,11 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 	  break;
 	  // right mouse event
       case FL_RIGHT_MOUSE:
-	  if ( state == FL_PUSH ) {
+	  if ( state ) {
 	      _cursor = Point2( x, y );
 	      _right = 1;
 	  }
-	  else if ( state == GLUT_UP ) {
+	  else {
 	      _right = 0;
 	      _worksp->pickID() = NO_NAME;
 	      // reoptBit = false;
@@ -520,15 +533,23 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 // Function for handling mouse dragging events
 void GLLayout::Motion( int x, int y )
 {
-    cerr << HERE << "GLLayout::Motion" << endl;
+    // cerr << HERE << "GLLayout::Motion" << endl;
 
     // cerr << HERE << " in motion_design" << endl;
     if ( _left ) {
 	// cerr << HERE << " pointer = ( " << x << " , " << y << " ) " << endl;
 	if ( _pick( _worksp->pickID(), x, y, GLUT_LEFT_BUTTON ) ) {
 	    ; // do nothing
-	    // cerr << HERE << " Point ID " << setw( 2 ) << pickID << " is picked!!" << endl;
+	    cerr << HERE << " Pick ID "
+		 << setw( 2 ) << _worksp->pickID() << " is picked!!" << endl;
+	    // ------------------------------
+	    // This line is necessary.
+	    // Noted by ST on 2023/08/08 
+	    _worksp->mode() = SELECTED;
+	    // ------------------------------
 	}
+	if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
+	else cerr << HERE << " mode is SELECTED" << endl;
     }
     else if ( _middle ) {
 	;
@@ -565,6 +586,13 @@ void GLLayout::Keyboard( int key, int x, int y )
     redrawAll();
 }
 
+
+// Function for redrawing associative windows as well as this one
+void GLLayout::redrawAll( void )
+{
+    redraw();
+    if ( _glDrawing != NULL ) _glDrawing->redraw();
+}
 
 // end of header file
 // Do not add any stuff under this line.
