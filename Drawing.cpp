@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-07-25 03:13:46 shigeo"
+//				Time-stamp: "2023-08-16 02:57:48 shigeo"
 //
 //==============================================================================
 
@@ -1384,17 +1384,24 @@ void Drawing::_assignLabels( void )
     _labelAll.insert( _labelAll.end(), _labelSim.begin(), _labelSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
 
+    ofstream ofs_group( GROUP_CHOICE_FILE );
+    streambuf* buf_group;
+    if ( ofs_group ) buf_group = cerr.rdbuf( ofs_group.rdbuf() );
     cerr << HERE << "********** Total number of labels = " << _labelAll.size() << endl;
     for ( unsigned int k = 0; k < _labelAll.size(); ++k ) {
-	cerr << HERE << ends;
-	if ( k < _labelSgl.size() ) cerr << " [Sgl] " << ends;
-	else if ( k < _labelSgl.size() + _labelPrx.size() ) cerr << " [Prx] " << ends;
-	else cerr << " [Sim] " << ends;
+	cerr << HERE;
+	if ( k < _labelSgl.size() ) cerr << " [Sgl] ";
+	else if ( k < _labelSgl.size() + _labelPrx.size() ) cerr << " [Prx] ";
+	else cerr << " [Sim] ";
 	cerr << " label ID = " << k << " : ";
 	for ( unsigned int m = 0; m < _labelAll[ k ].size(); ++m ) {
 	    cerr << _labelAll[ k ][ m ] << " ";
 	}
 	cerr << endl;
+    }
+    if ( ofs_group ) {
+	cerr.rdbuf( buf_group );
+	ofs_group.close();
     }
 }
 
@@ -1689,6 +1696,12 @@ void Drawing::_calcDataCost( void )
     }
 
     // #ifdef PRINT_COSTS
+    //------------------------------------------------------------------------------
+    //	Print out the data costs
+    //------------------------------------------------------------------------------
+    ofstream ofs_data( DATA_COST_FILE );
+    streambuf* buf_data;
+    if ( ofs_data ) buf_data = cerr.rdbuf( ofs_data.rdbuf() );
     cerr << HERE <<  " Data costs " << endl;
     cerr << "      " << ends;
     for ( unsigned int j = 0; j < _dataCost[ 0 ].size(); ++j ) {
@@ -1702,6 +1715,10 @@ void Drawing::_calcDataCost( void )
 	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " " << ends;
 	}
 	cerr << endl;
+    }
+    if ( ofs_data ) {
+	cerr.rdbuf( buf_data );
+	ofs_data.close();
     }
     //#endif	// PRINT_COSTS
 
@@ -1746,7 +1763,13 @@ void Drawing::_calcSmoothCost( void )
     _normalizeMatrix( _smoothCost, Drawing::smooth_cost_lower, Drawing::smooth_cost_upper );
 
     //#ifdef PRINT_COSTS
-    cerr << HERE <<  " Smooth costs " << endl;
+    //------------------------------------------------------------------------------
+    //	Print out the smoothness costs
+    //------------------------------------------------------------------------------
+    ofstream ofs_smooth( SMOOTH_COST_FILE );
+    streambuf* buf_smooth;
+    if ( ofs_smooth ) buf_smooth = cerr.rdbuf( ofs_smooth.rdbuf() );
+    cerr << HERE <<  " Smoothness costs " << endl;
     cerr << "      " << ends;
     for ( unsigned int j = 0; j < _smoothCost[ 0 ].size(); ++j ) {
 	cerr << "[" << setw( 3 ) << j << "] " << ends;
@@ -1759,6 +1782,10 @@ void Drawing::_calcSmoothCost( void )
 	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " " << ends;
 	}
 	cerr << endl;
+    }
+    if ( ofs_smooth ) {
+	cerr.rdbuf( buf_smooth );
+	ofs_smooth.close();
     }
     //#endif	// PRINT_COSTS
 
@@ -1881,7 +1908,13 @@ void Drawing::_calcLabelCost( void )
     cerr << endl;
 #endif	// SKIP
 
+    //------------------------------------------------------------------------------
+    //	Print out the label costs
+    //------------------------------------------------------------------------------
     //#ifdef PRINT_COSTS
+    ofstream ofs_label( LABEL_COST_FILE );
+    streambuf* buf_label;
+    if ( ofs_label ) buf_label = cerr.rdbuf( ofs_label.rdbuf() );
     cerr << HERE <<  " Label costs " << endl;
     cerr << "      " << ends;
     for ( unsigned int i = 0; i < _labelCost.size(); ++i ) {
@@ -1894,6 +1927,10 @@ void Drawing::_calcLabelCost( void )
 	cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " " << ends;
     }
     cerr << endl;
+    if ( ofs_label ) {
+	cerr.rdbuf( buf_label );
+	ofs_label.close();
+    }
     //#endif	// PRINT_COSTS
 }
 

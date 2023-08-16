@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-07 22:24:50 shigeo"
+//				Time-stamp: "2023-08-08 14:22:34 shigeo"
 //
 //==============================================================================
 
@@ -16,7 +16,9 @@
 //------------------------------------------------------------------------------
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Value_Slider.H>
 
+#include "Adjuster.h"
 #include "GLBase.h"
 
 
@@ -34,17 +36,42 @@ class FLControl : public Fl_Window {
   private:
     void _menu_handler( Fl_Menu_Bar * bar );
     static void _menu_callback( Fl_Widget *w, void * userdata );
+
+    void _intervalHandler( Fl_Value_Slider * slider );
+    static void _intervalCallback( Fl_Widget *w, void * userdata );
+
+    void _dataCostHandler( Fl_Value_Slider * slider );
+    static void _dataCostCallback( Fl_Widget *w, void * userdata );
+
+    void _smoothCostHandler( Fl_Value_Slider * slider );
+    static void _smoothCostCallback( Fl_Widget *w, void * userdata );
+
+    void _labelCostHandler( Fl_Value_Slider * slider );
+    static void _labelCostCallback( Fl_Widget *w, void * userdata );
     
+    void _cutThresholdHandler( Fl_Value_Slider * slider );
+    static void _cutThresholdCallback( Fl_Widget *w, void * userdata );
+
   protected:
-    static GLBase * _gl_drawing;
-    static GLBase * _gl_layout;
+    Adjuster *		_adjust;
+
+    Fl_Menu_Bar	*	_menubar;
+    Fl_Value_Slider *	_intervalSlider;
+    Fl_Value_Slider *	_dataCostSlider;
+    Fl_Value_Slider *	_smoothCostSlider;
+    Fl_Value_Slider *	_labelCostSlider;
+    Fl_Value_Slider *	_cutThresholdSlider;
     
+    static GLBase *	_gl_drawing;
+    static GLBase *	_gl_layout;
+
   public:
 
 //------------------------------------------------------------------------------
 //	Constructors
 //------------------------------------------------------------------------------
-    FLControl( int _x, int _y, int _w, int _h, const char *_l );
+    FLControl( Adjuster * __adjust,
+	       int _x, int _y, int _w, int _h, const char *_l );
 				// default constructor
 
 //------------------------------------------------------------------------------
@@ -55,11 +82,7 @@ class FLControl : public Fl_Window {
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
-    void setGLDrawing( GLBase * ptr )	{
-	cerr << HERE << " _gl_drawing = " << _gl_drawing << endl;
-	_gl_drawing = ptr;
-	cerr << HERE << " _gl_drawing = " << _gl_drawing << endl;
-    }
+    void setGLDrawing( GLBase * ptr )	{ _gl_drawing = ptr; }
     void setGLLayout ( GLBase * ptr )	{ _gl_layout = ptr; }
     
 //------------------------------------------------------------------------------

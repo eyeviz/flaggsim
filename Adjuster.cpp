@@ -1,10 +1,10 @@
 //==============================================================================
-// Workspace.cpp
+// Adjuster.cpp
 //	: program file for maintaining auxiliary variables
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 11:56:08 shigeo"
+//				Time-stamp: "2023-08-08 14:08:02 shigeo"
 //
 //==============================================================================
 
@@ -12,7 +12,8 @@
 //	Including Header Files
 //------------------------------------------------------------------------------
 
-#include "Workspace.h"
+#include "Drawing.h"
+#include "Adjuster.h"
 
 
 //------------------------------------------------------------------------------
@@ -29,19 +30,35 @@
 //	Protected Functions
 //------------------------------------------------------------------------------
 // Function for clearing the data
-void Workspace::_clear( void )
+void Adjuster::_clear( void )
 {
-    _coverHull.clear();
-    _coverBand.clear();
-    _coverGlob.clear();
-    _dendrogram.clear();
-    _cluster.clear();
+    _minInterval	=   1.0;
+    _maxInterval	=  20.0;
+    _intervalScale	= 100.0;
+    _interval		= _intervalScale * Drawing::interval_threshold;
 
-    _pickID		= NO_NAME;
-    _pickCoord.clear();
-    _isPressed		= false;
-    _mode		= FREE;
-}
+    _dataCostGap	=   1.0;
+    _lowerDataCost	= Drawing::data_cost_lower;
+    _upperDataCost	= Drawing::data_cost_upper;
+    _minDataCost	=   2.0;
+    _maxDataCost	=  16.0;
+
+    _lowerSmoothCost	= Drawing::smooth_cost_lower;
+    _upperSmoothCost	= Drawing::smooth_cost_upper;
+    _minSmoothCost	=   1.0;
+    _maxSmoothCost	=  10.0;
+
+    _labelCostGap	=   1.0;
+    _lowerLabelCost	= Drawing::label_cost_lower;
+    _upperLabelCost	= Drawing::label_cost_upper;
+    _minLabelCost	=   2.0;
+    _maxLabelCost	=  16.0;
+
+    _minCutThreshold	=   5.0;
+    _maxCutThreshold	=  50.0;
+    _cutThreshold	=  20.0;
+}    
+
 
 
 //------------------------------------------------------------------------------
@@ -53,7 +70,7 @@ void Workspace::_clear( void )
 //------------------------------------------------------------------------------
 
 //
-//  Workspace::Workspace --	default constructor
+//  Adjuster::Adjuster --	default constructor
 //
 //  Inputs
 //	none
@@ -61,14 +78,14 @@ void Workspace::_clear( void )
 //  Outputs
 //	none
 //
-Workspace::Workspace() 
+Adjuster::Adjuster() 
 {
     _clear();
 }
 
 
 //
-//  Workspace::Workspace --	copy constructor
+//  Adjuster::Adjuster --	copy constructor
 //
 //  Inputs
 //	obj	: object of this class
@@ -76,18 +93,11 @@ Workspace::Workspace()
 //  Outputs
 //	none
 //
-Workspace::Workspace( const Workspace & obj )
+Adjuster::Adjuster( const Adjuster & obj )
 {
-    _coverHull		= obj._coverHull;
-    _coverBand		= obj._coverBand;
-    _coverGlob		= obj._coverGlob;
-    _dendrogram		= obj._dendrogram;
-    _cluster		= obj._cluster;
-
-    _pickID		= obj._pickID;
-    _pickCoord		= obj._pickCoord;
-    _isPressed		= obj._isPressed;
-    _mode		= obj._mode;
+    _interval		= obj._interval;
+    _minInterval	= obj._minInterval;
+    _maxInterval	= obj._maxInterval;
 }
 
 
@@ -96,7 +106,7 @@ Workspace::Workspace( const Workspace & obj )
 //------------------------------------------------------------------------------
 
 //
-//  Workspace::~Workspace --	destructor
+//  Adjuster::~Adjuster --	destructor
 //
 //  Inputs
 //	none
@@ -104,7 +114,7 @@ Workspace::Workspace( const Workspace & obj )
 //  Outputs
 //	none
 //
-Workspace::~Workspace()
+Adjuster::~Adjuster()
 {
     _clear();
 }
@@ -121,7 +131,7 @@ Workspace::~Workspace()
 //------------------------------------------------------------------------------
 
 //
-//  Workspace::operator = --	assignement
+//  Adjuster::operator = --	assignement
 //
 //  Inputs
 //	obj	: objects of this class
@@ -129,19 +139,12 @@ Workspace::~Workspace()
 //  Outputs
 //	this object
 //
-Workspace & Workspace::operator = ( const Workspace & obj )
+Adjuster & Adjuster::operator = ( const Adjuster & obj )
 {
     if ( this != &obj ) {
-	_coverHull		= obj._coverHull;
-	_coverBand		= obj._coverBand;
-	_coverGlob		= obj._coverGlob;
-	_dendrogram		= obj._dendrogram;
-	_cluster		= obj._cluster;
-
-        _pickID			= obj._pickID;
-	_pickCoord		= obj._pickCoord;
-	_isPressed		= obj._isPressed;
-	_mode			= obj._mode;
+	_interval	= obj._interval;
+	_minInterval	= obj._minInterval;
+	_maxInterval	= obj._maxInterval;
     }
     return *this;
 }
@@ -161,7 +164,7 @@ Workspace & Workspace::operator = ( const Workspace & obj )
 //  Outputs
 //	output stream
 //
-ostream & operator << ( ostream & stream, const Workspace & obj )
+ostream & operator << ( ostream & stream, const Adjuster & obj )
 {
     return stream;
 }
@@ -177,7 +180,7 @@ ostream & operator << ( ostream & stream, const Workspace & obj )
 //  Outputs
 //	input stream
 //
-istream & operator >> ( istream & stream, Workspace & obj )
+istream & operator >> ( istream & stream, Adjuster & obj )
 {
     return stream;
 }

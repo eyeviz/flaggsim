@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 02:24:55 shigeo"
+//				Time-stamp: "2023-08-08 12:03:19 shigeo"
 //
 //==============================================================================
 
@@ -56,15 +56,13 @@ class GLLayout : public GLBase {
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
-    void _barchart		( unsigned int idRow, unsigned int idCol,
-				  const double & data,
+    void _setViewport		( unsigned int idRow, unsigned int idCol );
+    void _clearViewport		( void );
+
+    void _barchart		( const double & data,
 				  const double & smooth,
 				  const double & label );
-    void _place_option		( unsigned int idRow, unsigned int idCol,
-				  vector< Polygon2 > & polys,
-				  const double & data,
-				  const double & smooth,
-				  const double & label );
+    void _place_option		( vector< Polygon2 > & polys );
     void _tile			( void );
     
 //------------------------------------------------------------------------------

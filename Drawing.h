@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-07-03 20:45:29 shigeo"
+//				Time-stamp: "2023-08-16 02:33:56 shigeo"
 //
 //==============================================================================
 
@@ -52,6 +52,13 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
+// Log files
+#define GROUP_CHOICE_FILE	"log/group.txt"
+#define DATA_COST_FILE		"log/data.txt"
+#define SMOOTH_COST_FILE	"log/smooth.txt"
+#define LABEL_COST_FILE		"log/label.txt"
+
+
 // The height and width of the window is 2.0, which is equivalent to 120mm
 // The limit distance range from 0.5 to 3.0, for example
 // 4.0/120.0 * 2.0 = 

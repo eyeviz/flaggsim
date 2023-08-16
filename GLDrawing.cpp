@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 11:19:20 shigeo"
+//				Time-stamp: "2023-08-08 14:28:38 shigeo"
 //
 //==============================================================================
 
@@ -710,7 +710,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  // Hierarchical clustering
 	  _worksp->dendrogram().set( _fig->expand() );
 	  _worksp->dendrogram().merge();
-	  _worksp->cluster() = _worksp->dendrogram().retrieve( _cut_threshold );
+	  _worksp->cluster() = _worksp->dendrogram().retrieve( _adjust->cutThreshold() );
 	  // cerr << HERE << " cluster.size = " << cluster.size() << endl;
 	  break;
       case 'e':			// exhaustive simplify
@@ -807,9 +807,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 #endif	// USE_CONVEX_HULLS
 	  _isometric( _fig->expand() );
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  _worksp->pickID() = NO_NAME;
-	  // bandID = NO_NAME;
-	  _worksp->mode() = FREE;
+	  _worksp->clear();
 	  cerr << HERE << " mode => free" << endl;
 #ifdef RECORED_SNAPSHOTS
 	  outname = "data/" + headname + "-out.dat";

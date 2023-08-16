@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-07-25 14:23:06 shigeo"
+//				Time-stamp: "2023-08-08 11:55:36 shigeo"
 //
 //==============================================================================
 
@@ -91,6 +91,10 @@ class Linkage {
     
     void set( vector< Expansion > & __expand ) {
 	_expand = __expand;
+	_initVars();
+	_initMat();
+    }
+    void clear( void ) {
 	_initVars();
 	_initMat();
     }

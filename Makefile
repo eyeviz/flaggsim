@@ -47,6 +47,7 @@ SRC =           \
 		Contour.cpp \
 		Drawing.cpp \
 		Workspace.cpp \
+		Adjuster.cpp \
 		\
 		GLBase.cpp \
     		GLDrawing.cpp \
@@ -78,6 +79,7 @@ HDR =	        \
 		Contour.h \
 		Drawing.h \
 		Workspace.h \
+		Adjuster.h \
 		\
 		GLBase.h \
     		GLDrawing.h \

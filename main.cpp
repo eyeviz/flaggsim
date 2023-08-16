@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 02:34:20 shigeo"
+//				Time-stamp: "2023-08-08 14:54:40 shigeo"
 //
 //==============================================================================
 
@@ -88,6 +88,7 @@ GLLayout *	gl_layout	= NULL;
 
 Drawing *	fig		= NULL;
 Workspace *	worksp		= NULL;
+Adjuster *	adjust		= NULL;
 
 int		map_width	= HUGE_WIDTH;
 int		map_height	= HUGE_HEIGHT;
@@ -2522,6 +2523,7 @@ int main( int argc, char *argv[] )
     //------------------------------------------------------------------------------
     fig		= new Drawing();
     worksp	= new Workspace();
+    adjust	= new Adjuster();
 
     //------------------------------------------------------------------------------
     //	Read the configuration file
@@ -2545,8 +2547,10 @@ int main( int argc, char *argv[] )
 
     gl_drawing->setFig		( fig );
     gl_drawing->setWorkspace	( worksp );
+    gl_drawing->setAdjuster	( adjust );
 
-    gl_drawing->load_drawing( "akehara-008-case.dat" );
+    if ( argc == 2 )
+	gl_drawing->load_drawing( argv[ 1 ] );
     // gl_drawing->fig()->triangulate();
     fig->triangulate();
     
@@ -2571,6 +2575,7 @@ int main( int argc, char *argv[] )
 
     gl_layout->setFig		( fig );
     gl_layout->setWorkspace	( worksp );
+    gl_layout->setAdjuster	( adjust );
     
     gl_layout->begin();
 
@@ -2583,7 +2588,8 @@ int main( int argc, char *argv[] )
 //------------------------------------------------------------------------------
 //	Panel window	
 //------------------------------------------------------------------------------
-    FLControl * win_panel = new FLControl( map_width+design_width, 0,
+    FLControl * win_panel = new FLControl( adjust,
+					   map_width+design_width, 0,
 					   panel_width, panel_height,
 					   "Panel window" );
     win_panel->setGLDrawing( gl_drawing );

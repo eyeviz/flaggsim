@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 02:31:19 shigeo"
+//				Time-stamp: "2023-08-08 14:27:38 shigeo"
 //
 //==============================================================================
 
@@ -57,44 +57,7 @@ class GLDrawing : public GLBase {
     bool		_isPlotted;
 
     unsigned int	_nPolys;
-    
-#ifdef SKIP
-    const double	interval_scale		= 100.0;
-    float		interval_spinner =
-	( float )( interval_scale * Drawing::interval_threshold );
-    const float	interval_ceil		=  1.0;
-    const float	interval_roof		= 20.0;
-    // ------------------------------
-    const float	data_cost_gap		=  1.0;
-    float		min_data_spinner	= ( float )Drawing::data_cost_lower;
-    float		max_data_spinner	= ( float )Drawing::data_cost_upper;
-    const float	data_cost_ceil		=  2.0;
-    // const float	data_cost_roof		= 12.0;
-    const float	data_cost_roof		= 16.0;
-    // ------------------------------
-    const float	smooth_cost_gap		=  1.0;
-    float		min_smooth_spinner	= ( float )Drawing::smooth_cost_lower;
-    float		max_smooth_spinner	= ( float )Drawing::smooth_cost_upper;
-    const float	smooth_cost_ceil	=  1.0;
-    // const float	smooth_cost_roof	=  5.0;
-    const float	smooth_cost_roof	= 10.0;
-    // ------------------------------
-    const float	label_cost_gap		=  1.0;
-    float		min_label_spinner	= ( float )Drawing::label_cost_lower;
-    float		max_label_spinner	= ( float )Drawing::label_cost_upper;
-    const float	label_cost_ceil		=  2.0;
-    //const float	label_cost_roof		= 10.0;
-    const float	label_cost_roof		= 16.0;
-    // ------------------------------
-#endif	// SKIP
-    double		_cut_threshold		= 20.0;
-#ifdef SKIP
-    float		cut_threshold_spinner	= ( float )cut_threshold;
-    const float	cut_threshold_ceil	=  5.0;
-    const float	cut_threshold_roof	= 50.0;
-    // ------------------------------
-#endif	// SKIP
-    
+
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------

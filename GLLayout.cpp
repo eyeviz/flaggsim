@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 11:11:56 shigeo"
+//				Time-stamp: "2023-08-08 14:01:45 shigeo"
 //
 //==============================================================================
 
@@ -35,9 +35,40 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Protected Functions
 //------------------------------------------------------------------------------
+// Function for limiting the viewpoint for a specific matrix element
+void GLLayout::_setViewport( unsigned int idRow, unsigned int idCol )
+{
+#ifdef DEBUG
+    cerr << HERE 
+	 << " idRow = " << idRow << " idCol = " << idCol << endl;
+#endif	// DEBUG
+    // int quarterW = design_width  / _num_options_in_line;
+    // int quarterH = design_height / _num_options_in_line;
+    int quarterW = this->w() / _num_options_in_line;
+    int quarterH = this->h() / _num_options_in_line;
+    int minW = idCol * quarterW;
+    int minH = idRow * quarterH;
+    
+#ifdef DEBUG
+    cerr << HERE << " minH = " << minH << " minW = " << minW << endl;
+#endif	// DEBUG
+    glViewport( minW, minH, quarterW, quarterH );
+    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+}
+
+
+// Function for reseting the viewpoint to the entire window
+void GLLayout::_clearViewport( void )
+{
+    glViewport( 0, 0, this->w(), this->h() );
+    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+}
+
+
 // Function for drawing barcharts 
-void GLLayout::_barchart( unsigned int idRow, unsigned int idCol,
-			  const double & data, const double & smooth, const double & label )
+void GLLayout::_barchart( const double & data,
+			  const double & smooth,
+			  const double & label )
 {
     const double edgeX = 0.5;
     const double titleX = 0.35;
@@ -81,42 +112,19 @@ void GLLayout::_barchart( unsigned int idRow, unsigned int idCol,
     _string2D( titleX, roofD - stepY, "D:" );
     _string2D( titleX, roofS - stepY, "S:" );
     _string2D( titleX, roofL - stepY, "L:" );
+
+    glColor3d( 0.0, 1.0, 1.0 );
+    _string2D( 0.0, 0.0, "Test" );
 }
 
 
 // Function for drawing figures as a specific matrix element
-void GLLayout::_place_option( unsigned int idRow, unsigned int idCol,
-			      vector< Polygon2 > & polys,
-			      const double & data, const double & smooth, const double & label )
+void GLLayout::_place_option( vector< Polygon2 > & polys )
 {
-#ifdef DEBUG
-    cerr << HERE 
-	 << " idRow = " << idRow << " idCol = " << idCol << endl;
-#endif	// DEBUG
-    // int quarterW = design_width  / _num_options_in_line;
-    // int quarterH = design_height / _num_options_in_line;
-    int quarterW = this->w() / _num_options_in_line;
-    int quarterH = this->h() / _num_options_in_line;
-    int minW = idCol * quarterW;
-    int minH = idRow * quarterH;
-    
-#ifdef DEBUG
-    cerr << HERE << " minH = " << minH << " minW = " << minW << endl;
-#endif	// DEBUG
-    glViewport( minW, minH, quarterW, quarterH );
-    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
-    
-    if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
-    else glColor3d( 0.0, 0.0, 0.0 );
-    glLineWidth( 1.0 );
     // cerr << HERE << " polys.size() = " << polys.size() << endl;
     for ( unsigned int i = 0; i < polys.size(); ++i ) {
 	_draw_polygon( polys[ i ] );
     }
-    _barchart( idRow, idCol, data, smooth, label );
-    
-    glViewport( 0, 0, this->w(), this->h() );
-    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
 }
 
 
@@ -365,7 +373,7 @@ void GLLayout::InitGL( void )
 // function fo resizing the window
 void GLLayout::Resize( int w, int h )
 {
-    cerr << HERE << " Resize " << w << " x " << h << endl;
+    // cerr << HERE << " Resize " << w << " x " << h << endl;
     glViewport( 0, 0, w, h );
     
     glMatrixMode( GL_PROJECTION );
@@ -382,6 +390,12 @@ void GLLayout::Resize( int w, int h )
 void GLLayout::Display( void )
 {
     // cerr << HERE << " in GLLayout::Display" << endl;
+
+    // for enabling antialiasing
+    glEnable( GL_LINE_SMOOTH );
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 
     vector< Set > & group = _worksp->cluster();
     vector< Expansion > & expand = _fig->expand();
@@ -434,13 +448,31 @@ void GLLayout::Display( void )
 	    double q = expand[ blockID ].smoothCost()/(double)maxS;
 	    double r = expand[ blockID ].labelCost()/(double)maxL;
 	    vector< Polygon2 > & polys = _worksp->coverBand()[ blockID ];
-	    _place_option( _num_options_in_line - i - 1, ( j % _num_options_in_line ),
-			   polys, p, q, r );
+	    //------------------------------------------------------------------------------
+	    _setViewport( _num_options_in_line - i - 1, ( j % _num_options_in_line ) );
+	    if ( ( _worksp->pickID() != NO_NAME ) && ( _worksp->pickID() != blockID ) ) {
+		vector< Polygon2 > & selected = _worksp->coverBand()[ _worksp->pickID() ];
+		glColor3d( 1.0, 0.5, 0.0 );
+		glLineWidth( 3.0 );
+		_place_option( selected );
+	    }
+	    glLineWidth( 1.0 );
+	    if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
+	    else glColor3d( 0.0, 0.0, 0.0 );
+	    _place_option( polys );
+	    _barchart( p, q, r );
+	    _clearViewport();
+	    //------------------------------------------------------------------------------
 	    if ( ( j + 1 != group[ groupID ].size() ) &&
 		 ( ( j + 1 ) % _num_options_in_line == 0 ) ) i++;
 	}
 	groupID++;
     }
+
+    // for disabling antialiasing
+    glDisable( GL_LINE_SMOOTH );
+    glDisable( GL_BLEND );
+    glEnable( GL_DEPTH_TEST );
 
     // Skip the swap buffers
     // glutSwapBuffers();
@@ -460,7 +492,7 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 		case FREE:
 		    _cursor = Point2( x, y );
 		    if ( _pick( _worksp->pickID(), x, y, button ) ) {
-			cerr << HERE << " select pickID = " << _worksp->pickID() << endl;
+			// cerr << HERE << " select pickID = " << _worksp->pickID() << endl;
 			; // do nothing
 		    }
 		    break;
@@ -468,35 +500,38 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 		    break;
 	      }
 	      _left = 1;
-	      cerr << HERE << " Left is ON " << endl;
+	      // cerr << HERE << " Left is ON " << endl;
 	      if ( _worksp->pickID() != NO_NAME ) {
-		  cerr << HERE << " Button is PRESSED" << endl;
+		  // cerr << HERE << " Button is PRESSED" << endl;
 		  _worksp->isPressed() = true;
 	      }
+#ifdef MODE_DEBUG
 	      if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
 	      else cerr << HERE << " mode is SELECTED" << endl;
+#endif	// MODE_DEBUG
 	  }
 	  else {
 	      if ( ( _worksp->pickID() != NO_NAME ) && _worksp->isPressed() ) {
 		  switch ( _worksp->mode() ) {
 		    case FREE:
-			cerr << HERE << " pickID = " << _worksp->pickID() << endl;
+			// cerr << HERE << " pickID = " << _worksp->pickID() << endl;
 			_worksp->mode() = SELECTED;
-			cerr << HERE << " mode => selected" << endl;
+			// cerr << HERE << " mode => selected" << endl;
 			break;
 		    case SELECTED:
-			cerr << HERE << " Selected the choice No. "
-			     << _worksp->pickID() << endl;
+			// cerr << HERE << " Selected the choice No. " << _worksp->pickID() << endl;
 			_glDrawing->Keyboard( 'f', 0, 0 );
 			break;
 		  }
 	      }
 	      _worksp->isPressed() = false;
-	      cerr << HERE << " Button is RELEASED" << endl;
+	      // cerr << HERE << " Button is RELEASED" << endl;
 	      _left = 0;  
-	      cerr << HERE << " Left is OFF " << endl;
+	      // cerr << HERE << " Left is OFF " << endl;
+#ifdef MODE_DEBUG
 	      if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
 	      else cerr << HERE << " mode is SELECTED" << endl;
+#endif	// MODE_DEBUG
 	  }
 	  break;
 	  // middle mouse event
@@ -540,16 +575,17 @@ void GLLayout::Motion( int x, int y )
 	// cerr << HERE << " pointer = ( " << x << " , " << y << " ) " << endl;
 	if ( _pick( _worksp->pickID(), x, y, GLUT_LEFT_BUTTON ) ) {
 	    ; // do nothing
-	    cerr << HERE << " Pick ID "
-		 << setw( 2 ) << _worksp->pickID() << " is picked!!" << endl;
+	    // cerr << HERE << " Pick ID " << setw( 2 ) << _worksp->pickID() << " is picked!!" << endl;
 	    // ------------------------------
 	    // This line is necessary.
 	    // Noted by ST on 2023/08/08 
 	    _worksp->mode() = SELECTED;
 	    // ------------------------------
 	}
+#ifdef MODE_DEBUG
 	if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
 	else cerr << HERE << " mode is SELECTED" << endl;
+#endif	// MODE_DEBUG
     }
     else if ( _middle ) {
 	;
@@ -572,7 +608,7 @@ void GLLayout::PassiveMotion( int x, int y )
 // Function for handling keyboard events
 void GLLayout::Keyboard( int key, int x, int y )
 {
-    cerr << HERE << "GLLayout::Keyboard" << endl;
+    // cerr << HERE << "GLLayout::Keyboard" << endl;
     make_current();
 
     switch ( key ) {

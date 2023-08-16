@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 02:20:39 shigeo"
+//				Time-stamp: "2023-08-08 14:27:33 shigeo"
 //
 //==============================================================================
 
@@ -35,7 +35,7 @@ using namespace std;
 #include "CGAL.h"
 #include "Drawing.h"
 #include "Workspace.h"
-
+#include "Adjuster.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -60,6 +60,7 @@ class GLBase : public Fl_Gl_Window {
 
     Drawing			* _fig;
     Workspace			* _worksp;
+    Adjuster			* _adjust;
 
     bool			_isFilled;
 
@@ -99,6 +100,7 @@ class GLBase : public Fl_Gl_Window {
     void setFig		( Drawing * __fig )	{ _fig = __fig; }
     void setWorkspace	( Workspace * __worksp )
 						{ _worksp = __worksp; }
+    void setAdjuster	( Adjuster * __adjust )	{ _adjust = __adjust; }
 
     Drawing * fig	( void )		{ return _fig; }
 
