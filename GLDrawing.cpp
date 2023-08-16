@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 14:28:38 shigeo"
+//				Time-stamp: "2023-08-16 23:22:47 shigeo"
 //
 //==============================================================================
 
@@ -555,8 +555,10 @@ void GLDrawing::Display( void )
 	_draw_vertex_ids( _fig->netNbr() );
 	
 	// glColor4d( 1.0, 0.5, 0.0, 0.4 );
-	glColor4d( 0.3, 0.3, 0.3, 0.4 );
-	glLineWidth( 1.0 );
+	//glColor4d( 0.3, 0.3, 0.3, 0.4 );
+	glColor4d( 0.8, 0.6, 0.0, 0.6 );
+	// glLineWidth( 1.0 );
+	glLineWidth( 2.0 );
 	// draw_network( netN );
 	_draw_network( _fig->netNbr() );
 	
@@ -670,16 +672,19 @@ void GLDrawing::Keyboard( int key, int x, int y )
     string		inname, outname, imgname, dirname;
     struct stat		statbuf;
     
-    cerr << HERE << "GLDrawing::Keyboard" << endl;
+    cerr << HERE << "GLDrawing::Keyboard : key " << key << endl;
+    
     make_current();
 
     switch ( key ) {
-      case 'c':
+      // clear the map drawings
+      case 'c': // == 99
+      case 'C':
 	  _fig->clear();
 	  _nPolys = 0;
 	  break;
-      // Calls this after loading the line drawing data
-      case 'a':
+      // list the aggregation choices for building polygons
+      case 'a':	// == 97
       case 'A':
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  _fig->conjoin();
@@ -713,35 +718,41 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  _worksp->cluster() = _worksp->dendrogram().retrieve( _adjust->cutThreshold() );
 	  // cerr << HERE << " cluster.size = " << cluster.size() << endl;
 	  break;
-      case 'e':			// exhaustive simplify
+      // exhaustive simplify
+      case 'e': // == 101
+      case 'E':
 	  _fig->simplify();
 	  _fig->triangulate();
 	  break;
-      case 'r':			// squaring building polygons
+      // squaring building polygons
+      case 'r': // == 114
+      case 'R':
 	  _fig->square();
 	  _fig->triangulate();
 	  break;
-      case 'o':
-	  _fig->optimize();
-	  _isometric( _fig->expand() );
-	  break;
-      case 'l':
+      // load the map drawings from files
+      case 'l': // == 108
+      case 'L':
 	  cerr << "Input the file name for loading data : ";
 	  getline( cin, line );
 	  _load_drawing( line.c_str() );
 	  // isLoaded = false;
 	  break;      
-      case 's':
+      // save the map drawings into files
+      case 's': // == 115
+      case 'S':
 	  cerr << "Input the file name for saving data : ";
 	  getline( cin, line );
 	  _save_drawing( line.c_str() );
 	  break;
-      case 'j':
+      case 'j': // == 106
+      case 'J':
 	  _isConjoined = !_isConjoined;
 	  if ( _isConjoined ) cerr << HERE << " isConjoined TRUE" << endl;
 	  else cerr << HERE << " isConjoined FALSE" << endl;
 	  break;
-      case 'F':
+      case 'b': // == 98
+      case 'B':
 	  _isFilled = !_isFilled;
 #ifdef SKIP
 	  if ( _isFilled ) {
@@ -764,18 +775,24 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  }
 #endif	// SKIP
 	  break;
+      // switch flag for polygon wrapping
+      case 'w': // == 119
       case 'W':
 	  _isWrapped = !_isWrapped;
 	  if ( _isWrapped ) cerr << HERE << " isWrapped TRUE" << endl;
 	  else cerr << HERE << " isWrapped FALSE" << endl;
 	  if ( _isWrapped ) _fig->initWrapper();
 	  break;
+      // switch flag for sample plotting
+      case 'p': // == 112
       case 'P':
 	  _isPlotted = !_isPlotted;
 	  if ( _isPlotted ) cerr << HERE << " isPlotted TRUE" << endl;
 	  else cerr << HERE << " isPlotted FALSE" << endl;
 	  break;
-      case 'D':
+      // capture the map drawing as image files
+      case 'm': // == 109
+      case 'M':
 	  ostr << setw( 3 ) << setfill( '0' ) << counter++ << ends;
 	  imgname = _headname + "-drawing-" + ostr.str().c_str() + ".png";
 	  // cerr << " Input file name : " << ends;
@@ -784,7 +801,9 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  cerr << " Capture the drawing window and save to " << imgname.c_str() << endl;
 	  _capture( imgname.c_str() );
 	  return;
-      case 'f':
+      // select the preferred aggregation choices
+      case 'f': // == 102
+      case 'F':
 	  cerr << HERE << " pickID = " << _worksp->pickID() << endl;
 	  bandSet.clear();
 	  globSet.clear();
@@ -819,7 +838,10 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  capture_drawing( outname.c_str() );
 #endif	// RECORED_SNAPSHOTS
 	  break;
-      case 'q':
+      // quit the program
+      case 'q': // == 113
+      case 'Q':
+      case FL_Escape: // == 65307
 	  exit( 0 );
 	  break;
       default:

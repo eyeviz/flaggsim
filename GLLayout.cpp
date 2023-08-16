@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 14:01:45 shigeo"
+//				Time-stamp: "2023-08-16 23:11:31 shigeo"
 //
 //==============================================================================
 
@@ -35,6 +35,34 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Protected Functions
 //------------------------------------------------------------------------------
+// Function for computing the grid size
+void GLLayout::_calcGridSize( void )
+{
+    vector< Set > & group = _worksp->cluster();
+    vector< Expansion > & expand = _fig->expand();
+    unsigned int matrix_size = group.size();
+    // cerr << HERE << " matrix_size = " << matrix_size << endl;
+    _num_options_in_line = matrix_size;
+    // cerr << HERE << " num_options_in_line = " << num_options_in_line << endl;
+    bool out_of_limit = false;
+    do {
+	out_of_limit = false;
+	for ( unsigned int k = 0; k < group.size(); ++k ) {
+	    _num_options_in_line += ( ( (int)group[ k ].size() - 1 ) / matrix_size );
+	}
+	if ( _num_options_in_line > matrix_size ) {
+	    out_of_limit = true;
+	    matrix_size++;
+	    _num_options_in_line = matrix_size;
+	}
+	// cerr << HERE << " matrix_size = " << matrix_size << endl;
+	// cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
+    } while ( out_of_limit );
+
+    // cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
+}
+
+
 // Function for limiting the viewpoint for a specific matrix element
 void GLLayout::_setViewport( unsigned int idRow, unsigned int idCol )
 {
@@ -53,7 +81,9 @@ void GLLayout::_setViewport( unsigned int idRow, unsigned int idCol )
     cerr << HERE << " minH = " << minH << " minW = " << minW << endl;
 #endif	// DEBUG
     glViewport( minW, minH, quarterW, quarterH );
-    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+    glMatrixMode( GL_PROJECTION );
+    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    // gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
 }
 
 
@@ -61,7 +91,45 @@ void GLLayout::_setViewport( unsigned int idRow, unsigned int idCol )
 void GLLayout::_clearViewport( void )
 {
     glViewport( 0, 0, this->w(), this->h() );
-    gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+    glMatrixMode( GL_PROJECTION );
+    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    // gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+}
+
+
+// Function for annotating labels
+void GLLayout::_annotate( unsigned int idRow, unsigned int idCol )
+{
+    double titleX = 0.40 - 0.01 * _num_options_in_line;
+    double stepY = 0.10;
+    //double roofB = -0.60 - 0.01 * _num_options_in_line;
+    double roofB = -0.63;
+    double roofD = roofB;
+    double roofS = roofB - stepY;
+    double roofL = roofB - 2.0 * stepY;
+    int fontsize = 36 / _num_options_in_line;
+	
+    // int quarterW = this->w() / _num_options_in_line;
+    // int quarterH = this->h() / _num_options_in_line;
+    // int minW = idCol * quarterW;
+    // int minH = idRow * quarterH;
+
+    if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
+    else glColor3d( 0.0, 0.0, 0.0 );
+
+    double span = 2.0 / (double)_num_options_in_line;
+    double transX = span * ( ( double )idCol + ( 1.0 + titleX )/2.0 ) - 1.0;
+    double transD = span * ( ( double )idRow + ( 1.0 + roofD - stepY )/2.0 ) - 1.0;
+    _string2D( transX, transD, "D:", fontsize );
+    double transS = span * ( ( double )idRow + ( 1.0 + roofS - stepY )/2.0 ) - 1.0;
+    _string2D( transX, transS, "S:", fontsize );
+    double transL = span * ( ( double )idRow + ( 1.0 + roofL - stepY )/2.0 ) - 1.0;
+    _string2D( transX, transL, "L:", fontsize );
+#ifdef SKIP
+    ostringstream ostr;
+    ostr << "( " << transX << " , " << transD << " )" << ends;
+    _string2D( transX, transD, ostr.str().c_str() );
+#endif	// SKIP
 }
 
 
@@ -106,15 +174,15 @@ void GLLayout::_barchart( const double & data,
     glVertex2d( edgeX + label*spanX, roofL );
     glEnd();
 
+    // In FLTK, we cannot precisely locate the position of texts
+    // after resetting glViewport
+    // noted by ST on 2023/08/16
     // annotate the bars
-    if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
-    else glColor3d( 0.0, 0.0, 0.0 );
-    _string2D( titleX, roofD - stepY, "D:" );
-    _string2D( titleX, roofS - stepY, "S:" );
-    _string2D( titleX, roofL - stepY, "L:" );
-
-    glColor3d( 0.0, 1.0, 1.0 );
-    _string2D( 0.0, 0.0, "Test" );
+    // if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
+    //else glColor3d( 0.0, 0.0, 0.0 );
+    //_string2D( titleX, roofD - stepY, "D:" );
+    //_string2D( titleX, roofS - stepY, "S:" );
+    //_string2D( titleX, roofL - stepY, "L:" );
 }
 
 
@@ -133,7 +201,9 @@ void GLLayout::_tile( void )
 {
     vector< Set > & group = _worksp->cluster();
 
+//------------------------------------------------------------------------------
     glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
     unsigned int groupID = 0;
     for ( unsigned int i = 0; i < _num_options_in_line; ++i ) {
 	if ( groupID >= group.size() ) break;
@@ -143,15 +213,17 @@ void GLLayout::_tile( void )
 	    // Skip if it is not included in the candidate list
 	    if ( blockID >= _worksp->coverBand().size() ) continue;
 	    
-	    if ( blockID == _worksp->pickID() )
+	    if ( blockID == _worksp->pickID() ) {
 		if ( _isFilled ) glColor3d( 0.5, 0.4, 0.0 );
 		else glColor3d( 1.0, 0.9, 0.5 );
+	    }
 	    else {
 		if ( _isFilled ) glColor3d( 0.0, 0.0, 0.0 );
 		else glColor3d( 1.0, 1.0, 1.0 );
 	    }
+//------------------------------------------------------------------------------
 	    glLoadName( blockID );
-
+//------------------------------------------------------------------------------
 	    int idRow = _num_options_in_line - i - 1;
 	    int idCol = j;
 	    double quarterW = 2.0 / _num_options_in_line;
@@ -162,17 +234,22 @@ void GLLayout::_tile( void )
 	    cerr << HERE << " minW = " << minW << " minH = " << minH
 		 << " quarterW = " << quarterW << " quarterH = " << quarterH << endl;
 #endif	// DEBUG
+
 	    glBegin( GL_POLYGON );
 	    glVertex2d( minW, minH );
 	    glVertex2d( minW + quarterW, minH );
 	    glVertex2d( minW + quarterW, minH + quarterH );
 	    glVertex2d( minW, minH + quarterH );
 	    glEnd();
+
+//------------------------------------------------------------------------------
 	    glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
 
 	    glLineWidth( 1.0 );
 	    if ( _isFilled ) glColor3d( 1.0, 1.0, 1.0 );
 	    else glColor3d( 0.0, 0.0, 0.0 );
+
 	    glBegin( GL_LINE_LOOP );
 	    glVertex2d( minW, minH );
 	    glVertex2d( minW + quarterW, minH );
@@ -390,48 +467,26 @@ void GLLayout::Resize( int w, int h )
 void GLLayout::Display( void )
 {
     // cerr << HERE << " in GLLayout::Display" << endl;
+    // glutSetWindow( win_design );
+    glClear( GL_COLOR_BUFFER_BIT );
 
+#ifdef DEBUG
+    glColor3d( 1.0, 0.0, 0.0 );
+    _string2D(  0.6,  0.2, "( 0.6, 0.2)" );
+    _string2D(  0.4,  0.9, "( 0.4, 0.9)" );
+#endif	// DEBUG
+
+    _calcGridSize();
+    
     // for enabling antialiasing
     glEnable( GL_LINE_SMOOTH );
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 
-    vector< Set > & group = _worksp->cluster();
-    vector< Expansion > & expand = _fig->expand();
-    unsigned int matrix_size = group.size();
-    // cerr << HERE << " matrix_size = " << matrix_size << endl;
-    _num_options_in_line = matrix_size;
-    // cerr << HERE << " num_options_in_line = " << num_options_in_line << endl;
-    bool out_of_limit = false;
-    do {
-	out_of_limit = false;
-	for ( unsigned int k = 0; k < group.size(); ++k ) {
-	    _num_options_in_line += ( ( (int)group[ k ].size() - 1 ) / matrix_size );
-	}
-	if ( _num_options_in_line > matrix_size ) {
-	    out_of_limit = true;
-	    matrix_size++;
-	    _num_options_in_line = matrix_size;
-	}
-	// cerr << HERE << " matrix_size = " << matrix_size << endl;
-	// cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
-    } while ( out_of_limit );
-
-    // cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
-    
-#ifdef SKIP
-    if ( coverBand.size() > 9 ) _num_options_in_line = 4;
-    else if ( coverBand.size() > 4 ) _num_options_in_line = 3;
-    else if ( coverBand.size() > 1 ) _num_options_in_line = 2;
-    else _num_options_in_line = 1;
-#endif	// SKIP
-    
-    // glutSetWindow( win_design );
-    glClear( GL_COLOR_BUFFER_BIT );
-
     _tile();
-    
+   
+    vector< Expansion > & expand = _fig->expand();
     int maxD = 0, maxS = 0, maxL = 0;
     for ( unsigned int i = 0; i < expand.size(); ++i ) {
 	if ( maxD < expand[ i ].dataCost() ) maxD = expand[ i ].dataCost();
@@ -439,7 +494,16 @@ void GLLayout::Display( void )
 	if ( maxL < expand[ i ].labelCost() ) maxL = expand[ i ].labelCost();
     }    
 
+#ifdef DEBUG
+    glColor3d( 0.0, 0.0, 1.0 );
+    _string2D(  0.2, -0.8, "( 0.2,-0.8)" );
+    _string2D(  0.5, -0.3, "( 0.5,-0.3)" );
+#endif	// DEBUG
+
+    
+    vector< Set > & group = _worksp->cluster();
     unsigned int groupID = 0;
+    //------------------------------------------------------------------------------
     for ( unsigned int i = 0; i < _num_options_in_line; ++i ) {
 	if ( groupID >= group.size() ) break;
 	for ( unsigned int j = 0; j < group[ groupID ].size(); ++j ) {
@@ -449,7 +513,11 @@ void GLLayout::Display( void )
 	    double r = expand[ blockID ].labelCost()/(double)maxL;
 	    vector< Polygon2 > & polys = _worksp->coverBand()[ blockID ];
 	    //------------------------------------------------------------------------------
+	    //glMatrixMode( GL_PROJECTION );
+	    //glPushMatrix();
+	    //glLoadIdentity();
 	    _setViewport( _num_options_in_line - i - 1, ( j % _num_options_in_line ) );
+	    //------------------------------------------------------------------------------
 	    if ( ( _worksp->pickID() != NO_NAME ) && ( _worksp->pickID() != blockID ) ) {
 		vector< Polygon2 > & selected = _worksp->coverBand()[ _worksp->pickID() ];
 		glColor3d( 1.0, 0.5, 0.0 );
@@ -461,8 +529,14 @@ void GLLayout::Display( void )
 	    else glColor3d( 0.0, 0.0, 0.0 );
 	    _place_option( polys );
 	    _barchart( p, q, r );
+	    //------------------------------------------------------------------------------
+	    //glMatrixMode( GL_PROJECTION );
+	    //glPopMatrix();
 	    _clearViewport();
 	    //------------------------------------------------------------------------------
+	    _annotate( _num_options_in_line - i - 1, ( j % _num_options_in_line ) );
+	    //------------------------------------------------------------------------------
+
 	    if ( ( j + 1 != group[ groupID ].size() ) &&
 		 ( ( j + 1 ) % _num_options_in_line == 0 ) ) i++;
 	}

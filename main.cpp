@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 14:54:40 shigeo"
+//				Time-stamp: "2023-08-16 23:12:18 shigeo"
 //
 //==============================================================================
 
@@ -57,14 +57,10 @@ using namespace std;
 #define WINDOW_LEFT_LIMIT	(50)
 #define WINDOW_TOP_LIMIT	(50)
 
-#define HALF_WIDTH		(256)
-#define HALF_HEIGHT		(256)
-#define FULL_WIDTH		(512)
-#define FULL_HEIGHT		(512)
-#define HUGE_WIDTH		(768)
-#define HUGE_HEIGHT		(768)
-#define TEST_WIDTH		(1024)
-#define TEST_HEIGHT		(1024)
+#define HALF_SIZE		(256)
+#define FULL_SIZE		(512)
+#define LARGE_SIZE		(768)
+#define HUGE_SIZE		(1024)
 
 #define WINDOW_MARGIN		(0.2)
 #define PICKING_ERROR		(20.0)
@@ -90,12 +86,13 @@ Drawing *	fig		= NULL;
 Workspace *	worksp		= NULL;
 Adjuster *	adjust		= NULL;
 
-int		map_width	= HUGE_WIDTH;
-int		map_height	= HUGE_HEIGHT;
-int		design_width	= HUGE_WIDTH;
-int		design_height	= HUGE_HEIGHT;
-int		panel_width	= HUGE_WIDTH/2;
-int		panel_height	= HUGE_HEIGHT;
+int		base_size	= LARGE_SIZE;
+int		map_width	= base_size;
+int		map_height	= base_size;
+int		design_width	= base_size;
+int		design_height	= base_size;
+int		panel_width	= base_size/2;
+int		panel_height	= base_size;
 
 //------------------------------------------------------------------------------
 //	SKIPPING FROM HERE
@@ -2604,7 +2601,27 @@ int main( int argc, char *argv[] )
     gl_drawing->setGLLayout	( gl_layout );
     // gl_drawing->addFlWin	( gl_layout );
     // gl_layout->addFlWin		( gl_drawing );
-    
+
+    cerr << " Key commands " << endl;
+    cerr << " a (097) : list the aggregation choices for building polygons" << endl;
+    cerr << " b (098) : switch flag for polygon filling" << endl;
+    cerr << " c (099) : clear the map drawings" << endl;
+    // d(100), e(101)
+    cerr << " f (102) : pick up the preferred aggregation choices" << endl;
+    // g(103), h(104), i(105)
+    cerr << " j (106) : switch flag for conjoining" << endl;
+    // k(107), 
+    cerr << " l (108) : load the map drawings from files" << endl;
+    cerr << " m (109) : capture the map as image files" << endl;
+    // n(110), o(111)
+    cerr << " p (112) : switch flag for sample plotting" << endl;
+    cerr << " q (113) : quit the program" << endl;
+    cerr << " r (114) : squaring building polygons" << endl;
+    cerr << " s (115) : save the map drawings into files" << endl;
+    // t(116), u(117), v(118)
+    cerr << " w (119) : switch flag for polygon wrapping" << endl;
+    // x(120), y(121), z(122)
+
     return Fl::run();
 }
 

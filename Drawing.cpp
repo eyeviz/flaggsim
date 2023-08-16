@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 02:57:48 shigeo"
+//				Time-stamp: "2023-08-16 23:17:05 shigeo"
 //
 //==============================================================================
 
@@ -1703,16 +1703,16 @@ void Drawing::_calcDataCost( void )
     streambuf* buf_data;
     if ( ofs_data ) buf_data = cerr.rdbuf( ofs_data.rdbuf() );
     cerr << HERE <<  " Data costs " << endl;
-    cerr << "      " << ends;
+    cerr << "      ";
     for ( unsigned int j = 0; j < _dataCost[ 0 ].size(); ++j ) {
-	cerr << "[" << setw( 3 ) << j << "] " << ends;
+	cerr << "[" << setw( 3 ) << j << "] ";
     }
     cerr << endl;
     for ( unsigned int i = 0; i < _dataCost.size(); ++i ) {
-	cerr << "[" << setw( 3 ) << i << "] " << ends;
+	cerr << "[" << setw( 3 ) << i << "] ";
 	for ( unsigned int j = 0; j < _dataCost[ i ].size(); ++j ) {
 	    double cost = _dataCost[ i ][ j ];
-	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " " << ends;
+	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " ";
 	}
 	cerr << endl;
     }
@@ -1770,16 +1770,16 @@ void Drawing::_calcSmoothCost( void )
     streambuf* buf_smooth;
     if ( ofs_smooth ) buf_smooth = cerr.rdbuf( ofs_smooth.rdbuf() );
     cerr << HERE <<  " Smoothness costs " << endl;
-    cerr << "      " << ends;
+    cerr << "      ";
     for ( unsigned int j = 0; j < _smoothCost[ 0 ].size(); ++j ) {
-	cerr << "[" << setw( 3 ) << j << "] " << ends;
+	cerr << "[" << setw( 3 ) << j << "] ";
     }
     cerr << endl;
     for ( unsigned int i = 0; i < _smoothCost.size(); ++i ) {
-	cerr << "[" << setw( 3 ) << i << "] " << ends;
+	cerr << "[" << setw( 3 ) << i << "] ";
 	for ( unsigned int j = 0; j < _smoothCost[ i ].size(); ++j ) {
 	    double cost = _smoothCost[ i ][ j ];
-	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " " << ends;
+	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " ";
 	}
 	cerr << endl;
     }
@@ -1916,15 +1916,15 @@ void Drawing::_calcLabelCost( void )
     streambuf* buf_label;
     if ( ofs_label ) buf_label = cerr.rdbuf( ofs_label.rdbuf() );
     cerr << HERE <<  " Label costs " << endl;
-    cerr << "      " << ends;
+    cerr << "      ";
     for ( unsigned int i = 0; i < _labelCost.size(); ++i ) {
-	cerr << "[" << setw( 3 ) << i << "] " << ends;
+	cerr << "[" << setw( 3 ) << i << "] ";
     }
     cerr << endl;
-    cerr << "      " << ends;
+    cerr << "      ";
     for ( unsigned int i = 0; i < _labelCost.size(); ++i ) {
 	double cost = _labelCost[ i ];
-	cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " " << ends;
+	cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " ";
     }
     cerr << endl;
     if ( ofs_label ) {

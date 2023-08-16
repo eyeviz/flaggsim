@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 12:03:19 shigeo"
+//				Time-stamp: "2023-08-16 21:45:02 shigeo"
 //
 //==============================================================================
 
@@ -56,8 +56,12 @@ class GLLayout : public GLBase {
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
+    void _calcGridSize		( void );
+
     void _setViewport		( unsigned int idRow, unsigned int idCol );
     void _clearViewport		( void );
+
+    void _annotate		( unsigned int idRow, unsigned int idCol );
 
     void _barchart		( const double & data,
 				  const double & smooth,

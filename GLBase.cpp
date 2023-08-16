@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 00:35:28 shigeo"
+//				Time-stamp: "2023-08-16 22:59:04 shigeo"
 //
 //==============================================================================
 
@@ -98,12 +98,16 @@ int GLBase::handle( int ev )
 //	Protected Functions
 //------------------------------------------------------------------------------
 // Function for placing character strings
-void GLBase::_string2D( double x, double y, const char *str )
+void GLBase::_string2D( double x, double y, const char *str, int size )
 {
     double basex = x;
     double basey = y;
+    gl_font( 1, size );
     glRasterPos2d( basex, basey );
-
+    // gl_draw( str, strlen( str ) );
+    gl_draw( str );
+    
+#ifdef SKIP
     for (; *str != 0; str++) {
         if ( *str == '\n' ) {
             glRasterPos2i( basex, basey );
@@ -126,6 +130,7 @@ void GLBase::_string2D( double x, double y, const char *str )
             // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, *str );
         }
     }
+#endif	// SKIP
 }
 
 
