@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 21:37:39 shigeo"
+//				Time-stamp: "2023-08-18 23:35:29 shigeo"
 //
 //==============================================================================
 
@@ -86,7 +86,7 @@ void GLDrawing::_draw_network( Network & g )
     // VertexIDMap	vertexID	= get( vertex_myid, g );
     NetVertexCntrMap	vertexCntr	= get( vertex_mycntr, g );
 
-    cerr << HERE << " draw_network (for Network) " << endl;
+    // cerr << HERE << " draw_network (for Network) " << endl;
 
     // Drawing edges of the proximity graph
     glBegin( GL_LINES );

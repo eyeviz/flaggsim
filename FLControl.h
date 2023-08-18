@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 22:59:27 shigeo"
+//				Time-stamp: "2023-08-18 23:13:33 shigeo"
 //
 //==============================================================================
 
@@ -40,34 +40,12 @@ class FLControl : public Fl_Window {
     void _menuHandler( Fl_Menu_Bar * bar );
     static void _menuCallback( Fl_Widget *w, void * userdata );
 
-    void _intervalHandler( Fl_Value_Slider * slider );
-    static void _intervalCallback( Fl_Widget *w, void * userdata );
-
-    void _dataCostHandler( Fl_Value_Slider * slider );
-    static void _dataCostCallback( Fl_Widget *w, void * userdata );
-
-    void _smoothCostHandler( Fl_Value_Slider * slider );
-    static void _smoothCostCallback( Fl_Widget *w, void * userdata );
-
-    void _labelCostHandler( Fl_Value_Slider * slider );
-    static void _labelCostCallback( Fl_Widget *w, void * userdata );
-    
-    void _cutThresholdHandler( Fl_Value_Slider * slider );
-    static void _cutThresholdCallback( Fl_Widget *w, void * userdata );
-
   protected:
     Adjuster		* _adjust;
     GLBase		* _gl_drawing;
     GLBase		* _gl_layout;
 
-
     Fl_Menu_Bar		* _menubar;
-    Fl_Value_Slider	* _intervalSlider;
-    Fl_Value_Slider	* _dataCostSlider;
-    Fl_Value_Slider	* _smoothCostSlider;
-    Fl_Value_Slider	* _labelCostSlider;
-    Fl_Value_Slider	* _cutThresholdSlider;
-
     FLSliderInput	* _panel;	
     
   public:
@@ -86,14 +64,6 @@ class FLControl : public Fl_Window {
 //	Destructor
 //------------------------------------------------------------------------------
     ~FLControl();			// destructor
-
-
-
-//------------------------------------------------------------------------------
-//	Assignment opereators
-//------------------------------------------------------------------------------
-    FLControl & operator = ( const FLControl & obj );
-
 
 //------------------------------------------------------------------------------
 //	Class name

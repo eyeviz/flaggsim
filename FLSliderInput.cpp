@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 20:45:13 shigeo"
+//				Time-stamp: "2023-08-18 23:11:42 shigeo"
 //
 //==============================================================================
 
@@ -612,7 +612,7 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
     // to redraw the input box for the interval limit
     _intervalSliderHandler( _intervalSlider );
     
-    bottom	+= thickness + 5;
+    bottom	+= thickness;
 
 //------------------------------------------------------------------------------
 //	For data costs
@@ -631,7 +631,7 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
     // to redraw the input box for the data cost
     _dataCostSliderHandler( _dataCostSlider );
     
-    bottom	+= thickness + 5;
+    bottom	+= thickness;
 
 //------------------------------------------------------------------------------
 //	For smoothness costs
@@ -650,7 +650,7 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
     // to redraw the input box for the data cost
     _smoothCostSliderHandler( _smoothCostSlider );
 
-    bottom	+= thickness + 5;
+    bottom	+= thickness;
 
 //------------------------------------------------------------------------------
 //	For label costs
@@ -669,7 +669,7 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
     // to redraw the input box for the data cost
     _labelCostSliderHandler( _labelCostSlider );
 
-    bottom	+= thickness + 5;
+    bottom	+= thickness;
 //------------------------------------------------------------------------------
 //	For cut thresholds
     _cutThresholdInput		= new Fl_Float_Input( x, bottom, in_w, thickness,
@@ -687,7 +687,7 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
     // to redraw the input box for the data cost
     _cutThresholdSliderHandler( _cutThresholdSlider );
 
-    bottom	+= thickness + 5;
+    bottom	+= thickness;
     
     end();             // close the group
 }
