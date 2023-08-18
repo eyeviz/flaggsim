@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 23:22:47 shigeo"
+//				Time-stamp: "2023-08-18 21:37:39 shigeo"
 //
 //==============================================================================
 
@@ -21,7 +21,6 @@ using namespace std;
 
 // #include <FL/filename.H>		// fl_open_uri()
 
-#include "CSVIO.h"
 #include "GLDrawing.h"
 
 
@@ -163,150 +162,6 @@ void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
-// retrieve the head name of the input file name
-void GLDrawing::_retrieve_headname( const char * args )
-{
-    string inputname = args;
-    vector< string > slashlist = CSVIO::split( inputname, '/' );
-    string lastblock;
-    for ( vector< string >::iterator iterS = slashlist.begin();
-	  iterS != slashlist.end(); iterS++ ) {
-	lastblock = (*iterS);
-    }
-    vector< string > dotlist = CSVIO::split( lastblock, '.' );
-    vector< string >::iterator iterD = dotlist.begin();
-    if ( iterD != dotlist.end() ) {
-	_headname = (*iterD);
-    }
-    cerr << HERE << " headname ======> : " << _headname << endl;
-}
-
-
-// load a drawging from the given file
-void GLDrawing::_load_drawing( const char * filename )
-{
-    _retrieve_headname( filename );
-
-    ifstream ifs( filename );
-    istringstream istr;
-    string line;
-    
-    if ( ! ifs ) {
-        cerr << HERE << " cannot open the file " << filename << endl;
-        return;
-    }
-
-    // load the number of points first of all
-    getline( ifs, line );
-    istr.clear();
-    istr.str( line );
-    istr >> _nPolys;
-    cerr << " Number of polygons = " << _nPolys << endl;
-
-    _fig->clear();
-    
-    // load the coordinates of the points
-    unsigned int countID = 0;
-    for ( unsigned int i = 0; i < _nPolys; ++i ) {
-	unsigned int nPoints;
-	getline( ifs, line );
-	istr.clear();
-	istr.str( line );
-	istr >> nPoints;
-#ifdef DEBUG
-	cerr << "[ " << setw( 3 ) << i << " ] : Number of points = " << nPoints << endl;
-#endif	// DEBUG
-	Polygon2 poly;
-	for ( unsigned int j = 0; j < nPoints; ++j ) {
-	    double px, py;
-	    getline( ifs, line );
-	    istr.clear();
-	    istr.str( line );
-	    istr >> px >> py;
-#ifdef TENTATIVE_COORDINATE_NORMALIZATION
-	    // px = 2.0 * ( double )px/( double )FULL_WIDTH - 1.0;
-	    // py = 1.0 - 2.0 * ( double )py/( double )FULL_HEIGHT;
-	    px = px * 2.0 - 1.0;
-	    py = py * 2.0 - 1.0;
-#endif	// TENTATIVE_COORDINATE_NORMALIZATION
-	    // cerr << HERE << " px = " << px << " py = " << py << endl;
-	    poly.push_back( Point2( px, py ) );
-	}
-
-	if ( poly.orientation() != CGAL::COUNTERCLOCKWISE ) {
-	    cerr << HERE << "%%%%% Polygon No. " << _fig->poly().size() << " CW " << endl;
-
-	    poly.reverse_orientation();
-	}
-
-	assert( poly.orientation() == CGAL::COUNTERCLOCKWISE );
-	
-#ifdef RESAMPLE_BOUNDARY
-	const double div = RESAMPLE_INTERVAL;
-	// Resample the polygon boundary;
-	Polygon2 fine;
-	unsigned int sz = poly.size();
-	for ( unsigned int j = 0; j < sz; ++j ) {
-	    fine.push_back( poly[ j ] );
-	    double length = sqrt( ( poly[ (j+1)%sz ] - poly[ j ] ).squared_length() );
-	    int nDiv = ceil( length / div );
-	    for ( unsigned int k = 1; k < nDiv; ++k ) {
-		double t = ( double )k/( double )nDiv;
-		Point2 newP = CGAL::ORIGIN +
-		    (1.0 - t)*( poly[ j ] - CGAL::ORIGIN ) +
-		    t*(poly[ (j+1)%sz ] - CGAL::ORIGIN );
-		fine.push_back( newP );
-	    }
-	}
-	// cerr << HERE << " poly = " << poly << endl;
-	// cerr << HERE << " fine = " << fine << endl;
-	Set glob;
-	for ( unsigned int j = 0; j < fine.size(); ++j ) {
-	    glob.push_back( countID++ );
-	}
-	_fig->poly().push_back( fine );
-	_fig->glID().push_back( glob );
-#else	// RESAMPLE_BOUNDARY
-	Set glob;
-	for ( unsigned int j = 0; j < poly.size(); ++j ) {
-	    glob.push_back( countID++ );
-	}
-	_fig.poly().push_back( poly );
-	_fig.glID().push_back( glob );
-#endif	// RESAMPLE_BOUNDARY
-    }
-    ifs.close();
-
-    _fig->bound() = _fig->poly();
-    cerr << HERE << " Finished loading the data!" << endl;  
-}
-
-// save a drawging into the given file
-void GLDrawing::_save_drawing( const char * filename )
-{
-    ofstream ofs( filename );
-
-    if ( ! ofs ) {
-        cerr << HERE << " cannot open the file " << filename << endl;
-        return;
-    }
-
-    ofs << _fig->poly().size() << endl;
-    for ( unsigned int i = 0; i < _fig->poly().size(); ++i ) {
-	ofs << _fig->poly()[ i ].size() << endl;
-	for ( unsigned int j = 0; j < _fig->poly()[ i ].size(); ++j ) {
-	    ofs << fixed << setprecision( 4 ) << _fig->poly()[ i ][ j ].x();
-	    ofs << "\t";
-	    ofs << fixed << setprecision( 4 ) << _fig->poly()[ i ][ j ].y();
-	    ofs << endl;
-	}
-    }
-    ofs.close();
-
-    cerr << " Finished saving the data!" << endl;  
-}
-
-
 // processing the ressults of label cost optimization
 void GLDrawing::_isometric( vector< Expansion > & expand )
 {
@@ -357,9 +212,6 @@ void GLDrawing::_isometric( vector< Expansion > & expand )
 	_worksp->coverGlob().push_back( globSet );
 #endif	// USE_CONCAVE_HULLS
     }
-#ifndef USE_CONVEX_HULLS
-    cerr << HERE << " coverBand.size = " << _worksp->coverBand().size() << endl;
-#endif	// USE_CONVEX_HULLS
 }
 
 
@@ -383,6 +235,8 @@ void GLDrawing::_isometric( vector< Expansion > & expand )
 GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l ) 
     : GLBase( _x, _y, _w, _h, _l )  	
 {
+    _glLayout		= NULL;
+
     _isConjoined	= false;
     _isWrapped		= false;
     _isPlotted		= false;
@@ -468,6 +322,9 @@ void GLDrawing::Display( void )
     glEnd();
 #endif	// DEBUG
 
+    if ( _fig == NULL ) return;
+    if ( _fig->poly().size() == 0 ) return;
+    
     // for enabling antialiasing
     glEnable( GL_LINE_SMOOTH );
     glEnable( GL_BLEND );
@@ -672,7 +529,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
     string		inname, outname, imgname, dirname;
     struct stat		statbuf;
     
-    cerr << HERE << "GLDrawing::Keyboard : key " << key << endl;
+    // cerr << HERE << "GLDrawing::Keyboard : key " << key << endl;
     
     make_current();
 

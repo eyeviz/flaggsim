@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 22:59:04 shigeo"
+//				Time-stamp: "2023-08-18 21:52:06 shigeo"
 //
 //==============================================================================
 
@@ -18,12 +18,21 @@ using namespace std;
 // OpenCV library
 #include <opencv2/opencv.hpp>
 
+#include "CSVIO.h"
 #include "GLBase.h"
 
 
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
+#define RESAMPLE_BOUNDARY
+#ifdef RESAMPLE_BOUNDARY
+// #define RESAMPLE_INTERVAL	(0.02) // 120m / 2.0 * 0.02 = 1.2m
+#define RESAMPLE_INTERVAL	(0.05)
+//#define RESAMPLE_INTERVAL	(0.10) // 120m / 2.0 * 0.10 = 6.0m <== Current selection
+// #define RESAMPLE_INTERVAL	(0.20) // <== Previous seleciton
+//#define RESAMPLE_INTERVAL	(0.25)
+#endif	// RESAMPLE_BOUNDARY
 
 
 //------------------------------------------------------------------------------
@@ -150,6 +159,161 @@ void GLBase::_draw_polygon( Polygon2 & poly )
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
+// retrieve the head name of the input file name
+void GLBase::_retrieve_headname( const char * args )
+{
+    string inputname = args;
+    vector< string > slashlist = CSVIO::split( inputname, '/' );
+    string lastblock;
+    for ( vector< string >::iterator iterS = slashlist.begin();
+	  iterS != slashlist.end(); iterS++ ) {
+	lastblock = (*iterS);
+    }
+    vector< string > dotlist = CSVIO::split( lastblock, '.' );
+    vector< string >::iterator iterD = dotlist.begin();
+    if ( iterD != dotlist.end() ) {
+	_headname = (*iterD);
+    }
+    cerr << HERE << " headname ======> : " << _headname << endl;
+}
+
+
+// load a drawging from the given file
+void GLBase::_load_drawing( const char * filename )
+{
+    cerr << HERE << " load_drawing => " << filename << endl;
+
+    _retrieve_headname( filename );
+    
+    if ( _fig == NULL ) {
+	cerr << HERE << " NULL pointer to the line drawing" << endl;
+	exit( 0 );
+    }
+    
+    ifstream ifs( filename );
+    istringstream istr;
+    string line;
+    
+    if ( ! ifs ) {
+        cerr << HERE << " cannot open the file " << filename << endl;
+        return;
+    }
+
+    // load the number of points first of all
+    getline( ifs, line );
+    istr.clear();
+    istr.str( line );
+    istr >> _nPolys;
+    cerr << " Number of polygons = " << _nPolys << endl;
+
+    _fig->clear();
+    
+    // load the coordinates of the points
+    unsigned int countID = 0;
+    for ( unsigned int i = 0; i < _nPolys; ++i ) {
+	unsigned int nPoints;
+	getline( ifs, line );
+	istr.clear();
+	istr.str( line );
+	istr >> nPoints;
+#ifdef DEBUG
+	cerr << "[ " << setw( 3 ) << i << " ] : Number of points = " << nPoints << endl;
+#endif	// DEBUG
+	Polygon2 poly;
+	for ( unsigned int j = 0; j < nPoints; ++j ) {
+	    double px, py;
+	    getline( ifs, line );
+	    istr.clear();
+	    istr.str( line );
+	    istr >> px >> py;
+#ifdef TENTATIVE_COORDINATE_NORMALIZATION
+	    // px = 2.0 * ( double )px/( double )FULL_WIDTH - 1.0;
+	    // py = 1.0 - 2.0 * ( double )py/( double )FULL_HEIGHT;
+	    px = px * 2.0 - 1.0;
+	    py = py * 2.0 - 1.0;
+#endif	// TENTATIVE_COORDINATE_NORMALIZATION
+	    // cerr << HERE << " px = " << px << " py = " << py << endl;
+	    poly.push_back( Point2( px, py ) );
+	}
+
+	if ( poly.orientation() != CGAL::COUNTERCLOCKWISE ) {
+	    cerr << HERE << "%%%%% Polygon No. " << _fig->poly().size() << " CW " << endl;
+
+	    poly.reverse_orientation();
+	}
+
+	assert( poly.orientation() == CGAL::COUNTERCLOCKWISE );
+	
+#ifdef RESAMPLE_BOUNDARY
+	const double div = RESAMPLE_INTERVAL;
+	// Resample the polygon boundary;
+	Polygon2 fine;
+	unsigned int sz = poly.size();
+	for ( unsigned int j = 0; j < sz; ++j ) {
+	    fine.push_back( poly[ j ] );
+	    double length = sqrt( ( poly[ (j+1)%sz ] - poly[ j ] ).squared_length() );
+	    int nDiv = ceil( length / div );
+	    for ( unsigned int k = 1; k < nDiv; ++k ) {
+		double t = ( double )k/( double )nDiv;
+		Point2 newP = CGAL::ORIGIN +
+		    (1.0 - t)*( poly[ j ] - CGAL::ORIGIN ) +
+		    t*(poly[ (j+1)%sz ] - CGAL::ORIGIN );
+		fine.push_back( newP );
+	    }
+	}
+	// cerr << HERE << " poly = " << poly << endl;
+	// cerr << HERE << " fine = " << fine << endl;
+	Set glob;
+	for ( unsigned int j = 0; j < fine.size(); ++j ) {
+	    glob.push_back( countID++ );
+	}
+	_fig->poly().push_back( fine );
+	_fig->glID().push_back( glob );
+#else	// RESAMPLE_BOUNDARY
+	Set glob;
+	for ( unsigned int j = 0; j < poly.size(); ++j ) {
+	    glob.push_back( countID++ );
+	}
+	_fig.poly().push_back( poly );
+	_fig.glID().push_back( glob );
+#endif	// RESAMPLE_BOUNDARY
+    }
+    ifs.close();
+
+    _fig->bound() = _fig->poly();
+    cerr << HERE << " Finished loading the data!" << endl;  
+}
+
+// save a drawging into the given file
+void GLBase::_save_drawing( const char * filename )
+{
+    if ( _fig == NULL ) {
+	cerr << HERE << " NULL pointer to the line drawing" << endl;
+	exit( 0 );
+    }
+
+    ofstream ofs( filename );
+
+    if ( ! ofs ) {
+        cerr << HERE << " cannot open the file " << filename << endl;
+        return;
+    }
+
+    ofs << _fig->poly().size() << endl;
+    for ( unsigned int i = 0; i < _fig->poly().size(); ++i ) {
+	ofs << _fig->poly()[ i ].size() << endl;
+	for ( unsigned int j = 0; j < _fig->poly()[ i ].size(); ++j ) {
+	    ofs << fixed << setprecision( 4 ) << _fig->poly()[ i ][ j ].x();
+	    ofs << "\t";
+	    ofs << fixed << setprecision( 4 ) << _fig->poly()[ i ][ j ].y();
+	    ofs << endl;
+	}
+    }
+    ofs.close();
+
+    cerr << " Finished saving the data!" << endl;  
+}
+
 
 // Capture the window as a image file
 void GLBase::_capture( const char * name )
@@ -213,6 +377,10 @@ GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
 {
     _flwin.clear();
     _isFilled		= false;
+
+    _fig		= NULL;
+    _worksp		= NULL;
+    _adjust		= NULL;
 
     resizable( this );
     end();

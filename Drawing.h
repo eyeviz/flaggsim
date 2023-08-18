@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 02:33:56 shigeo"
+//				Time-stamp: "2023-08-18 18:40:22 shigeo"
 //
 //==============================================================================
 
@@ -486,21 +486,27 @@ public:
 //------------------------------------------------------------------------------
 //	Triangulation
 //------------------------------------------------------------------------------
-    void triangulate( void ) { _triangulate(); }
+    void triangulate( void ) {
+	if ( _poly.size() == 0 ) return;
+	_triangulate();
+    }
 //------------------------------------------------------------------------------
 //	Computations for finiding Gestalts
 //------------------------------------------------------------------------------
     void conjoin( void ) {
+	if ( _poly.size() == 0 ) return;
 	_assignLabels();
 	_calcLabelCost();
 	_calcSmoothCost();
 	_calcDataCost();
     }
     void optimize( void ) {
+	if ( _poly.size() == 0 ) return;
 	_graphCut();
     }
 #ifdef USE_CONVEX_HULLS
     void aggregate( int id ) {
+	if ( _poly.size() == 0 ) return;
 	_aggregateLabels( _expand[ id ].cluster() );
 	// _simplifyPolys();
 #ifdef AUTOMATIC_CONJOINING
@@ -513,6 +519,7 @@ public:
     void aggregate( int id,
 		    const vector< Polygon2 > & layout,
 		    const vector< Set > & index ) {
+	if ( _poly.size() == 0 ) return;
 	_aggregateLabels( _expand[ id ].cluster(), layout, index );
 	// _simplifyPolys();
 #ifdef AUTOMATIC_CONJOINING
@@ -523,9 +530,11 @@ public:
     }
 #endif	// USE_CONVEX_HULLS
     void simplify( void ) {
+	if ( _poly.size() == 0 ) return;
 	_simplifyPolys();
     }
     void square( void ) {
+	if ( _poly.size() == 0 ) return;
 	_squarePolys();
     }
 

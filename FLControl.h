@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 14:22:34 shigeo"
+//				Time-stamp: "2023-08-18 22:59:27 shigeo"
 //
 //==============================================================================
 
@@ -20,7 +20,7 @@
 
 #include "Adjuster.h"
 #include "GLBase.h"
-
+#include "FLSliderInput.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -34,8 +34,11 @@
 class FLControl : public Fl_Window {
 
   private:
-    void _menu_handler( Fl_Menu_Bar * bar );
-    static void _menu_callback( Fl_Widget *w, void * userdata );
+    void _fileHandler( Fl_Menu_Bar * bar );
+    static void _fileCallback( Fl_Widget *w, void * userdata );
+
+    void _menuHandler( Fl_Menu_Bar * bar );
+    static void _menuCallback( Fl_Widget *w, void * userdata );
 
     void _intervalHandler( Fl_Value_Slider * slider );
     static void _intervalCallback( Fl_Widget *w, void * userdata );
@@ -53,38 +56,45 @@ class FLControl : public Fl_Window {
     static void _cutThresholdCallback( Fl_Widget *w, void * userdata );
 
   protected:
-    Adjuster *		_adjust;
+    Adjuster		* _adjust;
+    GLBase		* _gl_drawing;
+    GLBase		* _gl_layout;
 
-    Fl_Menu_Bar	*	_menubar;
-    Fl_Value_Slider *	_intervalSlider;
-    Fl_Value_Slider *	_dataCostSlider;
-    Fl_Value_Slider *	_smoothCostSlider;
-    Fl_Value_Slider *	_labelCostSlider;
-    Fl_Value_Slider *	_cutThresholdSlider;
+
+    Fl_Menu_Bar		* _menubar;
+    Fl_Value_Slider	* _intervalSlider;
+    Fl_Value_Slider	* _dataCostSlider;
+    Fl_Value_Slider	* _smoothCostSlider;
+    Fl_Value_Slider	* _labelCostSlider;
+    Fl_Value_Slider	* _cutThresholdSlider;
+
+    FLSliderInput	* _panel;	
     
-    static GLBase *	_gl_drawing;
-    static GLBase *	_gl_layout;
-
   public:
 
 //------------------------------------------------------------------------------
 //	Constructors
 //------------------------------------------------------------------------------
     FLControl( Adjuster * __adjust,
+	       GLBase * __gl_drawing, GLBase * __gl_layout,
 	       int _x, int _y, int _w, int _h, const char *_l );
 				// default constructor
 
+    FLControl( const FLControl & obj );
+				// copy constructor
 //------------------------------------------------------------------------------
 //	Destructor
 //------------------------------------------------------------------------------
     ~FLControl();			// destructor
 
+
+
 //------------------------------------------------------------------------------
-//	Referrring to members
+//	Assignment opereators
 //------------------------------------------------------------------------------
-    void setGLDrawing( GLBase * ptr )	{ _gl_drawing = ptr; }
-    void setGLLayout ( GLBase * ptr )	{ _gl_layout = ptr; }
-    
+    FLControl & operator = ( const FLControl & obj );
+
+
 //------------------------------------------------------------------------------
 //	Class name
 //------------------------------------------------------------------------------

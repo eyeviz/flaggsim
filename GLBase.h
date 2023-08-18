@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 22:59:00 shigeo"
+//				Time-stamp: "2023-08-18 22:35:48 shigeo"
 //
 //==============================================================================
 
@@ -58,6 +58,8 @@ class GLBase : public Fl_Gl_Window {
 
     vector< Fl_Gl_Window * >	_flwin;
 
+    unsigned int		_nPolys;
+
     Drawing			* _fig;
     Workspace			* _worksp;
     Adjuster			* _adjust;
@@ -76,6 +78,9 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
+    void _retrieve_headname	( const char * args );
+    void _load_drawing		( const char * filename );
+    void _save_drawing		( const char * filename );
     void _capture		( const char * filename );
 
   public:
@@ -134,8 +139,17 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
+    void load_drawing		( const char * filename ) {
+	_load_drawing( filename );
+	Keyboard( 'a', 0, 0 );
+	redrawAll();
+    }
+    void save_drawing		( const char * filename ) {
+	_save_drawing( filename );
+    }
     void capture		( const char * filename ) {
 	_capture( filename );
+	redrawAll();
     }
 
 //------------------------------------------------------------------------------

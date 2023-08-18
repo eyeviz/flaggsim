@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 14:27:38 shigeo"
+//				Time-stamp: "2023-08-18 21:40:29 shigeo"
 //
 //==============================================================================
 
@@ -30,14 +30,6 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
-#define RESAMPLE_BOUNDARY
-#ifdef RESAMPLE_BOUNDARY
-// #define RESAMPLE_INTERVAL	(0.02) // 120m / 2.0 * 0.02 = 1.2m
-#define RESAMPLE_INTERVAL	(0.05)
-//#define RESAMPLE_INTERVAL	(0.10) // 120m / 2.0 * 0.10 = 6.0m <== Current selection
-// #define RESAMPLE_INTERVAL	(0.20) // <== Previous seleciton
-//#define RESAMPLE_INTERVAL	(0.25)
-#endif	// RESAMPLE_BOUNDARY
 
 
 //------------------------------------------------------------------------------
@@ -56,8 +48,6 @@ class GLDrawing : public GLBase {
     bool		_isWrapped;
     bool		_isPlotted;
 
-    unsigned int	_nPolys;
-
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
@@ -71,9 +61,6 @@ class GLDrawing : public GLBase {
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
-    void _retrieve_headname	( const char * args );
-    void _load_drawing		( const char * filename );
-    void _save_drawing		( const char * filename );
 
     
 //------------------------------------------------------------------------------
@@ -130,15 +117,6 @@ public:
 //------------------------------------------------------------------------------
     virtual void redrawAll	( void );
 
-//------------------------------------------------------------------------------
-//	Functions for File I/O
-//------------------------------------------------------------------------------
-    void load_drawing		( const char * filename ) {
-	_load_drawing( filename );
-    }
-    void save_drawing		( const char * filename ) {
-	_save_drawing( filename );
-    }
 
 //------------------------------------------------------------------------------
 //	Class name

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 23:11:31 shigeo"
+//				Time-stamp: "2023-08-18 18:31:22 shigeo"
 //
 //==============================================================================
 
@@ -38,6 +38,9 @@ using namespace std;
 // Function for computing the grid size
 void GLLayout::_calcGridSize( void )
 {
+    assert( _fig != NULL );
+    assert( _worksp != NULL );
+
     vector< Set > & group = _worksp->cluster();
     vector< Expansion > & expand = _fig->expand();
     unsigned int matrix_size = group.size();
@@ -475,6 +478,9 @@ void GLLayout::Display( void )
     _string2D(  0.6,  0.2, "( 0.6, 0.2)" );
     _string2D(  0.4,  0.9, "( 0.4, 0.9)" );
 #endif	// DEBUG
+
+    if ( _fig == NULL ) return;
+    if ( _fig->poly().size() == 0 ) return;
 
     _calcGridSize();
     

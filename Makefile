@@ -52,6 +52,8 @@ SRC =           \
 		GLBase.cpp \
     		GLDrawing.cpp \
 		GLLayout.cpp \
+		\
+		FLSliderInput.cpp \
 		FLControl.cpp \
 		\
 		main.cpp \
@@ -84,6 +86,8 @@ HDR =	        \
 		GLBase.h \
     		GLDrawing.h \
 		GLLayout.h \
+		\
+		FLSliderInput.h \
 		FLControl.h \
 		\
     		GCoptimization.h \

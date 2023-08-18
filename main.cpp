@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 23:12:18 shigeo"
+//				Time-stamp: "2023-08-18 18:33:18 shigeo"
 //
 //==============================================================================
 
@@ -1662,6 +1662,7 @@ void keyboard( unsigned char key, int x, int y )
 	  // Calls this after loading the line drawing data
       case 'a':
       case 'A':
+	  if ( ( fig == NULL ) || ( fig->poly().size() == 0 ) ) break;
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  fig.conjoin();
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
@@ -2583,24 +2584,23 @@ int main( int argc, char *argv[] )
     win_design->show( argc, argv );
 
 //------------------------------------------------------------------------------
+//	Set mutual redraw functions
+//------------------------------------------------------------------------------
+    // Set pointers here to prepare the panel window
+    gl_layout->setGLDrawing	( gl_drawing );
+    gl_drawing->setGLLayout	( gl_layout );
+
+//------------------------------------------------------------------------------
 //	Panel window	
 //------------------------------------------------------------------------------
     FLControl * win_panel = new FLControl( adjust,
+					   gl_drawing, gl_layout,
 					   map_width+design_width, 0,
 					   panel_width, panel_height,
 					   "Panel window" );
-    win_panel->setGLDrawing( gl_drawing );
-    win_panel->setGLLayout ( gl_layout );
     win_panel->end();
     win_panel->show( argc, argv );
     
-//------------------------------------------------------------------------------
-//	Set mutual redraw functions
-//------------------------------------------------------------------------------
-    gl_layout->setGLDrawing	( gl_drawing );
-    gl_drawing->setGLLayout	( gl_layout );
-    // gl_drawing->addFlWin	( gl_layout );
-    // gl_layout->addFlWin		( gl_drawing );
 
     cerr << " Key commands " << endl;
     cerr << " a (097) : list the aggregation choices for building polygons" << endl;

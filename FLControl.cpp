@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-08 14:33:14 shigeo"
+//				Time-stamp: "2023-08-18 22:59:05 shigeo"
 //
 //==============================================================================
 
@@ -15,6 +15,8 @@
 
 using namespace std;
 
+#include <FL/Fl_Native_File_Chooser.H>
+
 #include "FLControl.h"
 
 
@@ -22,11 +24,6 @@ using namespace std;
 //	Defining Macros
 //------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-//	Variables
-//------------------------------------------------------------------------------
-GLBase * FLControl::_gl_drawing = NULL;
-GLBase * FLControl::_gl_layout  = NULL;
 
 //------------------------------------------------------------------------------
 //	Private Functions
@@ -35,8 +32,77 @@ GLBase * FLControl::_gl_layout  = NULL;
 //------------------------------------------------------------------------------
 //	For menubars 
 //------------------------------------------------------------------------------
-// response to the selected menu item
-void FLControl::_menu_handler( Fl_Menu_Bar * bar )
+
+//------------------------------------------------------------------------------
+//	File Load & Save
+
+// handler function for loading data from files
+void FLControl::_fileHandler( Fl_Menu_Bar * bar )
+{
+    const Fl_Menu_Item *item = bar->mvalue(); // Get the menu item that was picked
+
+    // Get full pathname of picked item
+    char ipath[ 256 ];
+    bar->item_pathname( ipath, sizeof( ipath ) );
+
+    // Create the file chooser, and show it
+    Fl_Native_File_Chooser chooser( Fl_Native_File_Chooser::BROWSE_FILE );
+    chooser.title( "Select File" );
+    chooser.type( Fl_Native_File_Chooser::BROWSE_FILE );
+    chooser.directory( "." );
+    if ( ( strcmp( ipath, "&File/&Load" ) == 0 ) ||
+	 ( strcmp( ipath, "&File/&Save" ) == 0 ) )
+	chooser.filter( "*.dat" );
+    else
+	chooser.filter( "*" );
+    
+    switch ( chooser.show() ) {
+      case -1: // ERROR
+	  cerr << HERE << "ERROR: " << chooser.errmsg() << endl;
+	  break;
+      case 1: // CANCEL
+	  cerr << HERE << "CANCEL" << endl;
+	  break;
+      default: // FILE CHOSEN
+	  cerr << HERE << "PICKED: " << chooser.filename() << endl;
+	  cerr << HERE << " _gl_drawing = " << FLControl::_gl_drawing << endl;
+	  if ( strcmp( ipath, "&File/&Load" ) == 0 ) {
+	      FLControl::_gl_drawing->load_drawing( chooser.filename() );
+	  }
+	  else if ( strcmp( ipath, "&File/&Save" ) == 0 ) {
+	      FLControl::_gl_drawing->save_drawing( chooser.filename() );
+	  }
+	  else {
+	      cerr << HERE << " No menu items matched" << endl;
+	  }
+#ifdef SKIP
+	  // Multiple files? Show all of them
+	  if ( chooser.count() > 0 ) {
+	      for ( int t = 0; t < chooser.count(); t++ ) {
+		  fprintf(stderr, " VALUE[%d]: '%s'\n", t, chooser.filename( t ) );
+	      }
+	  }
+#endif	// SKIP
+	  break;
+    }
+}
+    
+// callback function for loading data from files
+void FLControl::_fileCallback( Fl_Widget *w, void * userdata )
+{
+    Fl_Menu_Bar *bar = (Fl_Menu_Bar*)w;	      // Get the menubar widget
+    cerr << HERE << " bar = " << bar << endl;
+    FLControl *appwin = (FLControl*)userdata;
+    cerr << HERE << " appwin = " << appwin << endl;
+    
+    appwin->_fileHandler( bar );
+}
+
+//------------------------------------------------------------------------------
+//	Menu selection
+
+// handler function for handling menu selections
+void FLControl::_menuHandler( Fl_Menu_Bar * bar )
 {
     const Fl_Menu_Item *item = bar->mvalue(); // Get the menu item that was picked
 
@@ -67,13 +133,13 @@ void FLControl::_menu_handler( Fl_Menu_Bar * bar )
     if ( strcmp( item->label(), "&Quit" ) == 0 ) { exit(0); }
 }
 
-// menu callback function
-void FLControl::_menu_callback( Fl_Widget *w, void * userdata )
+// callback function for handling menu selections
+void FLControl::_menuCallback( Fl_Widget *w, void * userdata )
 {
     Fl_Menu_Bar *bar = (Fl_Menu_Bar*)w;	      // Get the menubar widget
     FLControl *appwin = (FLControl*)userdata;
     
-    appwin->_menu_handler( bar );
+    appwin->_menuHandler( bar );
 }
 
 //------------------------------------------------------------------------------
@@ -257,35 +323,43 @@ void FLControl::_cutThresholdCallback( Fl_Widget *w, void * userdata )
 //	none
 //
 FLControl::FLControl( Adjuster * __adjust,
+		      GLBase * __gl_drawing, GLBase * __gl_layout,
 		      int _x, int _y, int _w, int _h, const char *_l )
     : Fl_Window( _x, _y, _w, _h, _l )  	
 {
-    _adjust	= __adjust;
+    int bottom = 0;
 
+    _adjust		= __adjust;
+    _gl_drawing		= __gl_drawing;
+    _gl_layout		= __gl_layout;
+    cerr << HERE << " _gl_drawing = " << _gl_drawing << endl;
+    cerr << HERE << " _gl_layout = " << _gl_layout << endl;
+    
     //------------------------------------------------------------------------------
     //	Preparing the menu bar
     //------------------------------------------------------------------------------
     _menubar = new Fl_Menu_Bar( 0, 0, _w, 25 );
 
-    _menubar->add( "&File/&Clear",	0,	_menu_callback );
-    _menubar->add( "&File/&Load",	0,	_menu_callback );
-    _menubar->add( "&File/&Save",	0,	_menu_callback );
+    _menubar->add( "&File/&Clear",	0,	_menuCallback,	( void* )this );
+    _menubar->add( "&File/&Load",	0,	_fileCallback,	( void* )this );
+    _menubar->add( "&File/&Save",	0,	_fileCallback,	( void* )this );
     
-    _menubar->add( "&Edit/con&Join",	0,	_menu_callback );
-    _menubar->add( "&Edit/&Optimize",	0,	_menu_callback );
+    _menubar->add( "&Edit/con&Join",	0,	_menuCallback,	( void* )this );
+    _menubar->add( "&Edit/&Optimize",	0,	_menuCallback,	( void* )this );
     
-    _menubar->add( "&Switch/Conjoined",	0,	_menu_callback );
-    _menubar->add( "&Switch/Wrapped",	0,	_menu_callback );
+    _menubar->add( "&Switch/Conjoined",	0,	_menuCallback,	( void* )this );
+    _menubar->add( "&Switch/Wrapped",	0,	_menuCallback,	( void* )this );
 
-    _menubar->add( "&Capture/&Drawing",	0,	_menu_callback );
-    _menubar->add( "&Capture/&Layout",	0,	_menu_callback );
+    _menubar->add( "&Capture/&Drawing",	0,	_menuCallback,	( void* )this );
+    _menubar->add( "&Capture/&Layout",	0,	_menuCallback,	( void* )this );
 
-    _menubar->add( "&Quit",		0,	_menu_callback );
+    _menubar->add( "&Quit",		0,	_menuCallback,	( void* )this );
 
     //------------------------------------------------------------------------------
     //	Preparing the value sliders for intevals
     //------------------------------------------------------------------------------
-    _intervalSlider	= new Fl_Value_Slider( 120, 40, this->w()/2, 20,
+    bottom = 60;
+    _intervalSlider	= new Fl_Value_Slider( 120, bottom, this->w()/2, 20,
 					       "limit interval" );
     _intervalSlider->align	( FL_ALIGN_LEFT );
     _intervalSlider->type	( FL_HOR_SLIDER );
@@ -298,7 +372,8 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //	Preparing the value sliders for data costs
     //------------------------------------------------------------------------------
-    _dataCostSlider	= new Fl_Value_Slider( 120, 65, this->w()/2, 20,
+    bottom += 25;
+    _dataCostSlider	= new Fl_Value_Slider( 120, bottom, this->w()/2, 20,
 					       "data cost" );
     _dataCostSlider->align	( FL_ALIGN_LEFT );
     _dataCostSlider->type	( FL_HOR_SLIDER );
@@ -311,7 +386,8 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //	Preparing the value sliders for smooth costs
     //------------------------------------------------------------------------------
-    _smoothCostSlider	= new Fl_Value_Slider( 120, 90, this->w()/2, 20,
+    bottom += 25;
+    _smoothCostSlider	= new Fl_Value_Slider( 120, bottom, this->w()/2, 20,
 					       "smooth cost" );
     _smoothCostSlider->align	( FL_ALIGN_LEFT );
     _smoothCostSlider->type	( FL_HOR_SLIDER );
@@ -324,7 +400,8 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //	Preparing the value sliders for label costs
     //------------------------------------------------------------------------------
-    _labelCostSlider	= new Fl_Value_Slider( 120, 115, this->w()/2, 20,
+    bottom += 25;
+    _labelCostSlider	= new Fl_Value_Slider( 120, bottom, this->w()/2, 20,
 					       "label cost" );
     _labelCostSlider->align	( FL_ALIGN_LEFT );
     _labelCostSlider->type	( FL_HOR_SLIDER );
@@ -337,7 +414,8 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //	Preparing the value sliders for cut thresholds
     //------------------------------------------------------------------------------
-    _cutThresholdSlider	= new Fl_Value_Slider( 120, 140, this->w()/2, 20,
+    bottom += 25;
+    _cutThresholdSlider	= new Fl_Value_Slider( 120, bottom, this->w()/2, 20,
 					       "cut threshold" );
     _cutThresholdSlider->align	( FL_ALIGN_LEFT );
     _cutThresholdSlider->type	( FL_HOR_SLIDER );
@@ -346,9 +424,47 @@ FLControl::FLControl( Adjuster * __adjust,
 
     _cutThresholdSlider->callback	( _cutThresholdCallback, ( void *)this );
 
-    _gl_drawing = NULL;
-    _gl_layout = NULL;
+    //------------------------------------------------------------------------------
+    //	
+    //------------------------------------------------------------------------------
+    bottom += 40;
+    int border = 100;
+    _panel = new FLSliderInput( __adjust, __gl_drawing, __gl_layout,
+				border, bottom, this->w() - border - 40, 160,
+				"Parameter panel" );
+
+    //------------------------------------------------------------------------------
+    //	
+    //------------------------------------------------------------------------------
 }
+
+
+#ifdef SKIP
+//
+//  FLControl::FLControl --	copy constructor
+//
+//  Inputs
+//	obj	: object of this class
+//
+//  Outputs
+//	none
+//
+FLControl::FLControl( const FLControl & obj )
+{
+    _adjust		= obj._adjust;
+    _gl_drawing		= obj._gl_drawing;
+    _gl_layout		= obj._gl_layout;
+
+    _menubar		= obj._menubar;
+    _intervalSlider	= obj._intervalSlider;
+    _dataCostSlider	= obj._dataCostSlider;
+    _smoothCostSlider	= obj._smoothCostSlider;
+    _labelCostSlider	= obj._labelCostSlider;
+    _cutThresholdSlider	= obj._cutThresholdSlider;
+
+    _panel		= obj._panel;
+}
+#endif	// SKIP
 
 
 //------------------------------------------------------------------------------
@@ -367,6 +483,8 @@ FLControl::FLControl( Adjuster * __adjust,
 FLControl::~FLControl()
 {
     delete _menubar;
+    
+    // Sliders;
     delete _intervalSlider;
     delete _dataCostSlider;
     delete _smoothCostSlider;
@@ -379,6 +497,39 @@ FLControl::~FLControl()
 //	Referrring to members
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+//	Assignment opereators
+//------------------------------------------------------------------------------
+
+//
+//  FLControl::operator = --	assignement
+//
+//  Inputs
+//	obj	: objects of this class
+//
+//  Outputs
+//	this object
+//
+FLControl & FLControl::operator = ( const FLControl & obj )
+{
+    if ( this != &obj ) {
+	// ( Fl_Window & )*this = obj;
+
+	_adjust			= obj._adjust;
+	_gl_drawing		= obj._gl_drawing;
+	_gl_layout		= obj._gl_layout;
+	
+	_menubar		= obj._menubar;
+	_intervalSlider		= obj._intervalSlider;
+	_dataCostSlider		= obj._dataCostSlider;
+	_smoothCostSlider	= obj._smoothCostSlider;
+	_labelCostSlider	= obj._labelCostSlider;
+	_cutThresholdSlider	= obj._cutThresholdSlider;
+	
+	_panel			= obj._panel;
+    }
+    return *this;
+}
 
 
 

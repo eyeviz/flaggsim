@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 23:17:05 shigeo"
+//				Time-stamp: "2023-08-18 17:46:03 shigeo"
 //
 //==============================================================================
 
@@ -1761,6 +1761,13 @@ void Drawing::_calcSmoothCost( void )
 	_smoothCost.push_back( pairCost );
     }
     _normalizeMatrix( _smoothCost, Drawing::smooth_cost_lower, Drawing::smooth_cost_upper );
+
+    if ( _smoothCost.size() == 0 ) {
+	cerr << HERE << " No smoothness costs" << endl;
+	cerr << HERE << " smooth_cost_upper = " << Drawing::smooth_cost_upper << endl;
+	cerr << HERE << " smooth_cost_lower = " << Drawing::smooth_cost_lower << endl;
+	return;
+    }
 
     //#ifdef PRINT_COSTS
     //------------------------------------------------------------------------------
