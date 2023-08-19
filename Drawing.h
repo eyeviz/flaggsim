@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 18:40:22 shigeo"
+//				Time-stamp: "2023-08-19 04:37:25 shigeo"
 //
 //==============================================================================
 
@@ -92,7 +92,8 @@ using namespace std;
 // #define MAX_QUANTIZATION_LEVEL	(255)
 
 
-// #define PROXIMITY_RATIO_UPPER	(0.70)
+//#define PROXIMITY_UPPER	(0.90)
+// #define PROXIMITY_UPPER	(0.70)
 // #define PROXIMITY_RATIO_UPPER	(0.40)
 #define PROXIMITY_UPPER	(0.30) // <-- OK
 // #define PROXIMITY_RATIO_UPPER	(0.20)
@@ -102,7 +103,8 @@ using namespace std;
 // #define PROXIMITY_RATIO_UPPER	(0.01)
 
 #ifdef USING_SIMILARITY_CONJOINING
-// #define SIMILARITY_RATIO_LOWER	(0.50)
+//#define SIMILARITY_LOWER	(0.30)
+// #define SIMILARITY_LOWER	(0.50)
 // #define SIMILARITY_RATIO_LOWER	(0.70) // <==
 // #define SIMILARITY_RATIO_LOWER	(0.80)
 #define SIMILARITY_LOWER	(0.90) // <-- OK

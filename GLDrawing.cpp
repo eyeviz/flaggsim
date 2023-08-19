@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 23:35:29 shigeo"
+//				Time-stamp: "2023-08-20 03:08:44 shigeo"
 //
 //==============================================================================
 
@@ -207,6 +207,16 @@ void GLDrawing::_isometric( vector< Expansion > & expand )
 	    hullSet.push_back( eachHull );
 	}
 	_worksp->coverHull().push_back( hullSet );
+	
+	if ( _worksp->pickID() != NO_NAME ) {
+	    cerr << HERE << " Number of polygons = "
+		 << _worksp->coverBand()[ _worksp->pickID() ].size() << endl;
+	    cerr << HERE << " Number of global sets = "
+		 << _worksp->coverGlob()[ _worksp->pickID() ].size() << endl;
+	    assert( _worksp->coverBand()[ _worksp->pickID() ].size() ==
+		    _worksp->coverGlob()[ _worksp->pickID() ].size() );
+	}
+
 #ifdef USE_CONCAVE_HULLS
 	_worksp->coverBand().push_back( bandSet );
 	_worksp->coverGlob().push_back( globSet );
@@ -353,11 +363,14 @@ void GLDrawing::Display( void )
 	glColor3d( 0.0, 0.0, 0.0 );
 	// cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
 	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
+#ifdef SKIP
 	    glBegin( GL_LINE_LOOP );
 	    for ( unsigned int j = 0; j < _fig->bound()[ i ].size(); j++ ) {
 		glVertex2d( _fig->bound()[ i ][ j ].x(), _fig->bound()[ i ][ j ].y() );
 	    }
 	    glEnd();
+#endif	// SKIP
+	    _draw_polygon( _fig->bound()[ i ] );
 	}
     }
 
@@ -671,6 +684,10 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  cerr << HERE << " Number of polygons = "
 	       << _worksp->coverBand()[ _worksp->pickID() ].size() << endl;
+	  cerr << HERE << " Number of global sets = "
+	       << _worksp->coverGlob()[ _worksp->pickID() ].size() << endl;
+	  assert( _worksp->coverBand()[ _worksp->pickID() ].size() ==
+		  _worksp->coverGlob()[ _worksp->pickID() ].size() );
 	  for ( unsigned int k = 0;
 		k < _worksp->coverBand()[ _worksp->pickID() ].size(); ++k ) {
 	      bandSet.push_back( _worksp->coverBand()[ _worksp->pickID() ][ k ] );

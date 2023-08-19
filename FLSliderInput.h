@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 18:11:12 shigeo"
+//				Time-stamp: "2023-08-19 22:27:36 shigeo"
 //
 //==============================================================================
 
@@ -22,7 +22,8 @@
 #include <FL/Fl_Slider.H>
 
 #include "Adjuster.h"
-#include "GLBase.h"
+#include "GLDrawing.h"
+#include "GLLayout.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -64,8 +65,8 @@ class FLSliderInput : public Fl_Group {
 
   protected:
     Adjuster			* _adjust;
-    GLBase			* _gl_drawing;
-    GLBase			* _gl_layout;
+    GLDrawing			* _gl_drawing;
+    GLLayout			* _gl_layout;
     
     Fl_Float_Input		* _intervalInput;
     Fl_Slider			* _intervalSlider;
@@ -88,7 +89,7 @@ public:
 //	Constructors
 //------------------------------------------------------------------------------
     FLSliderInput( Adjuster * __adjust,
-		   GLBase * __gl_drawing, GLBase * __gl_layout,
+		   GLDrawing * __gl_drawing, GLLayout * __gl_layout,
 		   int x, int y, int w, int h,
 		   const char *label = NULL );
 					// default constructor

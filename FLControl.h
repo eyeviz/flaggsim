@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 23:13:33 shigeo"
+//				Time-stamp: "2023-08-19 22:25:01 shigeo"
 //
 //==============================================================================
 
@@ -19,7 +19,8 @@
 #include <FL/Fl_Value_Slider.H>
 
 #include "Adjuster.h"
-#include "GLBase.h"
+#include "GLDrawing.h"
+#include "GLLayout.h"
 #include "FLSliderInput.h"
 
 //------------------------------------------------------------------------------
@@ -42,8 +43,8 @@ class FLControl : public Fl_Window {
 
   protected:
     Adjuster		* _adjust;
-    GLBase		* _gl_drawing;
-    GLBase		* _gl_layout;
+    GLDrawing		* _gl_drawing;
+    GLLayout		* _gl_layout;
 
     Fl_Menu_Bar		* _menubar;
     FLSliderInput	* _panel;	
@@ -54,7 +55,7 @@ class FLControl : public Fl_Window {
 //	Constructors
 //------------------------------------------------------------------------------
     FLControl( Adjuster * __adjust,
-	       GLBase * __gl_drawing, GLBase * __gl_layout,
+	       GLDrawing * __gl_drawing, GLLayout * __gl_layout,
 	       int _x, int _y, int _w, int _h, const char *_l );
 				// default constructor
 

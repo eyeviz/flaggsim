@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 23:11:42 shigeo"
+//				Time-stamp: "2023-08-19 22:27:50 shigeo"
 //
 //==============================================================================
 
@@ -577,7 +577,7 @@ void FLSliderInput::_input_handler( void )
 //	none
 //
 FLSliderInput::FLSliderInput( Adjuster * __adjust,
-			      GLBase * __gl_drawing, GLBase * __gl_layout,
+			      GLDrawing * __gl_drawing, GLLayout * __gl_layout,
 			      int x, int y, int w, int h,
 			      const char * label ) 
     : Fl_Group( x, y, w, h, label )  	

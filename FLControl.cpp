@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 23:18:49 shigeo"
+//				Time-stamp: "2023-08-19 22:25:10 shigeo"
 //
 //==============================================================================
 
@@ -49,7 +49,7 @@ void FLControl::_fileHandler( Fl_Menu_Bar * bar )
     Fl_Native_File_Chooser chooser( Fl_Native_File_Chooser::BROWSE_FILE );
     chooser.title( "Select File" );
     chooser.type( Fl_Native_File_Chooser::BROWSE_FILE );
-    chooser.directory( "." );
+    chooser.directory( "./map/" );
     if ( ( strcmp( ipath, "&File/&Load" ) == 0 ) ||
 	 ( strcmp( ipath, "&File/&Save" ) == 0 ) )
 	chooser.filter( "*.dat" );
@@ -119,15 +119,30 @@ void FLControl::_menuHandler( Fl_Menu_Bar * bar )
     }
     cerr << endl;
 
+    if ( strcmp( ipath, "&Switch/Conjoined" ) == 0 ) {
+	if ( _gl_drawing != NULL ) {
+	    if ( _gl_drawing->isConjoined() ) _gl_drawing->clearConjoined();
+	    else _gl_drawing->setConjoined();
+	    _gl_drawing->redraw();
+	}
+    }
+
+    if ( strcmp( ipath, "&Switch/Wrapped" ) == 0 ) {
+	if ( _gl_drawing != NULL ) {
+	    if ( _gl_drawing->isWrapped() ) _gl_drawing->clearWrapped();
+	    else _gl_drawing->setWrapped();
+	    _gl_drawing->redraw();
+	}
+    }
+
     if ( strcmp( ipath, "&Capture/&Drawing" ) == 0 ) {
-	cerr << HERE << " FLControl::_gl_drawing = " << FLControl::_gl_drawing << endl;
-	if ( FLControl::_gl_drawing != NULL )
-	    FLControl::_gl_drawing->capture( "drawing.png" );
+	if ( _gl_drawing != NULL )
+	    _gl_drawing->capture( "drawing.png" );
     }
 
     if ( strcmp( ipath, "&Capture/&Layout" ) == 0 ) {
-	if ( FLControl::_gl_layout != NULL )
-	    FLControl::_gl_layout->capture( "layout.png" );
+	if ( _gl_layout != NULL )
+	    _gl_layout->capture( "layout.png" );
     }
 
     if ( strcmp( item->label(), "&Quit" ) == 0 ) { exit(0); }
@@ -165,7 +180,7 @@ void FLControl::_menuCallback( Fl_Widget *w, void * userdata )
 //	none
 //
 FLControl::FLControl( Adjuster * __adjust,
-		      GLBase * __gl_drawing, GLBase * __gl_layout,
+		      GLDrawing * __gl_drawing, GLLayout * __gl_layout,
 		      int _x, int _y, int _w, int _h, const char *_l )
     : Fl_Window( _x, _y, _w, _h, _l )  	
 {

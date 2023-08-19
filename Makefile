@@ -11,7 +11,7 @@ else
 endif     
 ##########
 # -Ofast
-CFLAGS =	-Ofast -Wno-deprecated -Wno-\#pragma-messages \
+CFLAGS =	-g -Wno-deprecated -Wno-\#pragma-messages \
       		-Wno-format -Wno-parentheses \
 		-Wno-reorder-ctor -Wno-char-subscripts \
 		-stdlib=libc++ -std=c++14
