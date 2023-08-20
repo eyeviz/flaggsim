@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-20 03:08:44 shigeo"
+//				Time-stamp: "2023-08-21 00:07:36 shigeo"
 //
 //==============================================================================
 
@@ -42,6 +42,24 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Protected Functions
 //------------------------------------------------------------------------------
+// Function for drawing all the building polygons with names
+void GLDrawing::_draw_polygon_set( void )
+{
+//------------------------------------------------------------------------------
+    glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
+    for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
+//------------------------------------------------------------------------------
+	glLoadName( i );
+//------------------------------------------------------------------------------
+	_draw_polygon( _fig->bound()[ i ] );
+    }
+//------------------------------------------------------------------------------
+    glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
+}
+
+
 // Draw the neighbor graph
 void GLDrawing::_draw_vertex_ids( Network & g )
 {
@@ -130,6 +148,7 @@ void GLDrawing::_draw_directed( Directed & g )
 }
 
 
+#ifdef SKIP
 // Draw the set of convex hulls
 void GLDrawing::_draw_polygon_ids( const Drawing & fig )
 {
@@ -147,6 +166,7 @@ void GLDrawing::_draw_polygon_ids( const Drawing & fig )
 	_string2D( toCenter.x()-0.05, toCenter.y()-0.02, strID.str().c_str() );
     }
 }
+#endif	// SKIP
 
 
 // Draw the set of convex hulls
@@ -183,45 +203,48 @@ void GLDrawing::_isometric( vector< Expansion > & expand )
 	_worksp->pickCoord().push_back( Point2( x, y ) );
     }
     _worksp->coverHull().clear();
-#ifdef USE_CONCAVE_HULLS
     _worksp->coverBand().clear();
-#endif	// USE_CONCAVE_HULLS
+    // Bug fixed: added the follwoing line, which has been skipped previously
+    // noted by ST on 2023/08/21
+    _worksp->coverGlob().clear();
     for ( unsigned int i = 0; i < expand.size(); ++i ) {
 	vector< Polygon2 > hullSet;
-#ifdef USE_CONCAVE_HULLS
 	vector< Polygon2 > bandSet;
 	vector< Set >	   globSet;
-#endif	// USE_CONCAVE_HULLS
 	vector< Set > polySet = expand[ i ].cluster();
 	for ( unsigned int j = 0; j < polySet.size(); ++j ) {
 	    Polygon2 eachHull;
-#ifdef USE_CONVEX_HULLS
-	    Drawing::convexForLabel( fig.netNbr(), polySet[ j ], eachHull );
-#endif	// USE_CONVEX_HULLS
-#ifdef USE_CONCAVE_HULLS
 	    Set eachGlob;
 	    _fig->concaveForLabel( _fig->netNbr(), polySet[ j ], eachHull, eachGlob );
+#ifdef DEBUG
+	    cerr << HERE << " i = " << i << " j = " << j
+		 << " each hull = " << eachHull.size()
+		 << " each glob = " << eachGlob.size() << endl;
+#endif	// DEBUG
 	    bandSet.push_back( eachHull );
 	    globSet.push_back( eachGlob );
-#endif	// USE_CONCAVE_HULLS
 	    hullSet.push_back( eachHull );
 	}
+#ifdef DEBUG
+	cerr << HERE << " i = " << i 
+	     << " band size = " << bandSet.size()
+	     << " glob size = " << globSet.size() << endl;
+#endif	// DEBUG
 	_worksp->coverHull().push_back( hullSet );
-	
-	if ( _worksp->pickID() != NO_NAME ) {
-	    cerr << HERE << " Number of polygons = "
-		 << _worksp->coverBand()[ _worksp->pickID() ].size() << endl;
-	    cerr << HERE << " Number of global sets = "
-		 << _worksp->coverGlob()[ _worksp->pickID() ].size() << endl;
-	    assert( _worksp->coverBand()[ _worksp->pickID() ].size() ==
-		    _worksp->coverGlob()[ _worksp->pickID() ].size() );
-	}
-
-#ifdef USE_CONCAVE_HULLS
 	_worksp->coverBand().push_back( bandSet );
 	_worksp->coverGlob().push_back( globSet );
-#endif	// USE_CONCAVE_HULLS
     }
+ 
+#ifdef DEBUG
+    cerr << HERE << " Expand size = " << expand.size() << endl;
+    for ( unsigned int i = 0; i < expand.size(); ++i ) {
+	vector< Set > polySet = expand[ i ].cluster();
+	cerr << HERE << " i = " << i << " band size = "
+	     << _worksp->coverBand()[ i ].size()
+	     << " glob size = "
+	     << _worksp->coverGlob()[ i ].size() << endl;
+    }
+#endif	// DEBUG
 }
 
 
@@ -362,16 +385,12 @@ void GLDrawing::Display( void )
 	glLineWidth( 1.0 );
 	glColor3d( 0.0, 0.0, 0.0 );
 	// cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
-	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
 #ifdef SKIP
-	    glBegin( GL_LINE_LOOP );
-	    for ( unsigned int j = 0; j < _fig->bound()[ i ].size(); j++ ) {
-		glVertex2d( _fig->bound()[ i ][ j ].x(), _fig->bound()[ i ][ j ].y() );
-	    }
-	    glEnd();
-#endif	// SKIP
+	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
 	    _draw_polygon( _fig->bound()[ i ] );
 	}
+#endif	// SKIP
+	_draw_polygon_set();
     }
 
     if ( _isPlotted ) {
@@ -677,10 +696,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  cerr << HERE << " pickID = " << _worksp->pickID() << endl;
 	  bandSet.clear();
 	  globSet.clear();
-#ifdef USE_CONVEX_HULLS
-	  fig.aggregate( _worksp->pickID() );
-	  fig.triangulate();
-#else // USE_CONVEX_HULLS
+#ifdef DEBUG
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  cerr << HERE << " Number of polygons = "
 	       << _worksp->coverBand()[ _worksp->pickID() ].size() << endl;
@@ -688,6 +704,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	       << _worksp->coverGlob()[ _worksp->pickID() ].size() << endl;
 	  assert( _worksp->coverBand()[ _worksp->pickID() ].size() ==
 		  _worksp->coverGlob()[ _worksp->pickID() ].size() );
+#endif	// DEBUG
 	  for ( unsigned int k = 0;
 		k < _worksp->coverBand()[ _worksp->pickID() ].size(); ++k ) {
 	      bandSet.push_back( _worksp->coverBand()[ _worksp->pickID() ][ k ] );
@@ -697,7 +714,6 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  _fig->aggregate( _worksp->pickID(), bandSet, globSet );
 	  _fig->triangulate();
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-#endif	// USE_CONVEX_HULLS
 	  _isometric( _fig->expand() );
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  _worksp->clear();

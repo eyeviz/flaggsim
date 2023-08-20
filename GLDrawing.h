@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 21:40:29 shigeo"
+//				Time-stamp: "2023-08-20 03:38:01 shigeo"
 //
 //==============================================================================
 
@@ -51,11 +51,14 @@ class GLDrawing : public GLBase {
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
+    void _draw_polygon_set	( void );
     void _draw_vertex_ids	( Network & g );
     void _draw_vertex_ids	( Directed & g );
     void _draw_network		( Network & g );
     void _draw_directed		( Directed & g );
+#ifdef SKIP
     void _draw_polygon_ids	( const Drawing & fig );
+#endif	// SKIP
     void _draw_hulls		( vector< Polygon2 > & hull );
 
 //------------------------------------------------------------------------------

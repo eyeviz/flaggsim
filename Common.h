@@ -45,11 +45,11 @@ using namespace std;
 #endif	// SQUARE
 
 #ifndef NO_INDEX
-#define NO_INDEX        (90001)
+#define NO_INDEX	        (10001)
 #endif	// NO_INDEX
 
 #ifndef NO_NAME
-#define NO_NAME		(10001)
+#define NO_NAME			(10001)
 #endif	// NO_NAME
     
 // EPS should be avoided due to conflicts with CGAL

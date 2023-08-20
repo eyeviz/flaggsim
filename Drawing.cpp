@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 17:46:03 shigeo"
+//				Time-stamp: "2023-08-20 03:18:53 shigeo"
 //
 //==============================================================================
 
@@ -1075,7 +1075,6 @@ void Drawing::_convexForLabel( Network & net, const Set & label,
 }
 
 
-#ifdef USE_CONCAVE_HULLS
 //
 //  Drawing::_concaveForLabel	--	compute the concave hull (alpha shape)
 //					of the polygons tagged with the specific
@@ -1216,7 +1215,6 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 
     return;
 }
-#endif	// USE_CONCAVE_HULLS
 
 
 //
@@ -1828,21 +1826,14 @@ void Drawing::_calcLabelCost( void )
 //	label costs for the proximity gestalts
 //------------------------------------------------------------------------------
     _hullPrx.clear();
-#ifdef USE_CONCAVE_HULLS
     _boundPrx.clear();
-#endif	// USE_CONCAVE_HULLS
     vector< double > costPrx;
     costPrx.clear();
     for ( unsigned int i = 0; i < _labelPrx.size(); ++i ) {
 	Polygon2 hull;
-#ifdef USE_CONVEX_HULLS
-	_convexForLabel( _netNbr, _labelPrx[ i ], hull );
-	_hullPrx.push_back( hull );
-#else	// USE_CONVEX_HULLS
 	_concaveForLabel( _netNbr, _labelPrx[ i ], hull );
 	_boundPrx.push_back( hull );
 	_hullPrx.push_back( hull );
-#endif	// USE_CONVEX_HULLS
 	double cost = _proximityCost( _netNbr, _labelPrx[ i ], hull );
 	costPrx.push_back( cost );
     }
@@ -1853,21 +1844,14 @@ void Drawing::_calcLabelCost( void )
 //------------------------------------------------------------------------------
 #ifdef USING_SIMILARITY_CONJOINING
     _hullSim.clear();
-#ifdef USE_CONCAVE_HULLS
     _boundSim.clear();
-#endif	// USE_CONCAVE_HULLS
     vector< double > costSim;
     costSim.clear();
     for ( unsigned int i = 0; i < _labelSim.size(); ++i ) {
 	Polygon2 hull;
-#ifdef USE_CONVEX_HULLS
-	_convexForLabel( _netNbr, _labelSim[ i ], hull );
-	_hullSim.push_back( hull );
-#else	// USE_CONVEX_HULLS
 	_concaveForLabel( _netNbr, _labelSim[ i ], hull );
 	_boundSim.push_back( hull );
 	_hullSim.push_back( hull );
-#endif	// USE_CONVEX_HULLS
 	double cost = _similarityCost( _netNbr, _labelSim[ i ] );
 	costSim.push_back( cost );
     }
@@ -1883,13 +1867,11 @@ void Drawing::_calcLabelCost( void )
     _hullAll.insert( _hullAll.end(), _hullSim.begin(), _hullSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
 
-#ifdef USE_CONCAVE_HULLS
     _boundAll = _boundSgl;
     _boundAll.insert( _boundAll.end(), _boundPrx.begin(), _boundPrx.end() );
 #ifdef USING_SIMILARITY_CONJOINING
     _boundAll.insert( _boundAll.end(), _boundSim.begin(), _boundSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
-#endif	// USE_CONCAVE_HULLS
 
     _labelCost = costSgl;
     _labelCost.insert( _labelCost.end(), costPrx.begin(), costPrx.end() );
@@ -2121,66 +2103,6 @@ void Drawing::_graphCut( void )
 }
  
 
-#ifdef USE_CONVEX_HULLS
-//  Drawing::_aggregateLabels --	aggreate Gestalt polygons of the given labels
-//
-//  Inputs
-//	gestalt :	set of labels (polygon ID sets) as a group of Gestalts
-//
-//  Outputs
-//	none
-//
-void Drawing::_aggregateLabels( const vector< Set > & gestalt )
-{
-    Network &		net	 = _netNbr;
-    vector< Polygon2 >	hullSet;
-
-    // Prepare the convex hull to be newly introduced
-    for ( unsigned int k = 0; k < gestalt.size(); k++ ) {
-	Polygon2 hull;
-	_convexForLabel( net, gestalt[ k ], hull );
-	hullSet.push_back( hull );
-    }
-    
-    // Collect the IDs of polygons to be removed
-    Set idSet;
-    for ( unsigned int k = 0; k < gestalt.size(); ++k ) {
-	for ( unsigned int i = 0; i < gestalt[ k ].size(); ++i ) {
-	    idSet.push_back( gestalt[ k ][ i ] );
-	}
-    }
-    sort( idSet.begin(), idSet.end() );
-
-    cerr << HERE << " IDs of polygon to be removed" << endl; 
-    for ( unsigned int i = 0; i < idSet.size(); ++i ) {
-	cerr << " " << idSet[ i ] << ends;
-    }
-    cerr << endl;
-
-    // Shrink the line drawing
-    unsigned int count = 0;
-    unsigned int init_num_polys = _poly.size();
-    while ( count < init_num_polys ) {
-	unsigned int index = init_num_polys - 1 - count;
-	if ( idSet.isContained( index ) ) {
-#ifdef DEBUG
-	    cerr << HERE << " Deleting " << index << "-th polygon" << endl;
-#endif	// DEBUG
-	    _poly.erase( _poly.begin() + index );
-	}
-	count++;
-#ifdef DEBUG
-	cerr << HERE << " Incrementing the count to " << count << endl;
-#endif	// DEBUG
-    }
-
-    for ( unsigned int j = 0; j < hullSet.size(); ++j ) { 
-	cerr << HERE << " New convex hull # " << j << " added." << endl;
-	_poly.push_back( hullSet[ j ] );
-    }
-    cerr << HERE << " new convex hull is added to the tail of the polygon list" << endl;
-}
-#else	// USE_CONVEX_HULLS
 //
 //  Drawing::_aggregateLabels --	aggreate Gestalt polygons of the given labels
 //
@@ -2203,9 +2125,7 @@ void Drawing::_aggregateLabels( const vector< Set > & gestalt,
 
     // Network &		net	 = _netNbr;
     vector< Polygon2 >	hullSet;
-#ifdef USE_CONCAVE_HULLS
     vector< Polygon2 >	boundSet;
-#endif	// USE_CONCAVE_HULLS
     vector< Set >	extrmSet;
 
     if ( ( gestalt.size() != layout.size() ) ||
@@ -2224,13 +2144,8 @@ void Drawing::_aggregateLabels( const vector< Set > & gestalt,
 #ifdef SKIP
 	Polygon2 hull;
 	Set glob;
-#ifdef USE_CONVEX_HULLS
-	_convexForLabel( net, gestalt[ k ], hull, glob );
-#endif	// USE_CONVEX_HULLS
-#ifdef USE_CONCAVE_HULLS
 	_concaveForLabel( net, gestalt[ k ], hull, glob );
 	boundSet.push_back( hull );
-#endif	// USE_CONCAVE_HULLS
 #endif	// SKIP
 	cerr << HERE << " Gestalt k = " << k << " : " << gestalt[ k ] << endl;
 	cerr << HERE << " Gestalt k = " << k << " hull size = " << layout[ k ].size() << endl;
@@ -2299,7 +2214,6 @@ void Drawing::_aggregateLabels( const vector< Set > & gestalt,
 	cerr << endl;
     }
 }
-#endif	// USE_CONVEX_HULLS
 
 
 //
@@ -2407,13 +2321,11 @@ void Drawing::_clear( void )
 #endif	// USING_SIMILARITY_CONJOINING
     _hullAll.clear();
 
-#ifdef USE_CONCAVE_HULLS
     _boundPrx.clear();
 #ifdef USING_SIMILARITY_CONJOINING
     _boundSim.clear();
 #endif	// USING_SIMILARITY_CONJOINING
     _boundAll.clear();
-#endif	// USE_CONCAVE_HULLS
 
     _dataCost.clear();
     _smoothCost.clear();

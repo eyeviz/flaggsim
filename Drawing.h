@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-19 04:37:25 shigeo"
+//				Time-stamp: "2023-08-20 03:17:45 shigeo"
 //
 //==============================================================================
 
@@ -40,9 +40,9 @@ using namespace std;
 #define PROXIMITY_RATIO_COST
 
 // #define USE_CONVEX_HULLS
-#ifndef USE_CONVEX_HULLS
-#define USE_CONCAVE_HULLS
-#endif	// USE_CONVEX_HULLS
+//#ifndef USE_CONVEX_HULLS
+//#define USE_CONCAVE_HULLS
+//#endif	// USE_CONVEX_HULLS
 
 // This is defined in Network.h
 // #define USING_SIMILARITY_CONJOINING
@@ -218,14 +218,14 @@ class Drawing {
     vector< Polygon2 >		_hullSim;
 #endif	// USING_SIMILARITY_CONJOINING
     vector< Polygon2 >		_hullAll;
-#ifdef USE_CONCAVE_HULLS
+
     vector< Polygon2 >		_boundSgl;
     vector< Polygon2 >		_boundPrx;
 #ifdef USING_SIMILARITY_CONJOINING
     vector< Polygon2 >		_boundSim;
 #endif	// USING_SIMILARITY_CONJOINING
     vector< Polygon2 >		_boundAll;
-#endif	// USE_CONCAVE_HULLS
+
     
     vector< vector< double > >	_dataCost;
     vector< vector< double > >	_smoothCost;
@@ -314,7 +314,7 @@ class Drawing {
 	Set dummyID;
 	_convexForLabel( net, label, CH, dummyID );
     }
-#ifdef USE_CONCAVE_HULLS
+
     void		_concaveForLabel( Network & net, const Set & label,
 					  Polygon2 & CH, Set & PN );
     void		_concaveForLabel( Network & net, const Set & label,
@@ -322,7 +322,6 @@ class Drawing {
 	Set dummyID;
 	_concaveForLabel( net, label, CH, dummyID );
     }
-#endif	// USE_CONCAVE_HULLS
     
     double		_proximityCost	( Network & net, const Set & label,
 					  const Polygon2 & hull );
@@ -337,13 +336,9 @@ class Drawing {
     void		_calcLabelCost	( void );
 
     void		_graphCut	( void );
-#ifdef USE_CONVEX_HULLS
-    void		_aggregateLabels( const vector< Set > & gestalt );
-#else	// USE_CONVEX_HULLS
     void		_aggregateLabels( const vector< Set > & gestalt,
 					  const vector< Polygon2 > & layout,
 					  const vector< Set > & index );
-#endif	// USE_CONVEX_HULLS
 
     void		_simplifyPolys	( void );
     void		_squarePolys	( void );
@@ -441,7 +436,7 @@ public:
 					  Polygon2 & CH ) {
 	_convexForLabel( net, label, CH );
     }
-#ifdef USE_CONCAVE_HULLS
+
     void		concaveForLabel	( Network & net, const Set & label,
 					  Polygon2 & CH, Set & PN ) {
 	_concaveForLabel( net, label, CH, PN );
@@ -450,7 +445,6 @@ public:
 					  Polygon2 & CH ) {
 	_concaveForLabel( net, label, CH );
     }
-#endif	// USE_CONCAVE_HULLS
 
     const vector< Polygon2 > & hullPrx( void ) const {
 	return _hullPrx;
@@ -506,18 +500,6 @@ public:
 	if ( _poly.size() == 0 ) return;
 	_graphCut();
     }
-#ifdef USE_CONVEX_HULLS
-    void aggregate( int id ) {
-	if ( _poly.size() == 0 ) return;
-	_aggregateLabels( _expand[ id ].cluster() );
-	// _simplifyPolys();
-#ifdef AUTOMATIC_CONJOINING
-	conjoin();
-	optimize();
-#endif	// AUTOMATIC_CONJOINING
-	_bound = _poly;
-    }
-#else	// USE_CONVEX_HULLS
     void aggregate( int id,
 		    const vector< Polygon2 > & layout,
 		    const vector< Set > & index ) {
@@ -530,7 +512,7 @@ public:
 #endif	// AUTOMATIC_CONJOINING
 	_bound = _poly;
     }
-#endif	// USE_CONVEX_HULLS
+
     void simplify( void ) {
 	if ( _poly.size() == 0 ) return;
 	_simplifyPolys();
