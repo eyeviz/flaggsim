@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-20 03:18:53 shigeo"
+//				Time-stamp: "2023-08-21 01:43:06 shigeo"
 //
 //==============================================================================
 
@@ -1150,10 +1150,16 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	// bool doCheck = false;
 	unsigned int idS = index[ i ];
 	unsigned int idT = index[ (i+1)%index.size() ];
-#ifdef DEBUG
-	cerr << HERE << "( " << idS << " -> " << idT << " ) => " << ends;
-#endif	// DEBUG
 	Set path = shortestPath( idS, idT, _wrapper );
+	// #ifdef DEBUG
+	bool isFlag = false;
+	for ( int k = 0; k < ( int )path.size() - 1; ++k ) {
+	    if ( ( 520 <= path[ k ] ) && ( path[ k ] < 530 ) ||
+		 ( path[ k ] == 335 ) ) isFlag = true;
+	}
+
+	if ( isFlag ) cerr << HERE << "( " << idS << " -> " << idT << " ) => " << ends;
+	// #endif	// DEBUG
 
 	// Check whether the shortest path already contains the same vertex
 	// as intermediate points
@@ -1174,18 +1180,19 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	// replace the convex hull edge with concave hull edges except for the
 	// last point
 	if ( isCircle ) {
+	    if ( isFlag ) cerr << HERE << " PATH: ";
 	    for ( unsigned int k = 0; k < path.size() - 1; ++k ) {
-#ifdef DEBUG
-		cerr << " " << setw( 3 ) << path[ k ] << ends;
-#endif	// DEBUG
+		//#ifdef DEBUG
+		if ( isFlag ) cerr << " " << setw( 3 ) << path[ k ];
+		// #endif	// DEBUG
 		unsigned int idM = path[ k ];
 		NetVertexDescriptor vdM = _onelayer[ idM ];
 		CH.push_back( vertexPoint[ vdM ] );
 		PN.push_back( idM );
 	    }
-#ifdef DEBUG
-	    cerr << endl;
-#endif	// DEBUG
+	    //#ifdef DEBUG
+	    if ( isFlag ) cerr << endl;
+	    // #endif	// DEBUG
 	}
 	// getchar();
     }

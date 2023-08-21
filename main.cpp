@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 23:16:25 shigeo"
+//				Time-stamp: "2023-08-21 14:05:09 shigeo"
 //
 //==============================================================================
 
@@ -86,6 +86,7 @@ Drawing *	fig		= NULL;
 Workspace *	worksp		= NULL;
 Adjuster *	adjust		= NULL;
 
+//int		base_size	= HUGE_SIZE;
 int		base_size	= LARGE_SIZE;
 int		map_width	= base_size;
 int		map_height	= base_size;

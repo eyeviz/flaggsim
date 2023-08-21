@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 18:31:22 shigeo"
+//				Time-stamp: "2023-08-21 14:58:15 shigeo"
 //
 //==============================================================================
 
@@ -273,7 +273,7 @@ void GLLayout::_tile( void )
 //	Picking & Selection
 //------------------------------------------------------------------------------
 // Function for selecting the item among the picked ones
-bool GLLayout::_select( int & hitID, int nHits, unsigned int * buf )
+bool GLLayout::_select( int & hitID, int nHits, unsigned int * buffer )
 {
     unsigned int *	ptr		= NULL; //, names;
     const float		defaultDepth	= 1000.0;
@@ -281,7 +281,7 @@ bool GLLayout::_select( int & hitID, int nHits, unsigned int * buf )
 
     make_current();
 
-    ptr = buf;
+    ptr = buffer;
     hitID = 0;
 
     for ( int i = 0; i < nHits; ++i ) { // for each bit
@@ -320,9 +320,9 @@ bool GLLayout::_select( int & hitID, int nHits, unsigned int * buf )
 // Function for picking iterms with mouse clicks
 bool GLLayout::_pick( int & hitID, int x, int y, int button )
 {
-    unsigned int selectBuf[ BUFFER_SIZE ];
-    int nHits;
-    int viewport[ 4 ];
+    unsigned int	selectBuf[ BUFFER_SIZE ];
+    int			nHits;
+    int			viewport[ 4 ];
 
     // glutSetWindow( win_design );
     make_current();

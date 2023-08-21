@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-20 03:38:01 shigeo"
+//				Time-stamp: "2023-08-21 15:15:50 shigeo"
 //
 //==============================================================================
 
@@ -30,6 +30,7 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
+#define SHOW_SAMPLE_IDS
 
 
 //------------------------------------------------------------------------------
@@ -44,6 +45,11 @@ class GLDrawing : public GLBase {
     
     GLBase *		_glLayout;
     
+    Point2		_cursor;	// current mouose position
+    Point2		_corner;	// latest mouse position
+    int			_left, _middle, _right;
+					// mouse buttons
+    
     bool		_isConjoined;
     bool		_isWrapped;
     bool		_isPlotted;
@@ -56,15 +62,18 @@ class GLDrawing : public GLBase {
     void _draw_vertex_ids	( Directed & g );
     void _draw_network		( Network & g );
     void _draw_directed		( Directed & g );
-#ifdef SKIP
-    void _draw_polygon_ids	( const Drawing & fig );
-#endif	// SKIP
+    // void _draw_polygon_ids	( const Drawing & fig );
     void _draw_hulls		( vector< Polygon2 > & hull );
 
+    void _draw_rubberband	( void );
+    
 //------------------------------------------------------------------------------
-//	Functions for File I/O
+//	Functions for Polygon Selection
 //------------------------------------------------------------------------------
-
+    void _retrieve		( vector< unsigned int > & ids, int nHits,
+				  unsigned int * buffer );
+    void _bound			( int x, int y, int button = FL_LEFT_MOUSE,
+				  int modifier = 0 );
     
 //------------------------------------------------------------------------------
 //	Functions for label cost optimization

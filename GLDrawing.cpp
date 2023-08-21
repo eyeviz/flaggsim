@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 00:07:36 shigeo"
+//				Time-stamp: "2023-08-21 15:15:06 shigeo"
 //
 //==============================================================================
 
@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 using namespace std;
 
 // OpenCV library
@@ -65,14 +66,15 @@ void GLDrawing::_draw_vertex_ids( Network & g )
 {
     NetVertexIDMap	vertexID	= get( vertex_myid, g );
     NetVertexCntrMap	vertexCntr	= get( vertex_mycntr, g );
-
+    const double	xdisp		= 0.02;
+    
     // Annotating vertices of the proximity graph
     BGL_FORALL_VERTICES( vd, g, Network ) {
 	unsigned int id = vertexID[ vd ];
 	Point2 & point = vertexCntr[ vd ];
 	ostringstream strID;
-	strID << "#" << setw( 2 ) << id << ends;
-	_string2D( point.x(), point.y(), strID.str().c_str() );
+	strID << setw( 3 ) << setfill( '0' ) << id << ends;
+	_string2D( point.x() - xdisp, point.y(), strID.str().c_str(), 10 );
     }
 }
 
@@ -82,6 +84,7 @@ void GLDrawing::_draw_vertex_ids( Directed & g )
 {
     DirVertexAddrMap	vertexAddr	= get( vertex_myaddr, g );
     DirVertexPointMap	vertexPoint	= get( vertex_mypoint, g );
+    const double	xdisp		= 0.02;
 
     // Annotating vertices of the proximity graph
     BGL_FORALL_VERTICES( vd, g, Directed ) {
@@ -92,8 +95,8 @@ void GLDrawing::_draw_vertex_ids( Directed & g )
 	if ( ( id == 234 ) || ( id == 235 ) || ( id == 289 ) ) glColor3d( 1.0, 0.5, 0.0 );
 	else glColor3d( 0.0, 1.0, 0.5 );
 #endif	// DEBUGGING_PHASE
-	strID << "#" << setw( 2 ) << id << ends;
-	_string2D( point.x(), point.y(), strID.str().c_str() );
+	strID << setw( 3 ) << setfill( '0' ) << id << ends;
+	_string2D( point.x() - xdisp, point.y(), strID.str().c_str(), 10 );
     }
 }
 
@@ -178,9 +181,136 @@ void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
     }
 }
 
+// Draw the rubberband for the polygon selection
+void GLDrawing::_draw_rubberband( void )
+{
+    if ( _left == 1 ) {
+	glMatrixMode( GL_PROJECTION );
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D( 0.5, this->w() - 0.5, this->h() - 0.5, 0.5 );
+	glColor4d( 0.9, 0.5, 0.1, 0.5 );
+	glLineWidth( 3.0 );
+	// cerr << HERE << " _corner = " << _corner;
+	// cerr << HERE << " _cursor = " << _cursor;
+	glBegin( GL_LINE_LOOP );
+	glVertex2d( _corner.x(), _corner.y() );
+	glVertex2d( _cursor.x(), _corner.y() );
+	glVertex2d( _cursor.x(), _cursor.y() );
+	glVertex2d( _corner.x(), _cursor.y() );
+	glEnd();
+	glPopMatrix();
+    }
+}
 
 //------------------------------------------------------------------------------
-//	Functions for File I/O
+//	Functions for Polygon Selection
+//------------------------------------------------------------------------------
+// Function for retrieve the set of selected items
+void GLDrawing::_retrieve( vector< unsigned int > & ids, int nHits, unsigned int * buffer )
+{
+    unsigned int	* ptr = NULL; //, names;
+    // const float		defaultDepth = 1000.0;
+    // float		minDepth = defaultDepth;
+
+    make_current();
+
+    // cerr << HERE << "**** retrieveCluster ****" << endl;
+    ptr = buffer;
+    ids.clear();
+
+    for ( int i = 0; i < nHits; ++i ) { // for each bit
+#ifdef DEBUG
+	cerr << " i = " << i
+	     << " [0]: " << ptr[ 0 ]
+	     << " [1]: " << ptr[ 1 ]
+	     << " [2]: " << ptr[ 2 ]
+	     << " [3]: " << ptr[ 3 ] << endl;
+#endif	// DEBUG
+	if ( ptr[ 0 ] != 1 ) {
+	    cerr << " Number of names for hit = " << ( int )ptr[ 0 ] << endl;
+	    assert( ptr[ 0 ] == 1 );
+	}
+	//float curDepth = (float)ptr[ 1 ]/0xffffffff;
+	unsigned int curID = ( unsigned int )ptr[ 3 ];
+	if ( curID != NO_NAME ) {
+	    vector< unsigned int >::iterator it =
+		std::find( ids.begin(), ids.end(), curID );
+	    if ( it == ids.end() ) ids.push_back( curID );
+	}
+	ptr += 4;
+    }
+
+    for ( unsigned int k = 0; k < ids.size(); ++k ) {
+	cerr << " set[ " << setw( 2 ) << k << " ] = " << setw( 3 ) << ids[ k ];
+	if ( k % 2 == 1 ) cerr << endl;
+    }
+    if ( ids.size() % 2 == 1 ) cerr << endl;
+
+    // glutPostRedisplay();
+    redraw();
+}
+
+
+// Function for selecting a set of building polygons
+void GLDrawing::_bound( int x, int y, int button, int modifier )
+{
+    unsigned int	selectBuf[ BUFFER_SIZE ];
+    int			nHits;
+    int			viewport[ 4 ];
+
+    double center_x =	( _corner.x() + ( double )x ) / 2.0;
+    double center_y =	( _corner.y() + ( double )y ) / 2.0;
+    double full_x =	max( 1.0, abs( _corner.x() - ( double )x ) );
+    double full_y =	max( 1.0, abs( _corner.y() - ( double )y ) );
+
+    make_current();
+
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    // bounding begins here
+    glSelectBuffer( BUFFER_SIZE, selectBuf );
+    glRenderMode( GL_SELECT );
+
+    glInitNames();
+    glPushName( NO_NAME );
+
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix(); // <====
+    glLoadIdentity();
+
+    gluPickMatrix( center_x, ( double )viewport[ 3 ] - center_y,
+		   full_x, full_y, viewport );
+    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix(); // <====
+    glLoadIdentity();
+
+    // draw the set of building polygons
+    _draw_polygon_set();
+
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix(); // <====
+    glMatrixMode( GL_MODELVIEW );
+    glPopMatrix(); // <====
+
+    glFlush();
+
+    vector< unsigned int > ids;
+    nHits = glRenderMode( GL_RENDER );
+    _retrieve( ids, nHits, selectBuf );
+
+#ifdef SKIP
+    cerr << HERE << " Selected polygons : ";
+    for ( unsigned int k = 0; k < ids.size(); ++k )
+	cerr << setw( 4 ) << ids[ k ];
+    cerr << endl;
+#endif	// SKIP
+}
+
+
+//------------------------------------------------------------------------------
+//	Functions for label cost optimization
 //------------------------------------------------------------------------------
 // processing the ressults of label cost optimization
 void GLDrawing::_isometric( vector< Expansion > & expand )
@@ -355,6 +485,14 @@ void GLDrawing::Display( void )
     glEnd();
 #endif	// DEBUG
 
+//------------------------------------------------------------------------------
+//	Drawing the rubberband
+//------------------------------------------------------------------------------
+    _draw_rubberband();
+
+//------------------------------------------------------------------------------
+//	Skip the drawing without building polygons 
+//------------------------------------------------------------------------------
     if ( _fig == NULL ) return;
     if ( _fig->poly().size() == 0 ) return;
     
@@ -430,7 +568,7 @@ void GLDrawing::Display( void )
 	_draw_directed( _fig->wrapper() );
 #ifdef SHOW_SAMPLE_IDS
 	glColor3d( 1.0, 0.5, 0.0 );
-	draw_vertex_ids( _fig.wrapper() );
+	_draw_vertex_ids( _fig->wrapper() );
 #endif	// SHOW_SAMPLE_IDS
 	glDepthFunc( GL_LESS );
 
@@ -492,6 +630,7 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 {
     make_current();
 
+#ifdef SKIP
     int keymod = ( Fl::event_state(FL_SHIFT) ? 2 : (Fl::event_state(FL_CTRL) ? 3 : 1 ) );
     switch ( keymod ) {
       case 2:
@@ -507,40 +646,70 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 	  cerr << HERE << " This case cannot be expected" << endl;
 	  break;
     }
+#endif	// SKIP
     
-    if ( button == FL_LEFT_MOUSE ) {
-        if ( state ) {
-	    cerr << HERE << " Left mouse pressed " << endl;
-        }
-        else{
-	    cerr << HERE << " Left mouse released " << endl;
-        }
-    }
-    else if ( button == FL_MIDDLE_MOUSE ) {
-        if ( state ) {
-	    cerr << HERE << " Middle mouse pressed " << endl;
-        }
-        else{
-	    cerr << HERE << " Middle mouse released " << endl;
-        }
-    }
-    else if ( button == FL_RIGHT_MOUSE ) {
-        if ( state ) {
-	    cerr << HERE << " Right mouse pressed " << endl;
-        }
-        else{
-	    cerr << HERE << " Right mouse released " << endl;
-        }
+    switch ( button ) {
+	// left mouse event
+      case FL_LEFT_MOUSE:
+	  if ( state ) {
+	      // cerr << HERE << " Left mouse pressed " << endl;
+	      _corner = _cursor = Point2( x, y );
+	      _left = 1;
+	  }
+	  else{
+	      // cerr << HERE << " Left mouse released " << endl;
+	      _cursor = Point2( x, y );
+	      _bound( x, y );
+	      _left = 0;
+	  }
+	  break;
+      case FL_MIDDLE_MOUSE:
+	  if ( state ) {
+	      // cerr << HERE << " Middle mouse pressed " << endl;
+	      _middle = 1;
+	  }
+	  else{
+	      // cerr << HERE << " Middle mouse released " << endl;
+	      _middle = 0;
+	  }
+	  break;
+      case FL_RIGHT_MOUSE:
+	  if ( state ) {
+	      // cerr << HERE << " Right mouse pressed " << endl;
+	      _right = 1;
+	  }
+	  else{
+	      // cerr << HERE << " Right mouse released " << endl;
+	      _right = 0;
+	  }
+	  break;
+      default:
+	  cerr << "Unknown button" << endl;
+	  break;
     }
 
-    redraw();
+    redrawAll();
 }
 
 
 // Function for handling mouse dragging events
 void GLDrawing::Motion( int x, int y )
 {
-    cerr << HERE << "GLDrawing::Motion" << endl;
+    // cerr << HERE << "GLDrawing::Motion" << endl;
+    // cerr << HERE << "_left = " << _left << endl;
+
+    if ( _left ) {
+	_cursor = Point2( x, y );
+    }
+    
+    else if ( _middle ) {
+	;
+    }
+    else if ( _right ) {
+	;
+    }
+
+    redrawAll();
 }
 
 // Function for handling mouse moving events
