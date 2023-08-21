@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 19:06:03 shigeo"
+//				Time-stamp: "2023-08-22 03:44:28 shigeo"
 //
 //==============================================================================
 
@@ -73,7 +73,7 @@ void GLDrawing::_draw_vertex_ids( Network & g )
 	unsigned int id = vertexID[ vd ];
 	Point2 & point = vertexCntr[ vd ];
 	ostringstream strID;
-	strID << setw( 3 ) << setfill( '0' ) << id << ends;
+	strID << '#' << setw( 3 ) << setfill( '0' ) << id << ends;
 	_string2D( point.x() - xdisp, point.y(), strID.str().c_str(), 10 );
     }
 }
@@ -632,12 +632,15 @@ void GLDrawing::Display( void )
 #endif	// USING_SIMILARITY_CONJOINING
 	
 	// drawing concave polygons
+	glLineWidth( 3.0 );
 	glColor4d( 0.0, 0.5, 0.0, 0.8 );
-	glLineWidth( 2.0 );
 	_draw_hulls( _fig->hullPrx() );
 #ifdef USING_SIMILARITY_CONJOINING
+	glColor4d( 0.0, 0.0, 0.5, 0.8 );
 	_draw_hulls( _fig->hullSim() );
 #endif	// USING_SIMILARITY_CONJOINING
+	glColor4d( 0.5, 0.0, 0.0, 0.8 );
+	_draw_hulls( _fig->hullDes() );
     }
 
     // for disabling antialiasing

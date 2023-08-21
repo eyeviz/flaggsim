@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 18:26:23 shigeo"
+//				Time-stamp: "2023-08-22 03:39:02 shigeo"
 //
 //==============================================================================
 
@@ -466,6 +466,11 @@ public:
     vector< Polygon2 > & hullSim( void )	{ return _hullSim; }
 #endif	// USING_SIMILARITY_CONJOINING
     
+    const vector< Polygon2 > & hullDes( void ) const {
+	return _hullDes;
+    }
+    vector< Polygon2 > & hullDes( void )	{ return _hullDes; }
+
     const vector< Expansion > & expand( void )
 					  const { return _expand; }
     vector< Expansion > & expand( void )	{ return _expand; }
