@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-19 22:25:10 shigeo"
+//				Time-stamp: "2023-08-21 19:06:35 shigeo"
 //
 //==============================================================================
 
@@ -119,6 +119,20 @@ void FLControl::_menuHandler( Fl_Menu_Bar * bar )
     }
     cerr << endl;
 
+    if ( strcmp( ipath, "&Edit/Clear" ) == 0 ) {
+	if ( _gl_drawing->fig() != NULL ) _gl_drawing->fig()->clear();
+	if ( _adjust != NULL ) _adjust->clear();
+	_gl_drawing->redraw();
+	_gl_layout->redraw();
+    }
+
+    if ( strcmp( ipath, "&Edit/Unselect" ) == 0 ) {
+	if ( _gl_drawing != NULL ) {
+	    _gl_drawing->unselect();
+	    _gl_drawing->redraw();
+	}
+    }
+
     if ( strcmp( ipath, "&Switch/Conjoined" ) == 0 ) {
 	if ( _gl_drawing != NULL ) {
 	    if ( _gl_drawing->isConjoined() ) _gl_drawing->clearConjoined();
@@ -195,10 +209,11 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     _menubar = new Fl_Menu_Bar( 0, 0, _w, 25 );
 
-    _menubar->add( "&File/&Clear",	0,	_menuCallback,	( void* )this );
     _menubar->add( "&File/&Load",	0,	_fileCallback,	( void* )this );
     _menubar->add( "&File/&Save",	0,	_fileCallback,	( void* )this );
+    _menubar->add( "&File/&Clear",	0,	_menuCallback,	( void* )this );
     
+    _menubar->add( "&Edit/Unselect",	0,	_menuCallback,	( void* )this );
     _menubar->add( "&Edit/con&Join",	0,	_menuCallback,	( void* )this );
     _menubar->add( "&Edit/&Optimize",	0,	_menuCallback,	( void* )this );
     

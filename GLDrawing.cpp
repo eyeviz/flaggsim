@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 15:15:06 shigeo"
+//				Time-stamp: "2023-08-21 19:06:03 shigeo"
 //
 //==============================================================================
 
@@ -241,6 +241,8 @@ void GLDrawing::_retrieve( vector< unsigned int > & ids, int nHits, unsigned int
 	ptr += 4;
     }
 
+    sort( ids.begin(), ids.end() );
+
     for ( unsigned int k = 0; k < ids.size(); ++k ) {
 	cerr << " set[ " << setw( 2 ) << k << " ] = " << setw( 3 ) << ids[ k ];
 	if ( k % 2 == 1 ) cerr << endl;
@@ -253,6 +255,7 @@ void GLDrawing::_retrieve( vector< unsigned int > & ids, int nHits, unsigned int
 
 
 // Function for selecting a set of building polygons
+// 1 : no modifier, 2: SHIFT, 3: CONTROL
 void GLDrawing::_bound( int x, int y, int button, int modifier )
 {
     unsigned int	selectBuf[ BUFFER_SIZE ];
@@ -296,19 +299,40 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
 
     glFlush();
 
-    vector< unsigned int > ids;
+    Set ids;
     nHits = glRenderMode( GL_RENDER );
     _retrieve( ids, nHits, selectBuf );
-
-#ifdef SKIP
+    if ( ids.size() != 0 ) {
+	bool doExist = false;
+	for ( unsigned int j = 0; j < _fig->labelDes().size(); ++j ) {
+	    if ( _fig->labelDes()[ j ] == ids ) doExist = true;
+	    if ( doExist ) break;
+	}
+	if ( ! doExist ) _fig->labelDes().push_back( ids );
+    }
+    
     cerr << HERE << " Selected polygons : ";
-    for ( unsigned int k = 0; k < ids.size(); ++k )
-	cerr << setw( 4 ) << ids[ k ];
-    cerr << endl;
-#endif	// SKIP
+    for ( unsigned int k = 0; k < _fig->labelDes().size(); ++k ) {
+	cerr << HERE << " Design label [ " << setw( 2 ) << k << " ] : ";
+	for ( unsigned int m = 0; m < _fig->labelDes()[ k ].size(); ++m )
+	    cerr << setw( 4 ) << _fig->labelDes()[ k ][ m ];
+        cerr << endl;
+    }
+
+    Keyboard( 'a', 0, 0 );
+    redrawAll();
 }
 
-
+// Function for unselecting all the set of building polygons
+void GLDrawing::_unselect( void )
+{
+    cerr << HERE << " Clearing the all selected building polygons" << endl;
+    _fig->labelDes().clear();
+    Keyboard( 'a', 0, 0 );
+    redrawAll();
+}
+	
+    
 //------------------------------------------------------------------------------
 //	Functions for label cost optimization
 //------------------------------------------------------------------------------

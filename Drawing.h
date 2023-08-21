@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-20 03:17:45 shigeo"
+//				Time-stamp: "2023-08-21 18:26:23 shigeo"
 //
 //==============================================================================
 
@@ -209,6 +209,7 @@ class Drawing {
 #ifdef USING_SIMILARITY_CONJOINING
     vector< Set >		_labelSim;
 #endif	// USING_SIMILARITY_CONJOINING
+    vector< Set >		_labelDes;
     vector< Set >		_labelAll;
 
 
@@ -217,6 +218,7 @@ class Drawing {
 #ifdef USING_SIMILARITY_CONJOINING
     vector< Polygon2 >		_hullSim;
 #endif	// USING_SIMILARITY_CONJOINING
+    vector< Polygon2 >		_hullDes;
     vector< Polygon2 >		_hullAll;
 
     vector< Polygon2 >		_boundSgl;
@@ -224,6 +226,7 @@ class Drawing {
 #ifdef USING_SIMILARITY_CONJOINING
     vector< Polygon2 >		_boundSim;
 #endif	// USING_SIMILARITY_CONJOINING
+    vector< Polygon2 >		_boundDes;
     vector< Polygon2 >		_boundAll;
 
     
@@ -286,13 +289,14 @@ class Drawing {
 
     void		_updateEdges	( Network & net );
 
+#ifdef OBSOLETE
     void		_calcNeighbor	( void );
-#ifdef SKIP
-    void		_calcBSkeleton	( void );
-#endif	// SKIP
+#endif	// OBSOLETE
+
     void		_wrapBSkeleton	( void );
     void		_calcWrapper	( void );
     
+    void		_calcNewProximity	( const double & ratio );
     void		_calcCnvProximity	( void );
     void		_calcProximity		( void ) {
 	_calcCnvProximity();
@@ -422,6 +426,10 @@ public:
     Network & netSim( void )			{ return _netSim; }
 #endif	// USING_SIMILARITY_CONJOINING
 
+    const vector< Set > & labelDes( void ) const
+						{ return _labelDes; }
+    vector< Set > & labelDes( void )		{ return _labelDes; }
+    
     void		initWrapper	( void ) {
 	_wrapBSkeleton();
 	_calcWrapper();

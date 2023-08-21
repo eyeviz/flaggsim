@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 01:43:06 shigeo"
+//				Time-stamp: "2023-08-21 19:03:41 shigeo"
 //
 //==============================================================================
 
@@ -347,6 +347,7 @@ void Drawing::_updateEdges( Network & net )
 #endif	// PRINT_COSTS
 }
 
+#ifdef OBSOLETE
 //
 //  Drawing::_calcNeighbor --	calculate the k-neighbor graph over the set of polygons
 //
@@ -450,6 +451,7 @@ void Drawing::_calcNeighbor( void )
 //------------------------------------------------------------------------------
     _updateEdges( net );
 }
+#endif	// OBSOLETE
 
 
 //
@@ -622,7 +624,6 @@ void Drawing::_wrapBSkeleton( void )
 //	Supplementary computations for edges
 //------------------------------------------------------------------------------
     _updateEdges( net );
-
 }
 
 //
@@ -765,6 +766,98 @@ void Drawing::_calcWrapper( void )
     }
     getchar();
 #endif	// DEBUG
+}
+
+
+//
+//  Drawing::_calcNewProximity --	employ the new approach for
+//					calculating the graph for proximity
+//					labels
+//
+//  Inputs
+//	ratio :	ratio (in [0.0, 1.0]) control the degree of proximity over the
+//		beta-skeleton 
+//
+//  Outputs
+//	none
+//
+void Drawing::_calcNewProximity( const double & ratio )
+{
+    Network &		nbr		= _netNbr;
+    Network &		prx		= _netPrx;
+
+    NetVertexIDMap	vertexIDN	= get( vertex_myid, nbr );
+    NetVertexCntrMap	vertexCntrN	= get( vertex_mycntr, nbr );
+    NetVertexPolyMap	vertexPolyN	= get( vertex_mypoly, nbr );
+    NetEdgeIDMap	edgeIDN		= get( edge_myid, nbr );
+    NetEdgeWeightMap	edgeWeightN	= get( edge_weight, nbr );
+    NetEdgeNDstMap	edgeNDstN	= get( edge_myndst, nbr );
+    NetEdgeNInvMap	edgeNInvN	= get( edge_myninv, nbr );
+#ifdef USING_SIMILARITY_CONJOINING
+    NetEdgeRatioMap	edgeRatioN	= get( edge_myratio, nbr );
+    NetEdgeNAspMap	edgeNAspN	= get( edge_mynasp, nbr );
+#endif	// USING_SIMILARITY_CONJOINING
+
+    NetVertexIDMap	vertexIDP	= get( vertex_myid, prx );
+    NetVertexCntrMap	vertexCntrP	= get( vertex_mycntr, prx );
+    NetVertexPolyMap	vertexPolyP	= get( vertex_mypoly, prx );
+    NetEdgeIDMap	edgeIDP		= get( edge_myid, prx );
+    NetEdgeWeightMap	edgeWeightP	= get( edge_weight, prx );
+    NetEdgeNDstMap	edgeNDstP	= get( edge_myndst, prx );
+    NetEdgeNInvMap	edgeNInvP	= get( edge_myninv, prx );
+#ifdef USING_SIMILARITY_CONJOINING
+    NetEdgeRatioMap	edgeRatioP	= get( edge_myratio, prx );
+    NetEdgeNAspMap	edgeNAspP	= get( edge_mynasp, prx );
+#endif	// USING_SIMILARITY_CONJOINING
+
+//------------------------------------------------------------------------------
+//	Inserting vertices of the beta-skeleton into the proximity graph
+//------------------------------------------------------------------------------
+    prx.clear();
+    BGL_FORALL_VERTICES( vdN, nbr, Network ) {
+	NetVertexDescriptor vdP	= add_vertex( prx );
+	vertexIDP[ vdP ]	= vertexIDN[ vdN ];
+	vertexCntrP[ vdP ]	= vertexCntrN[ vdN ];
+	vertexPolyP[ vdP ]	= vertexPolyN[ vdN ];
+    }
+
+//------------------------------------------------------------------------------
+//	Sort edges according to the normalized distance for proximity search
+//------------------------------------------------------------------------------
+    map< double, NetEdgeDescriptor > edgeMap;
+    BGL_FORALL_EDGES( edN, nbr, Network ) {
+        double nDst = edgeNDstN[ edN ];
+	if ( nDst <= ratio )
+	    edgeMap.insert( std::make_pair( nDst, edN ) );
+    }
+    
+    // Insert the set of candidate edges into the proximity graph without
+    // exceptions
+    for ( map< double, NetEdgeDescriptor >::iterator iter = edgeMap.begin();
+	  iter != edgeMap.end(); iter++ ) {
+	cerr << HERE << " Edge : " << iter->first << " , "
+	     << iter->second << endl;
+	NetEdgeDescriptor	edN	= iter->second;
+        // double nDst = edgeNDstN[ edN ];
+	NetVertexDescriptor	vdSN	= source( edN, nbr );
+	NetVertexDescriptor	vdTN	= target( edN, nbr );
+	unsigned int		idS	= vertexIDN[ vdSN ];
+	unsigned int		idT	= vertexIDN[ vdTN ];
+	NetVertexDescriptor	vdSP	= vertex( idS, prx );
+	NetVertexDescriptor	vdTP	 = vertex( idT, prx );
+	NetEdgeDescriptor	edP;
+	bool			okP;
+	tie( edP, okP )		= add_edge( vdSP, vdTP, prx );
+	assert( okP );
+	edgeIDP[ edP ]		= edgeIDN[ edN ];
+	edgeWeightP[ edP ]	= edgeWeightN[ edN ];
+	edgeNDstP[ edP ]	= edgeNDstN[ edN ];
+	edgeNInvP[ edP ]	= edgeNInvN[ edN ];
+#ifdef USING_SIMILARITY_CONJOINING
+	edgeRatioP[ edP ]	= edgeRatioN[ edN ];
+	edgeNAspP[ edP ]	= edgeNAspN[ edN ];
+#endif	// USING_SIMILARITY_CONJOINING
+    }
 }
 
 
@@ -1009,7 +1102,20 @@ void Drawing::_labelComponents( Network & net, vector< Set > & label )
 	    count++;
 	}
     }
-
+    
+    // Sort the IDs in each group
+    for ( unsigned int i = 0; i < label.size(); ++i )
+	sort( label[ i ].begin(), label[ i ].end() );
+    
+    // Debug messages
+    cerr << HERE << " retrieving groups of polygons " << endl;
+    for ( unsigned int k = 0; k < label.size(); ++k ) {
+	cerr << " Group No. " << setw( 3 ) << k << " : ";
+	for ( unsigned int m = 0; m < label[ k ].size(); ++m ) {
+	    cerr << setw( 3 ) << label[ k ][ m ] << " ";
+	}
+	cerr << endl;
+    }
 }
     
 
@@ -1331,8 +1437,6 @@ double Drawing::_similarityCost( Network & g, const Set & label )
 void Drawing::_assignLabels( void )
 {
     const string title = "Drawing::_assignLabels";
-    // _calcNeighbor();
-    // _calcBSkeleton();
     _wrapBSkeleton();
     _calcWrapper();
     
@@ -1344,50 +1448,74 @@ void Drawing::_assignLabels( void )
 	eachSet.push_back( i );
 	_labelSgl.push_back( eachSet );
     }
+    _labelAll = _labelSgl;
     
+//------------------------------------------------------------------------------
+//	multi-step expansion of proximity over the beta-skeleton
+//	implemented by ST on 2023/08/21
+//------------------------------------------------------------------------------
     // Assign a label to each proximity set of polygon components
-    _calcProximity();
-    _labelComponents( _netPrx, _labelPrx );
     cerr << HERE << title << " Constructed the proximity graph " << endl;
+    const unsigned int numLevels = 3;
+    _labelPrx.clear();
+    _calcNewProximity( 1.0 );
+    _labelComponents( _netPrx, _labelPrx );
+    cerr << HERE << "[ 1.0 ] Number of proximity labels = " << _labelPrx.size() << endl;
+    for ( unsigned int k = 1; k < numLevels; ++k ) {
+	double curRatio = 1.0/pow( 2.0, ( double )k );
+	vector< Set >	curLabelPrx;
+	_calcNewProximity( curRatio );
+	_labelComponents( _netPrx, curLabelPrx );
+	for ( unsigned int i = 0; i < curLabelPrx.size(); ++i ) {
+	    bool doExist = false;
+	    for ( unsigned int j = 0; j < _labelPrx.size(); ++j ) {
+		if ( _labelPrx[ j ] == curLabelPrx[ i ] ) doExist = true;
+		if ( doExist ) break;
+	    }
+	    if ( ! doExist ) _labelPrx.push_back( curLabelPrx[ i ] );
+	}
+	cerr << HERE << "[ " << fixed << setw( 3 ) << setprecision( 1 ) << curRatio
+	     << " ] Number of proximity labels = " << _labelPrx.size() << endl;
+    }
+    _labelAll.insert( _labelAll.end(), _labelPrx.begin(), _labelPrx.end() );
     
 #ifdef USING_SIMILARITY_CONJOINING
     // Assign a label to each similarity set of polygon components
+    vector< Set >	curLabelSim;
+    _labelSim.clear();
     _calcSimilarity();
-    _labelComponents( _netSim, _labelSim );
+    _labelComponents( _netSim, curLabelSim );
+    _labelSim.clear();
     cerr << HERE << title << " Constructed the similarity graph " << endl;
-
 //------------------------------------------------------------------------------
-//	Special function for removing idential grouping labels across proximity
-//	and similarity (written by ST on 2023/06/28)
+//	Special function for removing idential grouping labels across
+//	similiarity and other properties (written by ST on 2023/06/28)
 //------------------------------------------------------------------------------
-    Set delPrx;
-    for ( unsigned int i = 0; i < _labelPrx.size(); ++i ) {
-	Set & curPrx = _labelPrx[ i ];
-	for ( unsigned int j = 0; j < _labelSim.size(); ++j ) {
-	    Set & curSim = _labelSim[ j ];
-	    if ( curPrx == curSim ) {
-		// Remove proximity label and keep similarity label
-		Set::iterator it = find( delPrx.begin(), delPrx.end(), i );
-		if ( it == delPrx.end() ) {
-		    delPrx.push_back( i );
-		}
-	    }
+    for ( unsigned int i = 0; i < curLabelSim.size(); ++i ) {
+	bool doExist = false;
+	for ( unsigned int j = 0; j < _labelAll.size(); ++j ) {
+	    if ( _labelAll[ j ] == curLabelSim[ i ] ) doExist = true;
+	    if ( doExist ) break;
 	}
+	if ( ! doExist ) _labelSim.push_back( curLabelSim[ i ] );
     }
-    cerr << HERE << " size of delPrx = " << delPrx.size() << endl;
-    for ( int k = delPrx.size(); k > 0; --k ) {
-	cerr << HERE << " Deleting the " << k << "-th proximity label" << endl;
-	unsigned int offset = ( unsigned int )( k - 1 );
-	_labelPrx.erase( _labelPrx.begin() + offset );
-    }
-//------------------------------------------------------------------------------
-#endif	// USING_SIMILARITY_CONJOINING
-
-    _labelAll = _labelSgl;
-    _labelAll.insert( _labelAll.end(), _labelPrx.begin(), _labelPrx.end() );
-#ifdef USING_SIMILARITY_CONJOINING
     _labelAll.insert( _labelAll.end(), _labelSim.begin(), _labelSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
+	
+//------------------------------------------------------------------------------
+//	Special function for removing idential grouping labels across design
+//	and other properties (written by ST on 2023/08/21)
+//------------------------------------------------------------------------------
+    vector< Set >	tmpLabelDes;
+    for ( unsigned int i = 0; i < _labelDes.size(); ++i ) {
+	bool doExist = false;
+	for ( unsigned int j = 0; j < _labelAll.size(); ++j ) {
+	    if ( _labelAll[ j ] == _labelDes[ i ] ) doExist = true;
+	    if ( doExist ) break;
+	}
+	if ( ! doExist ) tmpLabelDes.push_back( _labelDes[ i ] );
+    }
+    _labelAll.insert( _labelAll.end(), tmpLabelDes.begin(), tmpLabelDes.end() );
 
     ofstream ofs_group( GROUP_CHOICE_FILE );
     streambuf* buf_group;
@@ -1397,7 +1525,11 @@ void Drawing::_assignLabels( void )
 	cerr << HERE;
 	if ( k < _labelSgl.size() ) cerr << " [Sgl] ";
 	else if ( k < _labelSgl.size() + _labelPrx.size() ) cerr << " [Prx] ";
-	else cerr << " [Sim] ";
+#ifdef USING_SIMILARITY_CONJOINING
+	else if ( k < _labelSgl.size() + _labelPrx.size() + _labelSim.size() )
+	    cerr << " [Sim] ";
+#endif	// USING_SIMILARITY_CONJOINING
+	else cerr << " [Des] ";
 	cerr << " label ID = " << k << " : ";
 	for ( unsigned int m = 0; m < _labelAll[ k ].size(); ++m ) {
 	    cerr << _labelAll[ k ][ m ] << " ";
@@ -1686,6 +1818,58 @@ void Drawing::_calcDataCost( void )
 #endif	// USING_SIMILARITY_CONJOINING
 	
 //------------------------------------------------------------------------------
+//	data costs for the design gestalts
+//------------------------------------------------------------------------------
+    vector< vector< double > > dataCostDes;
+    for ( unsigned int i = 0; i < nVertices; ++i ) {
+	vector< double > itemCost;
+	unsigned int idS = i;
+
+	// cerr << HERE << " Polygon ID = " << idS << endl;
+	
+	for ( unsigned int j = 0; j < _labelDes.size(); ++j ) {
+	    Set curItem = _labelDes[ j ];
+	    Polygon2 hullOrg;
+
+	    // Just use the convex hull for computing data costs
+	    _convexForLabel( net, curItem, hullOrg );
+
+	    double areaOrg = hullOrg.area();
+	    if ( ! hullOrg.is_simple() )
+		areaOrg *= 1.0e-8;
+	    else if ( hullOrg.orientation() == CGAL::CLOCKWISE )
+		areaOrg *= -1.0;
+
+	    if ( ! curItem.isContained( idS ) ) {
+		curItem.push_back( idS );
+	    }
+	    Polygon2 hullExt;
+
+	    // Just use the convex hull for computing data costs
+	    _convexForLabel( net, curItem, hullExt );
+
+	    double areaExt = hullExt.area();
+	    if ( ! hullExt.is_simple() )
+		areaExt *= 1.0e-8;
+	    else if ( hullExt.orientation() == CGAL::CLOCKWISE )
+		areaExt *= -1.0;
+	    
+	    assert( areaOrg >= 0.0 );
+	    assert( areaExt >= 0.0 );
+
+	    double costR =  min( 1.0, 1.0 - ( areaOrg / areaExt ) );
+#ifdef SKIP
+	    cerr << HERE << " Prx Label # " << setw( 2 ) << j
+		 << " areaOrg = " << areaOrg << " areaExt = " << areaExt
+		 << " cost = " << costR << endl;
+#endif	// SKIP
+	    itemCost.push_back( costR );
+	}
+	dataCostDes.push_back( itemCost );
+    }
+    _normalizeMatrix( dataCostDes, Drawing::data_cost_lower, Drawing::data_cost_upper );
+
+//------------------------------------------------------------------------------
 //	Combine data costs for proximity and similarity 
 //------------------------------------------------------------------------------
     _dataCost.clear();
@@ -1697,6 +1881,8 @@ void Drawing::_calcDataCost( void )
 	costForLabel.insert( costForLabel.end(),
 			     dataCostSim[ i ].begin(), dataCostSim[ i ].end() );
 #endif	// USING_SIMILARITY_CONJOINING
+	costForLabel.insert( costForLabel.end(),
+			     dataCostDes[ i ].begin(), dataCostDes[ i ].end() );
 	_dataCost.push_back( costForLabel );
     }
 
@@ -1866,6 +2052,23 @@ void Drawing::_calcLabelCost( void )
 #endif	// USING_SIMILARITY_CONJOINING
 
 //------------------------------------------------------------------------------
+//	label costs for the design gestalts
+//------------------------------------------------------------------------------
+    _hullDes.clear();
+    _boundDes.clear();
+    vector< double > costDes;
+    costDes.clear();
+    for ( unsigned int i = 0; i < _labelDes.size(); ++i ) {
+	Polygon2 hull;
+	_concaveForLabel( _netNbr, _labelDes[ i ], hull );
+	_boundDes.push_back( hull );
+	_hullDes.push_back( hull );
+	double cost = _proximityCost( _netNbr, _labelDes[ i ], hull );
+	costDes.push_back( cost );
+    }
+    _normalizeVector( costDes, Drawing::label_cost_lower, Drawing::label_cost_upper );
+
+//------------------------------------------------------------------------------
 //	Combine sets of convex hulls
 //------------------------------------------------------------------------------
     _hullAll = _hullSgl;
@@ -1873,19 +2076,22 @@ void Drawing::_calcLabelCost( void )
 #ifdef USING_SIMILARITY_CONJOINING
     _hullAll.insert( _hullAll.end(), _hullSim.begin(), _hullSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
-
+    _hullAll.insert( _hullAll.end(), _hullDes.begin(), _hullDes.end() );
+    
     _boundAll = _boundSgl;
     _boundAll.insert( _boundAll.end(), _boundPrx.begin(), _boundPrx.end() );
 #ifdef USING_SIMILARITY_CONJOINING
     _boundAll.insert( _boundAll.end(), _boundSim.begin(), _boundSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
+    _boundAll.insert( _boundAll.end(), _boundDes.begin(), _boundDes.end() );
 
     _labelCost = costSgl;
     _labelCost.insert( _labelCost.end(), costPrx.begin(), costPrx.end() );
 #ifdef USING_SIMILARITY_CONJOINING
     _labelCost.insert( _labelCost.end(), costSim.begin(), costSim.end() );
 #endif	// USING_SIMILARITY_CONJOINING
-
+    _labelCost.insert( _labelCost.end(), costDes.begin(), costDes.end() );
+    
     cerr << HERE << " Obtained convex hulls for all labels" << endl;
 
 #ifdef SKIP
@@ -1898,6 +2104,9 @@ void Drawing::_calcLabelCost( void )
     cerr << endl;
     for ( unsigned int i = 0; i < costSim.size(); ++i )
 	cerr << costSim[ i ] << " ";
+    cerr << endl;
+    for ( unsigned int i = 0; i < costDes.size(); ++i )
+	cerr << costDes[ i ] << " ";
     cerr << endl;
     for ( unsigned int i = 0; i < _costAll.size(); ++i )
 	cerr << _costAll[ i ] << " ";
@@ -2320,23 +2529,32 @@ void Drawing::_clear( void )
 #ifdef USING_SIMILARITY_CONJOINING
     _labelSim.clear();
 #endif	// USING_SIMILARITY_CONJOINING
+    _labelDes.clear();
     _labelAll.clear();
 
     _hullPrx.clear();
 #ifdef USING_SIMILARITY_CONJOINING
     _hullSim.clear();
 #endif	// USING_SIMILARITY_CONJOINING
+    _hullDes.clear();
     _hullAll.clear();
 
     _boundPrx.clear();
 #ifdef USING_SIMILARITY_CONJOINING
     _boundSim.clear();
 #endif	// USING_SIMILARITY_CONJOINING
+    _boundDes.clear();
     _boundAll.clear();
 
     _dataCost.clear();
     _smoothCost.clear();
     _labelCost.clear();
+
+
+    Drawing::interval_threshold		= LIMIT_BUILDING_INTERVAL;
+    Drawing::data_cost_lower		= DATA_COST_LOWER;
+    Drawing::data_cost_upper		= DATA_COST_UPPER;
+    Drawing::data_cost_inside		= DATA_COST_INSIDE;
 }
 
 
@@ -2369,11 +2587,17 @@ Drawing::Drawing()
     _netSim.clear();
 
     _labelPrx.clear();
+#ifdef USING_SIMILARITY_CONJOINING
     _labelSim.clear();
+#endif	// USING_SIMILARITY_CONJOINING
+    _labelDes.clear();
     _labelAll.clear();
 
     _hullPrx.clear();
+#ifdef USING_SIMILARITY_CONJOINING
     _hullSim.clear();
+#endif	// USING_SIMILARITY_CONJOINING
+    _hullDes.clear();
     _hullAll.clear();
 
     _dataCost.clear();

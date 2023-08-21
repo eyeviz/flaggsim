@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 15:15:50 shigeo"
+//				Time-stamp: "2023-08-21 19:05:37 shigeo"
 //
 //==============================================================================
 
@@ -74,6 +74,7 @@ class GLDrawing : public GLBase {
 				  unsigned int * buffer );
     void _bound			( int x, int y, int button = FL_LEFT_MOUSE,
 				  int modifier = 0 );
+    void _unselect		( void );
     
 //------------------------------------------------------------------------------
 //	Functions for label cost optimization
@@ -100,6 +101,8 @@ public:
     void setGLLayout( GLBase * __glLayout )	{
 	_glLayout = __glLayout;
     }
+
+    void unselect		( void )	{ _unselect(); }
 
     const bool & isConjoined( void ) const 	{ return _isConjoined; }
     void setConjoined( void )			{ _isConjoined = true; }
