@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 21:52:06 shigeo"
+//				Time-stamp: "2023-10-14 17:32:54 shigeo"
 //
 //==============================================================================
 
@@ -282,6 +282,9 @@ void GLBase::_load_drawing( const char * filename )
 
     _fig->bound() = _fig->poly();
     cerr << HERE << " Finished loading the data!" << endl;  
+
+    // Final post process after loading the data from files
+    _fig->triangulate();
 }
 
 // save a drawging into the given file
@@ -377,6 +380,7 @@ GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
 {
     _flwin.clear();
     _isFilled		= false;
+    // _isFilled		= true;
 
     _fig		= NULL;
     _worksp		= NULL;

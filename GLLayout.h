@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-16 21:45:02 shigeo"
+//				Time-stamp: "2023-08-22 03:57:32 shigeo"
 //
 //==============================================================================
 
@@ -35,6 +35,7 @@ using namespace std;
 
 #define PICKING_ERROR		(20.0)
 
+#define UNIT_WINDOW_SIZE	(256)
 
 //------------------------------------------------------------------------------
 //	Defining Classes
@@ -44,7 +45,8 @@ class GLLayout : public GLBase {
   private:
 
     int			_num_options_in_line;
-
+    int			_baseW, _baseH, _baseU;
+    
   protected:
 
     GLBase *		_glDrawing;

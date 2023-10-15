@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 14:05:09 shigeo"
+//				Time-stamp: "2023-10-15 18:09:34 shigeo"
 //
 //==============================================================================
 
@@ -34,6 +34,8 @@ using namespace std;
 // FLTK library
 #include <FL/gl.h>
 #include <FL/Fl.H>
+#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Scroll.H>
 #include <FL/Fl_Gl_Window.H>
 #include <FL/Fl_Menu_Bar.H>
 // #include <FL/filename.H>		// fl_open_uri()
@@ -42,9 +44,15 @@ using namespace std;
 // OpenCV library
 #include <opencv2/opencv.hpp>
 
+#include "Common.h"
 #include "GLDrawing.h"
 #include "GLLayout.h"
 #include "FLControl.h"
+
+
+//------------------------------------------------------------------------------
+//	Macro switches
+//------------------------------------------------------------------------------
 
 
 //------------------------------------------------------------------------------
@@ -151,8 +159,12 @@ int main( int argc, char *argv[] )
     gl_drawing->setWorkspace	( worksp );
     gl_drawing->setAdjuster	( adjust );
 
-    if ( argc == 2 )
-	gl_drawing->load_drawing( argv[ 1 ] );
+    string inputname;
+    if ( argc == 2 ) {
+	// gl_drawing->load_drawing( argv[ 1 ] );
+	inputname = argv[ 1 ];
+    }
+
     // gl_drawing->fig()->triangulate();
     fig->triangulate();
     
@@ -163,17 +175,20 @@ int main( int argc, char *argv[] )
     gl_drawing->mode( FL_RGB | FL_DOUBLE );
     gl_drawing->resizable( win_map );
 
+    gl_drawing->end();
+
     win_map->end();
     win_map->show( argc, argv );
 
 //------------------------------------------------------------------------------
 //	Design window	
 //------------------------------------------------------------------------------
-    Fl_Window * win_design = new Fl_Window( map_width, 0,
-					    design_width, design_height,
-					    "Design window" );
-
+    Fl_Window * win_design = new Fl_Double_Window( map_width, 0,
+						   design_width, design_height,
+						   "Design window" );
+    Fl_Scroll * win_scroll = new Fl_Scroll( 0, 0, design_width, design_height, "Scroll window" );
     gl_layout = new GLLayout( 0, 0, design_width, design_height, "Layout" );
+    win_scroll->end();
 
     gl_layout->setFig		( fig );
     gl_layout->setWorkspace	( worksp );
@@ -182,9 +197,12 @@ int main( int argc, char *argv[] )
     gl_layout->begin();
 
     gl_layout->mode		( FL_RGB | FL_DOUBLE );
-    gl_layout->resizable	( win_design );
+    gl_layout->resizable	( win_scroll );
+
+    gl_layout->end();
     
     win_design->end();
+    win_design->resizable( gl_layout );
     win_design->show( argc, argv );
 
 //------------------------------------------------------------------------------
@@ -205,7 +223,15 @@ int main( int argc, char *argv[] )
     win_panel->end();
     win_panel->show( argc, argv );
     
+#ifdef ACTIVATE_RECORDING_MODE
+    gl_drawing->setFilled();
+    gl_layout->setFilled();
+#endif	// ACTIVATE_RECORDING_MODE
 
+    gl_drawing->load_drawing( inputname.c_str() );
+
+//------------------------------------------------------------------------------
+//	Printing out the program usage
     cerr << " Key commands " << endl;
     cerr << " a (097) : list the aggregation choices for building polygons" << endl;
     cerr << " b (098) : switch flag for polygon filling" << endl;
@@ -225,6 +251,7 @@ int main( int argc, char *argv[] )
     // t(116), u(117), v(118)
     cerr << " w (119) : switch flag for polygon wrapping" << endl;
     // x(120), y(121), z(122)
+//------------------------------------------------------------------------------
 
     return Fl::run();
 }

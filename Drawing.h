@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-22 03:39:02 shigeo"
+//				Time-stamp: "2023-10-14 04:33:29 shigeo"
 //
 //==============================================================================
 
@@ -196,7 +196,8 @@ class Drawing {
     Point2			_center;	// center of the line drawing
     
     vector< Polygon2 >		_bound;		// simplified boundary
-    vector< vector<Triangle2> >	_tri;		// triangulated boundary
+    vector< vector< Triangle2 > >
+				_tri;		// triangulated boundary
 
     Network			_netNbr;	// k-neighbor graph
     Network			_netPrx;	// graph for proximity labels

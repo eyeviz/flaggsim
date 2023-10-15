@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 19:03:41 shigeo"
+//				Time-stamp: "2023-10-14 17:35:04 shigeo"
 //
 //==============================================================================
 
@@ -2421,13 +2421,17 @@ void Drawing::_aggregateLabels( const vector< Set > & gestalt,
 
     cerr << HERE << " Print out the polygons " << endl;
     for ( unsigned int k = 0; k < _poly.size(); ++k ) {
+#ifdef SKIP
 	cerr << HERE << setw( 2 ) << k << "-th polygon : size = " <<
 	    _poly[ k ].size() << endl;
+#endif	// SKIP
 	assert( _poly[ k ].size() > 0 );
+#ifdef SKIP
 	for ( unsigned int m = 0; m < _poly[ k ].size(); ++m ) {
 	    cerr << "(" << _poly[ k ][ m ] << ") " << ends;
 	}
 	cerr << endl;
+#endif	// SKIP
     }
 }
 

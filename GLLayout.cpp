@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 14:58:15 shigeo"
+//				Time-stamp: "2023-09-12 09:22:09 shigeo"
 //
 //==============================================================================
 
@@ -62,7 +62,18 @@ void GLLayout::_calcGridSize( void )
 	// cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
     } while ( out_of_limit );
 
-    // cerr << HERE << " _num_options_in_line = " << _num_options_in_line << endl;
+#ifdef SKIP_FOR_SCROLLABLE_WINDOW
+    if ( _num_options_in_line > 8 ) {
+	// unsigned int scale = _num_options_in_line - 7;
+	unsigned int scale = 2;
+	cerr << HERE << " _num_options_in_line = " << _num_options_in_line
+	     << " scale = " << scale << endl;
+	this->resize( 0, 0, scale * _baseW, scale * _baseH );
+    }
+    else {
+	this->resize( 0, 0, _baseW, _baseH );
+    }
+#endif	// SKIP_FOR_SCROLLABLE_WINDOW
 }
 
 
@@ -402,6 +413,9 @@ GLLayout::GLLayout( int _x, int _y, int _w, int _h, const char *_l )
 {
     _num_options_in_line
 			= DEFAULT_NUM_OPTIONS_IN_LINE;
+    _baseW = _w;
+    _baseH = _h;
+    _baseU = UNIT_WINDOW_SIZE;
     _glDrawing = NULL;
 
     _left = _middle = _right = 0;

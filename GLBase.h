@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-18 22:35:48 shigeo"
+//				Time-stamp: "2023-10-15 17:00:22 shigeo"
 //
 //==============================================================================
 
@@ -51,7 +51,6 @@ class GLBase : public Fl_Gl_Window {
   private:
 
     virtual void draw	( void );
-    virtual void resize	( int x_, int y_, int w_, int h_ );
     virtual int  handle	( int ev );
 
   protected:
@@ -67,6 +66,11 @@ class GLBase : public Fl_Gl_Window {
     bool			_isFilled;
 
     static string		_headname;
+
+//------------------------------------------------------------------------------
+//	Fundamental UI functions
+//------------------------------------------------------------------------------
+    virtual void resize	( int x_, int y_, int w_, int h_ );
 
 //------------------------------------------------------------------------------
 //	Fundamental functions
@@ -119,6 +123,9 @@ class GLBase : public Fl_Gl_Window {
     void setFilled( void )			{ _isFilled = true; }
     void clearFilled( void )			{ _isFilled = false; }
 
+    static const string & headname( void ) {
+	return GLBase::_headname;
+    }
     
 //------------------------------------------------------------------------------
 //	Fundamental functions for OpenGL Window

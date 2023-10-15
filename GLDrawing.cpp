@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-22 03:44:28 shigeo"
+//				Time-stamp: "2023-10-15 18:19:50 shigeo"
 //
 //==============================================================================
 
@@ -22,6 +22,7 @@ using namespace std;
 
 // #include <FL/filename.H>		// fl_open_uri()
 
+#include "Common.h"
 #include "GLDrawing.h"
 
 
@@ -184,7 +185,7 @@ void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
 // Draw the rubberband for the polygon selection
 void GLDrawing::_draw_rubberband( void )
 {
-    if ( _left == 1 ) {
+    if ( _middle == 1 ) {
 	glMatrixMode( GL_PROJECTION );
 	glPushMatrix();
 	glLoadIdentity();
@@ -267,6 +268,11 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
     double full_x =	max( 1.0, abs( _corner.x() - ( double )x ) );
     double full_y =	max( 1.0, abs( _corner.y() - ( double )y ) );
 
+
+    cerr << HERE << " center = ( " << center_x << " , "	 << center_y << " ) " << endl;
+    cerr << HERE << " full = ( " << full_x << " , "	 << full_y << " ) " << endl;
+    getchar();
+    
     make_current();
 
     glGetIntegerv( GL_VIEWPORT, viewport );
@@ -526,7 +532,6 @@ void GLDrawing::Display( void )
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 
-
     if ( _isFilled ) {
 	// Filling polygons
 	glLineWidth( 1.0 );
@@ -610,14 +615,12 @@ void GLDrawing::Display( void )
 	glColor4d( 0.8, 0.6, 0.0, 0.6 );
 	// glLineWidth( 1.0 );
 	glLineWidth( 2.0 );
-	// draw_network( netN );
 	_draw_network( _fig->netNbr() );
 	
 	glPushMatrix();
 	glTranslated( -offset, -offset, 0.0 );
 	glColor4d( 1.0, 0.5, 0.0, 0.7 );
 	glLineWidth( 5.0 );
-	// draw_network( netP );
 	_draw_network( _fig->netPrx() );
 	glPopMatrix();
     
@@ -626,7 +629,6 @@ void GLDrawing::Display( void )
 	glTranslated( offset, offset, 0.0 );
 	glColor4d( 0.0, 0.0, 1.0, 0.7 );
 	glLineWidth( 5.0 );
-	// draw_network( netS );
 	_draw_network( _fig->netSim() );
 	glPopMatrix();
 #endif	// USING_SIMILARITY_CONJOINING
@@ -680,23 +682,23 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
       case FL_LEFT_MOUSE:
 	  if ( state ) {
 	      // cerr << HERE << " Left mouse pressed " << endl;
-	      _corner = _cursor = Point2( x, y );
 	      _left = 1;
 	  }
 	  else{
 	      // cerr << HERE << " Left mouse released " << endl;
-	      _cursor = Point2( x, y );
-	      _bound( x, y );
 	      _left = 0;
 	  }
 	  break;
       case FL_MIDDLE_MOUSE:
 	  if ( state ) {
 	      // cerr << HERE << " Middle mouse pressed " << endl;
+	      _corner = _cursor = Point2( x, y );
 	      _middle = 1;
 	  }
 	  else{
 	      // cerr << HERE << " Middle mouse released " << endl;
+	      _cursor = Point2( x, y );
+	      _bound( x, y );
 	      _middle = 0;
 	  }
 	  break;
@@ -754,7 +756,8 @@ void GLDrawing::Keyboard( int key, int x, int y )
     string		line;
     vector< Polygon2 >  bandSet;
     vector< Set >	globSet;
-    string		inname, outname, imgname, dirname;
+    string		imgname;
+    string		dirname, befname, aftname, inname, outname;
     struct stat		statbuf;
     
     // cerr << HERE << "GLDrawing::Keyboard : key " << key << endl;
@@ -778,23 +781,34 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  _isometric( _fig->expand() );
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-#ifdef RECORD_SNAPSHOTS
-	  inname = "data/" + headname + "-in.dat";
-	  cerr << HERE << " inname data ======> : " << inname << endl;
-	  save_drawing( inname.c_str() );
-	  dirname = "png/" + headname;
-	  if ( ! stat( dirname.c_str(), &statbuf ) ) {
-	      cerr << HERE << dirname << " already created" << endl;
-	  }
-	  else {
-	      if ( ! mkdir( dirname.c_str(), 0755 ) ) {
-		  cerr << HERE << dirname << " successfully created" << endl;
+#ifdef ACTIVATE_RECORDING_MODE
+	  if ( _headname.length() > 0 ) {
+	      //------------------------------------------------------------------------------
+	      // Prepare the directory name for saving snapshot images
+	      dirname = "raster/" + _headname;
+	      //------------------------------------------------------------------------------
+	      // Specify the file name for the input polygon data before generalization
+	      befname = "vector/" + _headname + "-in.dat";
+	      cerr << HERE << " saved polygon before genralization ======> : "
+		   << befname << endl;
+	      save_drawing( befname.c_str() );
+	      //------------------------------------------------------------------------------
+	      // Prepare the directory
+	      if ( ! stat( dirname.c_str(), &statbuf ) ) {
+		  cerr << HERE << dirname << " already created" << endl;
 	      }
+	      else {
+		  if ( ! mkdir( dirname.c_str(), 0755 ) ) {
+		      cerr << HERE << dirname << " successfully created" << endl;
+		  }
+	      }
+	      //------------------------------------------------------------------------------
+	      // Start to save the input image data
+	      inname = dirname + "/in.png";
+	      cerr << HERE << " input image (png) ======> : " << inname << endl;
+	      _capture( inname.c_str() );
 	  }
-	  inname = dirname + "/in.png";
-	  cerr << HERE << " inname png ======> : " << inname << endl;
-	  capture_drawing( inname.c_str() );
-#endif	// RECORD_SNAPSHOTS
+#endif	// ACTIVATE_RECORDING_MODE
 	  // Delete the last aggregation
 	  // fig.expand().erase( fig.expand().end() - 1 );
 	  // Hierarchical clustering
@@ -808,12 +822,32 @@ void GLDrawing::Keyboard( int key, int x, int y )
       case 'E':
 	  _fig->simplify();
 	  _fig->triangulate();
+#ifdef ACTIVATE_RECORDING_MODE
+	  //------------------------------------------------------------------------------
+	  // Prepare the directory name for saving snapshot images
+	  dirname = "raster/" + _headname;
+	  //------------------------------------------------------------------------------
+	  // Start to save the output image data
+	  outname = dirname + "/out.png";
+	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  _capture( outname.c_str() );
+#endif	// ACTIVATE_RECORDING_MODE
 	  break;
       // squaring building polygons
       case 'r': // == 114
       case 'R':
 	  _fig->square();
 	  _fig->triangulate();
+#ifdef ACTIVATE_RECORDING_MODE
+	  //------------------------------------------------------------------------------
+	  // Prepare the directory name for saving snapshot images
+	  dirname = "raster/" + _headname;
+	  //------------------------------------------------------------------------------
+	  // Start to save the output image data
+	  outname = dirname + "/out.png";
+	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  _capture( outname.c_str() );
+#endif	// ACTIVATE_RECORDING_MODE
 	  break;
       // load the map drawings from files
       case 'l': // == 108
@@ -839,6 +873,11 @@ void GLDrawing::Keyboard( int key, int x, int y )
       case 'b': // == 98
       case 'B':
 	  _isFilled = !_isFilled;
+	  if ( _isFilled ) cerr << HERE << " Fill flag ON " << endl;
+	  else cerr << HERE << " Fill flag OFF " << endl;
+	  InitGL();
+	  _glLayout->InitGL();
+	  redrawAll();
 #ifdef SKIP
 	  if ( _isFilled ) {
 	      cerr << HERE << " isFilled TRUE" << endl;
@@ -914,15 +953,22 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  _worksp->clear();
 	  cerr << HERE << " mode => free" << endl;
-#ifdef RECORED_SNAPSHOTS
-	  outname = "data/" + headname + "-out.dat";
-	  cerr << HERE << " outname ======> : " << outname << endl;
-	  save_drawing( outname.c_str() );
-	  dirname = "png/" + headname;
+#ifdef ACTIVATE_RECORDING_MODE
+	  //------------------------------------------------------------------------------
+	  // Prepare the directory name for saving snapshot images
+	  dirname = "raster/" + _headname;
+	  //------------------------------------------------------------------------------
+	  // Specify the file name for the input polygon data after generalization
+	  aftname = "vector/" + _headname + "-out.dat";
+	  cerr << HERE << " saved polygon after genralization ======> : "
+	       << aftname << endl;
+	  save_drawing( aftname.c_str() );
+	  //------------------------------------------------------------------------------
+	  // Start to save the output image data
 	  outname = dirname + "/out.png";
-	  cerr << HERE << " outname ======> : " << outname << endl;
-	  capture_drawing( outname.c_str() );
-#endif	// RECORED_SNAPSHOTS
+	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  capture( outname.c_str() );
+#endif	// ACTIVATE_RECORDING_MODE
 	  break;
       // quit the program
       case 'q': // == 113
