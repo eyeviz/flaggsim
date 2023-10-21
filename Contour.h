@@ -46,8 +46,8 @@ class Contour {
     multimap< double, unsigned int >			_mmapNeg;
     // Kernel density estimation
     vector< double >					_density;
-    vector< double >					_proj;
-    vector< Vector2 >					_orient;
+    // vector< double >					_proj;
+    // vector< Vector2 >					_orient;
     
     Point2	_innerDiv	( const Point2 & P, const Point2 & Q, const double & t );
     void	_polyVertex	( const unsigned int & id, const Point2 & coord );
@@ -127,9 +127,13 @@ protected:
     bool	_simplifyOnce	( void );
     bool	_simplifyByArea	( double areaUpperLimit );
     bool	_simplifyByNum	( int numLowerLimit );
+    
+    void	_registerConflicts	( const unsigned int & id,
+					  const vector< Polygon2 > & conflict );
+    void	_fullySimplify	( void );
 
-    void	_voteAngles	( void );
-    void	_alignEdges	( void );
+    vector< double >	_voteAngles	( const double bandwidth );
+    void		_alignEdges	( const vector< double > & proxy );
     
     
   public:
@@ -214,11 +218,19 @@ protected:
     bool simplifyByNum	( int numLowerLimit = 8 )	{
 	return _simplifyByNum( numLowerLimit );
     }
+    void registerConflicts	( const unsigned int & id,
+				  const vector< Polygon2 > & conflict ) {
+	_registerConflicts( id, conflict );
+    }
+    void fullySimplify	( void ) {
+	_fullySimplify();
+    }
 
-    void squaring( void ) {
-	_voteAngles();
-	_alignEdges();
+    vector< double > squaring( const double bandwidth = 180.0/16.0 ) {
+	vector< double > reps = _voteAngles( bandwidth );
+	_alignEdges( reps );
 	_isContractible = _prepare();
+	return reps;
     }
     
 //------------------------------------------------------------------------------

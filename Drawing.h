@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-14 04:33:29 shigeo"
+//				Time-stamp: "2023-10-21 04:00:37 shigeo"
 //
 //==============================================================================
 
@@ -25,6 +25,7 @@ using namespace std;
 #include "Directed.h"
 #include "Set.h"
 #include "Expansion.h"
+#include "Outline.h"
 
 //------------------------------------------------------------------------------
 //	Macro Switches
@@ -169,7 +170,8 @@ using namespace std;
 #define LABEL_COST_SINGLE	(1.0)
 
 
-
+#define DESIGN_LABEL_COST	(0.1)
+#define DESIGN_DATA_COST	(0.1)
 
 
 
@@ -235,7 +237,12 @@ class Drawing {
     vector< vector< double > >	_smoothCost;
     vector< double >		_labelCost;
 
+    // candidate for aggregtion
     vector< Expansion >		_expand;
+    // candidate for simplification
+    vector< vector<Polygon2> >	_outline;
+    // candidate ID for simplification
+    vector< unsigned int >	_outlineID;
     
     static double		_maxMinVSets( const Polygon2 & p, const Polygon2 & q );
 				// distance between two polygons
@@ -347,6 +354,9 @@ class Drawing {
 
     void		_simplifyPolys	( void );
     void		_squarePolys	( void );
+
+
+    void		_squareOutlines	( void );
 
     void		_clear		( void );
     
@@ -473,9 +483,17 @@ public:
     vector< Polygon2 > & hullDes( void )	{ return _hullDes; }
 
     const vector< Expansion > & expand( void )
-					  const { return _expand; }
+					const { return _expand; }
     vector< Expansion > & expand( void )	{ return _expand; }
     
+    const vector< vector<Polygon2> > & outline( void )
+					const { return _outline; }
+    vector< vector<Polygon2> > & outline( void )
+						{ return _outline; }
+    const vector< unsigned int > & outlineID( void )
+					const { return _outlineID; }
+    vector< unsigned int > & outlineID( void )	{ return _outlineID; }
+
 //------------------------------------------------------------------------------
 //	Geometric computations
 //------------------------------------------------------------------------------
@@ -534,6 +552,10 @@ public:
     void square( void ) {
 	if ( _poly.size() == 0 ) return;
 	_squarePolys();
+    }
+    void squareOutlines( void ) {
+	if ( _poly.size() == 0 ) return;
+	_squareOutlines();
     }
 
     

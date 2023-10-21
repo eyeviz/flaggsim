@@ -40,6 +40,8 @@ SRC =           \
 		Linkage.cpp \
 		Dijkstra.cpp \
 		Triangulate.cpp \
+		Votes.cpp \
+		Outline.cpp \
 		\
 		CSVIO.cpp \
 		\
@@ -74,6 +76,8 @@ HDR =	        \
 		Linkage.h \
 		Dijkstra.h \
 		Triangulate.h \
+		Votes.h \
+		Outline.h \
 		\
 		CSVIO.h \
 		\

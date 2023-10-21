@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 19:06:35 shigeo"
+//				Time-stamp: "2023-10-20 03:36:56 shigeo"
 //
 //==============================================================================
 
@@ -128,7 +128,7 @@ void FLControl::_menuHandler( Fl_Menu_Bar * bar )
 
     if ( strcmp( ipath, "&Edit/Unselect" ) == 0 ) {
 	if ( _gl_drawing != NULL ) {
-	    _gl_drawing->unselect();
+	    _gl_drawing->release();
 	    _gl_drawing->redraw();
 	}
     }

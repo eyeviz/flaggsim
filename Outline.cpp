@@ -1,126 +1,184 @@
 //==============================================================================
-// GLLayout.h
-//	: header file for the layout window
+// Outline.cpp
+//	: program file for simplified outlines over the polygon elements
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-20 03:29:29 shigeo"
+//				Time-stamp: "2023-10-16 13:47:10 shigeo"
 //
 //==============================================================================
-
-#ifndef _GLLayout_H		// begining of header file
-#define _GLLayout_H		// notifying that this file is included
 
 //------------------------------------------------------------------------------
 //	Including Header Files
 //------------------------------------------------------------------------------
-#include <iostream>
-#include <string> 
-using namespace std;
 
-// OpenGL library
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
+#include "Outline.h"
 
-#include "GLBase.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
-#define	DEFAULT_NUM_OPTIONS_IN_LINE	(3)
-// #define	DEFAULT_NUM_OPTIONS_IN_LINE	(4)
 
-#define UNIT_WINDOW_SIZE	(256)
 
 //------------------------------------------------------------------------------
-//	Defining Classes
+//	Private Functions
 //------------------------------------------------------------------------------
-class GLLayout : public GLBase {
 
-  private:
-
-    int			_num_options_in_line;
-    int			_baseW, _baseH, _baseU;
-    
-  protected:
-
-    GLBase *		_glDrawing;
-    
-    Point2		_cursor;	// mouse position
-    int			_left, _middle, _right;
-					// mouse buttons
 
 //------------------------------------------------------------------------------
-//	Fundamental functions
+//	Protected Functions
 //------------------------------------------------------------------------------
-    void _calcGridSize		( void );
 
-    void _setViewport		( unsigned int idRow, unsigned int idCol );
-    void _clearViewport		( void );
 
-    void _annotate		( unsigned int idRow, unsigned int idCol );
-
-    void _barchart		( const double & data,
-				  const double & smooth,
-				  const double & label );
-    void _place_option		( vector< Polygon2 > & polys );
-    void _tile			( void );
-    
 //------------------------------------------------------------------------------
-//	Picking & Selection
+//	Public Functions
 //------------------------------------------------------------------------------
-    bool _select		( int & hitID, int nHits, unsigned int * buf );
-    bool _pick			( int & hitID, int x, int y, int button );
-    
-public:
 
 //------------------------------------------------------------------------------
 //	Constructors
 //------------------------------------------------------------------------------
-    GLLayout( int _x, int _y, int _w, int _h, const char *_l ); 
-					// default constructor
+
+//
+//  Outline::Outline --	default constructor
+//
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+Outline::Outline() 
+{
+    _shape.clear();
+}
+
+
+//
+//  Outline::Outline --	copy constructor
+//
+//  Inputs
+//	obj	: object of this class
+//
+//  Outputs
+//	none
+//
+Outline::Outline( const Outline & obj )
+{
+    _shape	= obj._shape;
+}
+
 
 //------------------------------------------------------------------------------
 //	Destructor
 //------------------------------------------------------------------------------
-    ~GLLayout();			// destructor
+
+//
+//  Outline::~Outline --	destructor
+//
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+Outline::~Outline()
+{
+    _shape.clear();
+}
+
 
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
-    void setGLDrawing( GLBase * __glDrawing )	{
-	_glDrawing = __glDrawing;
+
+
+//------------------------------------------------------------------------------
+//	Functions for sorting
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+//	equality
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+//	Assignment opereators
+//------------------------------------------------------------------------------
+
+//
+//  Outline::operator = --	assignement
+//
+//  Inputs
+//	obj	: objects of this class
+//
+//  Outputs
+//	this object
+//
+Outline & Outline::operator = ( const Outline & obj )
+{
+    if ( this != &obj ) {
+	_shape	= obj._shape;
     }
-    
-//------------------------------------------------------------------------------
-//	Fundamental functions for OpenGL Window
-//------------------------------------------------------------------------------
-    void InitGL		( void );
-    void Resize		( int w, int h );
-    void Display	( void );
-    void Mouse		( int button, int state, int x, int y );
-    void Motion		( int x, int y );
-    void PassiveMotion	( int x, int y );
-    void Keyboard	( int key, int x, int y );
-
-//------------------------------------------------------------------------------
-//	Redrawing function
-//------------------------------------------------------------------------------
-    virtual void redrawAll	( void );
-
-//------------------------------------------------------------------------------
-//	Class name
-//------------------------------------------------------------------------------
-    virtual const char * className( void ) const { return "GLLayout"; }
-				// class name
-};
+    return *this;
+}
 
 
+//------------------------------------------------------------------------------
+//	I/O functions
+//------------------------------------------------------------------------------
 
-#endif // _GLLayout_H
+//
+//  operator << --	output
+//
+//  Argument
+//	stream	: output stream
+//	obj	: object of this class
+//
+//  Outputs
+//	output stream
+//
+ostream & operator << ( ostream & stream, const Outline & obj )
+{
+    stream << obj._shape.size() << endl;
+    for ( unsigned int i = 0; i < obj._shape.size(); ++i ) {
+	stream << obj._shape[ i ].size() << endl;
+	for ( unsigned int j = 0; j < obj._shape[ i ].size(); ++j ) {
+	    stream << obj._shape[ i ][ j ] << endl;
+	}
+    }
+    return stream;
+}
+
+
+//
+//  operator >> --	input
+//
+//  Inputs
+//	stream	: input stream
+//	obj	: object of this class
+//
+//  Outputs
+//	input stream
+//
+istream & operator >> ( istream & stream, Outline & obj )
+{
+    unsigned int num;
+    stream >> num;
+    obj._shape.clear();
+    obj._shape.resize( num );
+    for ( unsigned int i = 0; i < obj._shape.size(); ++i ) {
+	unsigned int nV;
+	stream >> nV;
+	obj._shape[ i ].clear();
+	for ( unsigned int j = 0; j < nV; ++j ) {
+	    Point2 p;
+	    stream >> p;
+	    obj._shape[ i ].push_back( p );
+	}
+    }
+    return stream;
+}
 
 // end of header file
 // Do not add any stuff under this line.

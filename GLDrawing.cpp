@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-15 18:19:50 shigeo"
+//				Time-stamp: "2023-10-21 14:55:59 shigeo"
 //
 //==============================================================================
 
@@ -15,6 +15,9 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+// for sleep
+#include <chrono>
+#include <thread>
 using namespace std;
 
 // OpenCV library
@@ -55,6 +58,33 @@ void GLDrawing::_draw_polygon_set( void )
 	glLoadName( i );
 //------------------------------------------------------------------------------
 	_draw_polygon( _fig->bound()[ i ] );
+    }
+//------------------------------------------------------------------------------
+    glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
+}
+
+
+// Function for drawing all the building polygons with names
+void GLDrawing::_draw_outline_set( void )
+{
+//------------------------------------------------------------------------------
+    glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
+    for ( unsigned int i = 0; i < _fig->outline().size(); ++i ) {
+	unsigned int nCands = _fig->outline()[ i ].size();
+	for ( unsigned int k = 0; k < nCands; ++k ) {
+	    double t = 0.5;
+	    if ( k == _fig->outlineID()[ i ] ) {
+		glLineWidth( 3.0 );
+		glColor3d( 0.8, 0.4, 0.0 );
+	    }
+	    else {
+		glLineWidth( 1.0 );
+		glColor3d( 0.6, 0.6, 0.6 );
+	    }
+	    _draw_polygon( _fig->outline()[ i ][ k ] );
+	}
     }
 //------------------------------------------------------------------------------
     glLoadName( NO_NAME );
@@ -152,27 +182,6 @@ void GLDrawing::_draw_directed( Directed & g )
 }
 
 
-#ifdef SKIP
-// Draw the set of convex hulls
-void GLDrawing::_draw_polygon_ids( const Drawing & fig )
-{
-    glColor3d( 0.0, 0.0, 0.0 );
-    for ( unsigned int k = 0; k < fig.poly().size(); ++k ) {
-	Vector2 toCenter( 0.0, 0.0 );
-	for ( unsigned int i = 0; i < fig.poly()[ k ].size(); ++i ) {
-	    toCenter += fig.poly()[ k ][ i ] - CGAL::ORIGIN;
-	    // cerr << HERE
-	    // << " toCenter : x = " << toCenter.x() << " y = " << toCenter.y() << endl;
-	}
-	toCenter /= ( double )fig.poly()[ k ].size();
-	ostringstream strID;
-	strID << "#" << setw( 2 ) << k << ends;
-	_string2D( toCenter.x()-0.05, toCenter.y()-0.02, strID.str().c_str() );
-    }
-}
-#endif	// SKIP
-
-
 // Draw the set of convex hulls
 void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
 {
@@ -192,8 +201,8 @@ void GLDrawing::_draw_rubberband( void )
 	gluOrtho2D( 0.5, this->w() - 0.5, this->h() - 0.5, 0.5 );
 	glColor4d( 0.9, 0.5, 0.1, 0.5 );
 	glLineWidth( 3.0 );
-	// cerr << HERE << " _corner = " << _corner;
-	// cerr << HERE << " _cursor = " << _cursor;
+	cerr << HERE << " _corner = " << _corner;
+	cerr << HERE << " _cursor = " << _cursor;
 	glBegin( GL_LINE_LOOP );
 	glVertex2d( _corner.x(), _corner.y() );
 	glVertex2d( _cursor.x(), _corner.y() );
@@ -271,7 +280,7 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
 
     cerr << HERE << " center = ( " << center_x << " , "	 << center_y << " ) " << endl;
     cerr << HERE << " full = ( " << full_x << " , "	 << full_y << " ) " << endl;
-    getchar();
+    // getchar();
     
     make_current();
 
@@ -325,20 +334,156 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
         cerr << endl;
     }
 
+    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
     Keyboard( 'a', 0, 0 );
     redrawAll();
 }
 
 // Function for unselecting all the set of building polygons
-void GLDrawing::_unselect( void )
+void GLDrawing::_release( void )
 {
     cerr << HERE << " Clearing the all selected building polygons" << endl;
     _fig->labelDes().clear();
     Keyboard( 'a', 0, 0 );
     redrawAll();
 }
-	
     
+//------------------------------------------------------------------------------
+//	Picking & Selection
+//------------------------------------------------------------------------------
+// Function for placing names for picking and selection
+void GLDrawing::_placeNames( void )
+{
+    glLoadName( NO_NAME );
+//------------------------------------------------------------------------------
+//	Placing names for buildings
+//------------------------------------------------------------------------------
+    glColor3d( 0.0, 0.0, 0.0 );
+    for ( unsigned int i = 0; i < _fig->tri().size(); ++i ) {
+	// cerr << HERE << " Drawing Polygon No. " << i << endl;
+	glLoadName( i );
+	for ( unsigned int j = 0; j < _fig->tri()[ i ].size(); ++j ) {
+	    glBegin( GL_POLYGON );
+	    for ( unsigned int k = 0; k < 3; ++k ) {
+		glVertex2d( _fig->tri()[i][j][k].x(), _fig->tri()[i][j][k].y() );
+		// cerr << HERE << fig.tri()[i][j][k] << endl;
+	    }
+	    glEnd();
+	}
+	glLoadName( NO_NAME );
+    }
+}
+
+// Function for selecting the item among the picked ones
+bool GLDrawing::_select( int & hitID, int nHits, unsigned int * buffer )
+{
+    unsigned int *	ptr		= NULL; //, names;
+    const float		defaultDepth	= 1000.0;
+    float		minDepth	= defaultDepth;
+
+    make_current();
+
+    ptr = buffer;
+    hitID = 0;
+
+    for ( int i = 0; i < nHits; ++i ) { // for each bit
+#ifdef SKIP
+	cerr << HERE << " i = " << i
+	     << " [0]: " << ptr[ 0 ]
+	     << " [1]: " << ptr[ 1 ]
+	     << " [2]: " << ptr[ 2 ]
+	     << " [3]: " << ptr[ 3 ] << endl;
+#endif	// SKIP
+	if ( ptr[ 0 ] != 1 ) {
+	    cerr << " Number of names for hit = " << ( int )ptr[ 0 ] << endl;
+	    assert( ptr[ 0 ] == 1 );
+	}
+	float curDepth = (float)ptr[ 1 ]/0xffffffff;
+	int curID = ( int )ptr[ 3 ];
+	if ( ( curDepth < minDepth ) && ( curID != NO_NAME ) ) {
+	    minDepth = curDepth;
+	    hitID = ( unsigned int )ptr[ 3 ];
+	}
+	ptr += 4;
+    }
+
+    // cerr << " hitID = " << hitID << " depth = " << minDepth << endl;
+    // glutSetWindow( win_design );   
+    // glutPostRedisplay();
+    redraw();
+
+    if ( minDepth < defaultDepth ) {
+	return true;
+    }
+    return false;
+}
+
+
+// Function for picking iterms with mouse clicks
+bool GLDrawing::_pick( int & hitID, int x, int y, int button )
+{
+    unsigned int	selectBuf[ BUFFER_SIZE ];
+    int			nHits;
+    int			viewport[ 4 ];
+
+    // glutSetWindow( win_design );
+    make_current();
+    
+    hitID = NO_NAME;
+    
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    // Picking begins here
+    glSelectBuffer( BUFFER_SIZE, selectBuf );
+    glRenderMode( GL_SELECT );
+
+    glInitNames();
+    glPushName( NO_NAME );
+
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix(); // <====
+    glLoadIdentity();
+    const double tolerance = PICKING_ERROR;
+#ifdef SKIP
+    cerr << HERE
+	 << " x = " << x << " y = " << y << " viewport = " 
+	 << viewport[ 0 ] << " , " << viewport[ 1 ] << " , "
+	 << viewport[ 2 ] << " , " << viewport[ 3 ] << endl;
+#endif	// SKIP
+    gluPickMatrix( (double)x, (double)(viewport[3]-y), tolerance, tolerance, viewport );
+    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix(); // <====
+    glLoadIdentity();
+
+    // draw the set of items
+    // _draw_polygon_set();
+    _placeNames();
+
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix(); // <====
+    glMatrixMode( GL_MODELVIEW );
+    glPopMatrix(); // <====
+
+    glFlush();
+
+    nHits = glRenderMode( GL_RENDER );
+    // cerr << HERE << " nHits = " << nHits << endl;
+    if ( button == FL_RIGHT_MOUSE ) {
+	if ( _select( hitID, nHits, selectBuf ) ) {
+	    return true;
+	}
+	else {
+	    hitID = NO_NAME;
+	    return false;
+	}
+    }
+    else {
+	return false;
+    }
+}
+
+
 //------------------------------------------------------------------------------
 //	Functions for label cost optimization
 //------------------------------------------------------------------------------
@@ -430,6 +575,8 @@ GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l )
 {
     _glLayout		= NULL;
 
+    _mode		= NORMAL_MODE;
+    
     _isConjoined	= false;
     _isWrapped		= false;
     _isPlotted		= false;
@@ -457,7 +604,7 @@ GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l )
 //
 GLDrawing::~GLDrawing()
 {
-
+    _mode		= NORMAL_MODE;
 }
 
 
@@ -505,16 +652,6 @@ void GLDrawing::Display( void )
 
     glClear( GL_COLOR_BUFFER_BIT );
     
-#ifdef DEBUG
-    // Debug codes
-    glPointSize( 15.0 );
-    glEnable( GL_POINT_SMOOTH );
-    glColor3d( 1.0f, 0.5f, 0.0f );
-    glBegin( GL_POINTS );
-    glVertex2d( 0.0, 0.0 );
-    glEnd();
-#endif	// DEBUG
-
 //------------------------------------------------------------------------------
 //	Drawing the rubberband
 //------------------------------------------------------------------------------
@@ -548,16 +685,21 @@ void GLDrawing::Display( void )
 	}
     }
     else {
-	// Drawing polygons
-	glLineWidth( 1.0 );
-	glColor3d( 0.0, 0.0, 0.0 );
-	// cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
-#ifdef SKIP
-	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
-	    _draw_polygon( _fig->bound()[ i ] );
+	//------------------------------------------------------------------------------
+	//	Draw buildling polygons
+	if ( ( _mode == NORMAL_MODE ) || ( _mode == AGGREGATION_MODE ) ) {
+	    // Drawing polygons
+	    glLineWidth( 1.0 );
+	    glColor3d( 0.0, 0.0, 0.0 );
+	    // cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
+	    _draw_polygon_set();
 	}
-#endif	// SKIP
-	_draw_polygon_set();
+
+	//------------------------------------------------------------------------------
+	//	Draw simplification candidates
+	if ( _mode == SIMPLIFICATION_MODE ) {
+	    _draw_outline_set();
+	}
     }
 
     if ( _isPlotted ) {
@@ -657,26 +799,10 @@ void GLDrawing::Display( void )
 // Function for handling mouse events
 void GLDrawing::Mouse( int button, int state, int x, int y )
 {
+    int polyID = NO_NAME;
+	
     make_current();
 
-#ifdef SKIP
-    int keymod = ( Fl::event_state(FL_SHIFT) ? 2 : (Fl::event_state(FL_CTRL) ? 3 : 1 ) );
-    switch ( keymod ) {
-      case 2:
-	  cerr << HERE << " SHIFT button pressed" << endl;
-	  break;
-      case 3:
-	  cerr << HERE << " CTRL button pressed" << endl;
-	  break;
-      case 1:
-	  cerr << HERE << " No modifier button pressed" << endl;
-	  break;
-      default:
-	  cerr << HERE << " This case cannot be expected" << endl;
-	  break;
-    }
-#endif	// SKIP
-    
     switch ( button ) {
 	// left mouse event
       case FL_LEFT_MOUSE:
@@ -698,13 +824,22 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 	  else{
 	      // cerr << HERE << " Middle mouse released " << endl;
 	      _cursor = Point2( x, y );
-	      _bound( x, y );
+	      _bound( x, y, FL_MIDDLE_MOUSE );
 	      _middle = 0;
 	  }
 	  break;
       case FL_RIGHT_MOUSE:
 	  if ( state ) {
 	      // cerr << HERE << " Right mouse pressed " << endl;
+	      if ( _pick( polyID, x, y, button ) ) {
+		  cerr << HERE << " select polyID = " << polyID << endl;
+		  if ( _mode == SIMPLIFICATION_MODE ) {
+		      if ( ( 0 <= polyID ) && ( polyID < _fig->outline().size() ) ) {
+			  unsigned int & candID = _fig->outlineID()[ polyID ];
+			  candID = ( candID + 1 ) % _fig->outline()[ polyID ].size();
+		      }
+		  }
+	      }
 	      _right = 1;
 	  }
 	  else{
@@ -725,14 +860,13 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 void GLDrawing::Motion( int x, int y )
 {
     // cerr << HERE << "GLDrawing::Motion" << endl;
-    // cerr << HERE << "_left = " << _left << endl;
+    // cerr << HERE << "_middle = " << _middle << endl;
 
     if ( _left ) {
-	_cursor = Point2( x, y );
-    }
-    
-    else if ( _middle ) {
 	;
+    }
+    else if ( _middle ) {
+	_cursor = Point2( x, y );
     }
     else if ( _right ) {
 	;
@@ -774,6 +908,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
       // list the aggregation choices for building polygons
       case 'a':	// == 97
       case 'A':
+	  _mode = AGGREGATION_MODE;
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  _fig->conjoin();
 	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
@@ -833,7 +968,22 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  _capture( outname.c_str() );
 #endif	// ACTIVATE_RECORDING_MODE
 	  break;
-      // squaring building polygons
+	  // accumulate simplified outline candidates
+      case 'z':
+      case 'Z':
+	  _mode = SIMPLIFICATION_MODE;
+	  _fig->squareOutlines();
+	  break;
+	  // Fix the simplification choices
+      case 'x':
+      case 'X':
+	  _mode = NORMAL_MODE;
+	  for ( unsigned int k = 0; k < _fig->bound().size(); ++k ) {
+	      unsigned int id = _fig->outlineID()[ k ];
+	      _fig->bound()[ k ] = _fig->outline()[ k ][ id ];
+	  }
+	  break;
+	  // squaring building polygons
       case 'r': // == 114
       case 'R':
 	  _fig->square();

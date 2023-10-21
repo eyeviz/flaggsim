@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-21 19:05:37 shigeo"
+//				Time-stamp: "2023-10-20 04:19:34 shigeo"
 //
 //==============================================================================
 
@@ -28,9 +28,18 @@ using namespace std;
 #include "GLBase.h"
 
 //------------------------------------------------------------------------------
-//	Defining Macros
+//	Macro switches
 //------------------------------------------------------------------------------
 #define SHOW_SAMPLE_IDS
+
+//------------------------------------------------------------------------------
+//	Macro variables
+//------------------------------------------------------------------------------
+#define NORMAL_MODE		(0)
+#define AGGREGATION_MODE	(1)
+#define SIMPLIFICATION_MODE	(2)
+
+
 
 
 //------------------------------------------------------------------------------
@@ -45,11 +54,15 @@ class GLDrawing : public GLBase {
     
     GLBase *		_glLayout;
     
+    int			_mode;	// 0: Normal
+				// 1: Aggregated
+				// 2: Simplified
+
     Point2		_cursor;	// current mouose position
     Point2		_corner;	// latest mouse position
     int			_left, _middle, _right;
 					// mouse buttons
-    
+
     bool		_isConjoined;
     bool		_isWrapped;
     bool		_isPlotted;
@@ -58,6 +71,7 @@ class GLDrawing : public GLBase {
 //	Fundamental functions
 //------------------------------------------------------------------------------
     void _draw_polygon_set	( void );
+    void _draw_outline_set	( void );
     void _draw_vertex_ids	( Network & g );
     void _draw_vertex_ids	( Directed & g );
     void _draw_network		( Network & g );
@@ -72,15 +86,18 @@ class GLDrawing : public GLBase {
 //------------------------------------------------------------------------------
     void _retrieve		( vector< unsigned int > & ids, int nHits,
 				  unsigned int * buffer );
-    void _bound			( int x, int y, int button = FL_LEFT_MOUSE,
+    void _bound			( int x, int y, int button = FL_MIDDLE_MOUSE,
 				  int modifier = 0 );
-    void _unselect		( void );
-    
+    void _release		( void );
+//------------------------------------------------------------------------------
+    void _placeNames		( void );
+    bool _select		( int & hitID, int nHits, unsigned int * buf );
+    bool _pick			( int & hitID, int x, int y, int button );
+
 //------------------------------------------------------------------------------
 //	Functions for label cost optimization
 //------------------------------------------------------------------------------
     void _isometric		( vector< Expansion > & expand );
-
 
 public:
 
@@ -102,7 +119,9 @@ public:
 	_glLayout = __glLayout;
     }
 
-    void unselect		( void )	{ _unselect(); }
+    void setMode( int __mode )			{ _mode = __mode; }
+    
+    void release		( void )	{ _release(); }
 
     const bool & isConjoined( void ) const 	{ return _isConjoined; }
     void setConjoined( void )			{ _isConjoined = true; }

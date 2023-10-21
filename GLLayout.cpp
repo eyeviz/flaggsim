@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-09-12 09:22:09 shigeo"
+//				Time-stamp: "2023-10-20 04:25:40 shigeo"
 //
 //==============================================================================
 
@@ -376,7 +376,7 @@ bool GLLayout::_pick( int & hitID, int x, int y, int button )
     glFlush();
 
     nHits = glRenderMode( GL_RENDER );
-    if ( button == GLUT_LEFT_BUTTON ) {
+    if ( button == FL_LEFT_MOUSE ) {
 	if ( _select( hitID, nHits, selectBuf ) ) {
 	    return true;
 	}
@@ -667,7 +667,7 @@ void GLLayout::Motion( int x, int y )
     // cerr << HERE << " in motion_design" << endl;
     if ( _left ) {
 	// cerr << HERE << " pointer = ( " << x << " , " << y << " ) " << endl;
-	if ( _pick( _worksp->pickID(), x, y, GLUT_LEFT_BUTTON ) ) {
+	if ( _pick( _worksp->pickID(), x, y, FL_LEFT_MOUSE ) ) {
 	    ; // do nothing
 	    // cerr << HERE << " Pick ID " << setw( 2 ) << _worksp->pickID() << " is picked!!" << endl;
 	    // ------------------------------

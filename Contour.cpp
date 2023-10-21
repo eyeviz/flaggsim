@@ -1487,6 +1487,50 @@ bool Contour::_simplifyByNum( int numLowerLimit )
     return isPossible;
 }
 
+//
+//  Contour::_registerObstacles --	register obstacles
+//
+//  Inputs
+//	id	:	ID in the obstacle list
+//	conflict:	obstacles including itself
+//
+//  Outputs
+//	none
+//
+void Contour::_registerConflicts( const unsigned int & id,
+				  const vector< Polygon2 > & conflict )
+{
+    _obstacle.clear();
+    for ( unsigned int i = 0; i < conflict.size(); ++i ) {
+	if ( i != id ) {
+	    for ( unsigned int j = 0; j < conflict[ i ].size(); ++j ) {
+		_obstacle.push_back( conflict[ i ].edge( j ) );
+	    }
+	}
+    }
+}
+
+//
+//  Contour::_simplifyFully --	fully schematize the polygon until it converges
+//				(Call this before registering obstacles!!)
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+void Contour::_fullySimplify( void )
+{
+    _reset();
+	
+    // contour.setContractible();
+    if ( ! _prepare() ) _isContractible = false;
+	
+    bool isPossible = true;
+    do {
+	isPossible = _simplifyByArea( INFINITY );
+    } while ( isPossible );
+}
 
 //
 //  Contour::_voteAngles--	vote the Gaussian distribution of edge
@@ -1498,14 +1542,14 @@ bool Contour::_simplifyByNum( int numLowerLimit )
 //  Outputs
 //	none
 //
-void Contour::_voteAngles()
+vector< double > Contour::_voteAngles( const double bandwidth )
 {
     unsigned int sz		= _polygon.size();
     const unsigned int nSamples	= 180;
     // const double bandwidth	= 180.0 / 40.0;
     // const double bandwidth	= 180.0 / 25.0;
     // const double bandwidth	= 180.0 / 20.0;
-    const double bandwidth	= 180.0 / 16.0;
+    // const double bandwidth	= 180.0 / 16.0; // <==
     // const double bandwidth	= 180.0 / 10.0; // This strictly squarifies
     _density.resize( nSamples );
     for ( unsigned int k = 0; k < nSamples; ++k ) _density[ k ] = 0.0;
@@ -1536,46 +1580,41 @@ void Contour::_voteAngles()
     }
 
     // Find the representative angles 
-    _proj.clear();
+    vector< double > proxy;
+    proxy.clear();
     for ( unsigned int k = 0; k < nSamples; ++k ) {
 	double prev = _density[ (k-1+nSamples)%nSamples ];
 	double curr = _density[ k ];
 	double next = _density[ (k+1)%nSamples ];
 	if ( ( prev < curr ) && ( curr > next ) ) {
 	    cerr << HERE << "[ " << setw( 3 ) << k << " ] = " << _density[ k ] << endl;
-	    _proj.push_back( ( double )k );
+	    proxy.push_back( ( double )k );
 	}
     }
 
 //------------------------------------------------------------------------------
 //	Special squaring
 //------------------------------------------------------------------------------
-    if ( _proj.size() == 2 ) {
-	double small = _proj[ 0 ];
-	double large = _proj[ 1 ];
+    if ( proxy.size() == 2 ) {
+	double small = proxy[ 0 ];
+	double large = proxy[ 1 ];
 	assert( small < large );
 	if ( large - small < 90.0 ) {
 	    double offset = 90.0 - ( large - small );
-	    _proj[ 0 ] -= 0.5 * offset;
-	    _proj[ 1 ] += 0.5 * offset;
+	    proxy[ 0 ] -= 0.5 * offset;
+	    proxy[ 1 ] += 0.5 * offset;
 	}
 	else if ( large - small > 90.0 ) {
 	    double offset = ( large - small ) - 90.0;
-	    _proj[ 0 ] += 0.5 * offset;
-	    _proj[ 1 ] -= 0.5 * offset;
+	    proxy[ 0 ] += 0.5 * offset;
+	    proxy[ 1 ] -= 0.5 * offset;
 	}
 
-	cerr << HERE << " Adjusted angles = " << _proj[ 0 ] << " , " << _proj[ 1 ] << endl;
+	cerr << HERE << " Adjusted angles = " << proxy[ 0 ] << " , " << proxy[ 1 ] << endl;
     }
 //------------------------------------------------------------------------------
-    
 
-    // Transform the representative angles into orientation vectors
-    _orient.clear();
-    for ( unsigned int j = 0; j < _proj.size(); ++j ) {
-	double radian = M_PI * _proj[ j ] / 180.0;
-	_orient.push_back( Vector2( cos( radian ), sin( radian ) ) );
-    }
+    return proxy;
 }
 
 
@@ -1588,23 +1627,31 @@ void Contour::_voteAngles()
 //  Outputs
 //	none
 //
-void Contour::_alignEdges()
+void Contour::_alignEdges( const vector< double > & proxy )
 {
     unsigned int	sz	= _polygon.size();
     Polygon2		step;
 
-    assert( _proj.size() == _orient.size() );
+    // Transform the representative angles into orientation vectors
+    vector< Vector2 > orient;
+    orient.clear();
+    for ( unsigned int j = 0; j < proxy.size(); ++j ) {
+	double radian = M_PI * proxy[ j ] / 180.0;
+	orient.push_back( Vector2( cos( radian ), sin( radian ) ) );
+    }
+
+    assert( proxy.size() == orient.size() );
     for ( unsigned int i = 0; i < sz; ++i ) {
 	Segment2	edge = _polygon.edge( i );
 	Vector2		vec = edge.to_vector();
 	double		angle = atan2( vec.y(), vec.x() ) ;
 	angle		= 180.0 * angle / M_PI; // radian to degree
 	// search for the closest orientation angle
-	assert( _proj.size() > 0 );
+	assert( proxy.size() > 0 );
 	double minSpan	= INFINITY;
 	unsigned int idProj = 0; 
-	for ( unsigned int j = 0; j < _proj.size(); ++j ) {
-	    double curSpan = abs( angle - _proj[ j ] );
+	for ( unsigned int j = 0; j < proxy.size(); ++j ) {
+	    double curSpan = abs( angle - proxy[ j ] );
 	    if ( curSpan < minSpan ) {
 		minSpan = curSpan;
 		idProj = j;
@@ -1615,7 +1662,7 @@ void Contour::_alignEdges()
 	     << " ] difference = " << minSpan << endl;
 
 	// project the edge
-	Vector2 T = _orient[ idProj ];
+	Vector2 T = orient[ idProj ];
 	Vector2 N = Vector2( -T.y(), T.x() );
 	Vector2 projT = ( vec * T ) * T;
 	Vector2 projN = ( vec * N ) * N;

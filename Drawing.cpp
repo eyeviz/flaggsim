@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-14 17:35:04 shigeo"
+//				Time-stamp: "2023-10-21 14:58:10 shigeo"
 //
 //==============================================================================
 
@@ -18,7 +18,7 @@
 #include "Dijkstra.h"
 #include "Triangulate.h"
 #include "Contour.h"
-
+#include "Votes.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -1859,6 +1859,13 @@ void Drawing::_calcDataCost( void )
 
 	    double costR =  min( 1.0, 1.0 - ( areaOrg / areaExt ) );
 #ifdef SKIP
+	    cerr << HERE << " curItem : ";
+	    for ( unsigned int k = 0; k < curItem.size(); ++k )
+		cerr << "[ " << curItem[ k ] << " ] ";
+	    cerr << endl;
+#endif	// SKIP
+		
+#ifdef SKIP
 	    cerr << HERE << " Prx Label # " << setw( 2 ) << j
 		 << " areaOrg = " << areaOrg << " areaExt = " << areaExt
 		 << " cost = " << costR << endl;
@@ -1867,7 +1874,19 @@ void Drawing::_calcDataCost( void )
 	}
 	dataCostDes.push_back( itemCost );
     }
+    // Skip normalizing the data cost for design labels
     _normalizeMatrix( dataCostDes, Drawing::data_cost_lower, Drawing::data_cost_upper );
+
+    // Intentionally assign minimal data cost to the polygons specifically
+    // selected for aggregation
+    // noted by ST on 2023/10/21
+    for ( unsigned int j = 0; j < _labelDes.size(); ++j ) {
+	Set curMember = _labelDes[ j ];
+	for ( unsigned int k = 0; k < curMember.size(); ++k )
+	    dataCostDes[ curMember[ k ] ][ j ] = DESIGN_DATA_COST;
+    }
+
+    // std::this_thread::sleep_for( std::chrono::milliseconds( 5000 ) );
 
 //------------------------------------------------------------------------------
 //	Combine data costs for proximity and similarity 
@@ -2063,10 +2082,14 @@ void Drawing::_calcLabelCost( void )
 	_concaveForLabel( _netNbr, _labelDes[ i ], hull );
 	_boundDes.push_back( hull );
 	_hullDes.push_back( hull );
-	double cost = _proximityCost( _netNbr, _labelDes[ i ], hull );
+	// Intentionally assign minimal label cost to the polygons specifically
+	// selected for aggregation
+	// noted by ST on 2023/10/21
+	double cost = DESIGN_LABEL_COST;
 	costDes.push_back( cost );
     }
-    _normalizeVector( costDes, Drawing::label_cost_lower, Drawing::label_cost_upper );
+    // Skip normalizing the label cost for design labels
+    // _normalizeVector( costDes, Drawing::label_cost_lower, Drawing::label_cost_upper );
 
 //------------------------------------------------------------------------------
 //	Combine sets of convex hulls
@@ -2451,6 +2474,7 @@ void Drawing::_simplifyPolys( void )
     for ( unsigned int k = 0; k < _bound.size(); ++k ) {
 	Contour contour;
 	contour.polygon() = _bound[ k ];
+#ifdef OBSOLETE
 #ifdef CHECK_CONFLICTS_WITH_OTHERS
 	contour.obstacle().clear();
 	for ( unsigned int i = 0; i < _bound.size(); ++i ) {
@@ -2470,7 +2494,13 @@ void Drawing::_simplifyPolys( void )
 	do {
 	    isPossible = contour.simplifyByArea( INFINITY );
 	} while ( isPossible );
+#endif	// OBSOLETE
 
+
+#ifdef CHECK_CONFLICTS_WITH_OTHERS
+	contour.registerConflicts( k, _bound );
+#endif	// CHECK_CONFLICTS_WITH_OTHERS
+	contour.fullySimplify();
 	_bound[ k ] = contour.polygon();
     }
     cerr << HERE << " Exhausive simplificaiton done." << endl;
@@ -2502,6 +2532,66 @@ void Drawing::_squarePolys( void )
     cerr << HERE << " Squaring polygons done." << endl;
     // _poly = _form;
 }
+
+
+//
+//  Drawing::_squareOutlines --	prepare contour outlines with multiple squaring
+//				criteria 
+//
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+void Drawing::_squareOutlines( void )
+{
+    const int nBands = 5;
+    const double bandwidth[ nBands ] = {
+	180.0/40.0, 180.0/25.0, 180.0/20.0, 180.0/16.0, 180.0/10.0
+    };
+
+    vector< vector< Votes > >	proxy;
+	
+    proxy.resize( _bound.size() );
+    _outline.clear();
+    _outlineID.clear();
+    _outline.resize( _bound.size() );
+    _outlineID.resize( _bound.size() );
+    for ( unsigned int i = 0; i < _bound.size(); ++i ) {
+	for ( unsigned int k = 0; k < nBands; ++k ) {
+	    Contour contour;
+	    contour.polygon() = _bound[ i ];
+	    contour.reset();
+	    Votes reps = contour.squaring( bandwidth[ k ] );
+	    
+	    bool doExist = false;
+	    for ( unsigned int j = 0; j < proxy[ i ].size(); ++j ) {
+		if ( proxy[ i ][ j ].approxequal( reps ) ) doExist = true;
+		if ( doExist ) break;
+	    }
+	    if ( ! doExist ) {
+		proxy[ i ].push_back( reps );
+		contour.registerConflicts( i, _bound );
+		contour.fullySimplify();
+		_outline[ i ].push_back( contour.polygon() );
+	    }
+	}
+    }
+
+    for ( unsigned int i = 0; i < _outline.size(); ++i ) {
+	_outlineID[ i ] = _outline[ i ].size() - 1;
+    }
+
+    for ( unsigned int i = 0; i < proxy.size(); ++i ) {
+	for ( unsigned int k = 0; k < proxy[ i ].size(); ++k ) {
+	    cerr << HERE
+		 << " i = " << i << " vote[ " << k << " ] = " << proxy[ i ][ k ] << endl;
+	}
+	cerr << endl;
+    }
+}
+
 
 //
 //  Drawing::_clear --	clear the data
