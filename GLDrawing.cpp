@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-21 14:55:59 shigeo"
+//				Time-stamp: "2023-10-22 10:31:55 shigeo"
 //
 //==============================================================================
 
@@ -81,7 +81,10 @@ void GLDrawing::_draw_outline_set( void )
 	    }
 	    else {
 		glLineWidth( 1.0 );
-		glColor3d( 0.6, 0.6, 0.6 );
+		if ( _isFilled )
+		    glColor3d( 0.6, 0.6, 0.6 );
+		else
+		    glColor3d( 0.4, 0.4, 0.4 );
 	    }
 	    _draw_polygon( _fig->outline()[ i ][ k ] );
 	}
@@ -671,17 +674,27 @@ void GLDrawing::Display( void )
 
     if ( _isFilled ) {
 	// Filling polygons
-	glLineWidth( 1.0 );
-	glColor3d( 1.0, 1.0, 1.0 );
-	for ( unsigned int i = 0; i < _fig->tri().size(); ++i ) {
-	    for ( unsigned int j = 0; j < _fig->tri()[ i ].size(); ++j ) {
-		glBegin( GL_POLYGON );
-		for ( unsigned int k = 0; k < 3; ++k ) {
-		    glVertex2d( _fig->tri()[i][j][k].x(), _fig->tri()[i][j][k].y() );
-		    // cerr << HERE << fig.tri()[i][j][k] << endl;
+	//------------------------------------------------------------------------------
+	//	Draw buildling polygons
+	if ( ( _mode == NORMAL_MODE ) || ( _mode == AGGREGATION_MODE ) ) {
+	    glLineWidth( 1.0 );
+	    glColor3d( 1.0, 1.0, 1.0 );
+	    for ( unsigned int i = 0; i < _fig->tri().size(); ++i ) {
+		for ( unsigned int j = 0; j < _fig->tri()[ i ].size(); ++j ) {
+		    glBegin( GL_POLYGON );
+		    for ( unsigned int k = 0; k < 3; ++k ) {
+			glVertex2d( _fig->tri()[i][j][k].x(), _fig->tri()[i][j][k].y() );
+			// cerr << HERE << fig.tri()[i][j][k] << endl;
+		    }
+		    glEnd();
 		}
-		glEnd();
 	    }
+	}
+
+	//------------------------------------------------------------------------------
+	//	Draw simplification candidates
+	else if ( _mode == SIMPLIFICATION_MODE ) {
+	    _draw_outline_set();
 	}
     }
     else {
@@ -697,7 +710,7 @@ void GLDrawing::Display( void )
 
 	//------------------------------------------------------------------------------
 	//	Draw simplification candidates
-	if ( _mode == SIMPLIFICATION_MODE ) {
+	else if ( _mode == SIMPLIFICATION_MODE ) {
 	    _draw_outline_set();
 	}
     }
@@ -982,6 +995,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	      unsigned int id = _fig->outlineID()[ k ];
 	      _fig->bound()[ k ] = _fig->outline()[ k ][ id ];
 	  }
+	  _fig->triangulate();
 	  break;
 	  // squaring building polygons
       case 'r': // == 114
