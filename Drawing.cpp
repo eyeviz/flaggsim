@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-21 14:58:10 shigeo"
+//				Time-stamp: "2023-10-24 22:28:11 shigeo"
 //
 //==============================================================================
 
@@ -1257,7 +1257,8 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	unsigned int idS = index[ i ];
 	unsigned int idT = index[ (i+1)%index.size() ];
 	Set path = shortestPath( idS, idT, _wrapper );
-	// #ifdef DEBUG
+
+#ifdef DEBUG
 	bool isFlag = false;
 	for ( int k = 0; k < ( int )path.size() - 1; ++k ) {
 	    if ( ( 520 <= path[ k ] ) && ( path[ k ] < 530 ) ||
@@ -1265,7 +1266,7 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	}
 
 	if ( isFlag ) cerr << HERE << "( " << idS << " -> " << idT << " ) => " << ends;
-	// #endif	// DEBUG
+#endif	// DEBUG
 
 	// Check whether the shortest path already contains the same vertex
 	// as intermediate points
@@ -1286,19 +1287,21 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	// replace the convex hull edge with concave hull edges except for the
 	// last point
 	if ( isCircle ) {
+#ifdef DEBUG
 	    if ( isFlag ) cerr << HERE << " PATH: ";
+#endif	// DEBUG
 	    for ( unsigned int k = 0; k < path.size() - 1; ++k ) {
-		//#ifdef DEBUG
+#ifdef DEBUG
 		if ( isFlag ) cerr << " " << setw( 3 ) << path[ k ];
-		// #endif	// DEBUG
+#endif	// DEBUG
 		unsigned int idM = path[ k ];
 		NetVertexDescriptor vdM = _onelayer[ idM ];
 		CH.push_back( vertexPoint[ vdM ] );
 		PN.push_back( idM );
 	    }
-	    //#ifdef DEBUG
+#ifdef DEBUG
 	    if ( isFlag ) cerr << endl;
-	    // #endif	// DEBUG
+#endif	// DEBUG
 	}
 	// getchar();
     }
@@ -2572,7 +2575,9 @@ void Drawing::_squareOutlines( void )
 	    }
 	    if ( ! doExist ) {
 		proxy[ i ].push_back( reps );
+#ifdef CHECK_CONFLICTS_WITH_OTHERS
 		contour.registerConflicts( i, _bound );
+#endif	// CHECK_CONFLICTS_WITH_OTHERS
 		contour.fullySimplify();
 		_outline[ i ].push_back( contour.polygon() );
 	    }
@@ -2583,6 +2588,7 @@ void Drawing::_squareOutlines( void )
 	_outlineID[ i ] = _outline[ i ].size() - 1;
     }
 
+#ifdef SKIP
     for ( unsigned int i = 0; i < proxy.size(); ++i ) {
 	for ( unsigned int k = 0; k < proxy[ i ].size(); ++k ) {
 	    cerr << HERE
@@ -2590,6 +2596,7 @@ void Drawing::_squareOutlines( void )
 	}
 	cerr << endl;
     }
+#endif	// SKIP
 }
 
 
