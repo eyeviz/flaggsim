@@ -689,7 +689,7 @@ void Contour::_calc( void )
 //------------------------------------------------------------------------------
 //	Special treatment: Check intersections with obstacles
 //------------------------------------------------------------------------------
-    cerr << HERE << " ****** Number of obstacles = " << _obstacle.size() << endl;
+    // cerr << HERE << " ****** Number of obstacles = " << _obstacle.size() << endl;
     for ( unsigned int i = 0; i < sz; ++i ) {
 	Segment2 edCurr		= _polygon.edge( i );
 	Point2 ptOrig = edCurr.source();
