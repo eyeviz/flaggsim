@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-22 11:59:25 shigeo"
+//				Time-stamp: "2023-10-25 11:18:38 shigeo"
 //
 //==============================================================================
 
@@ -996,6 +996,16 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	      _fig->bound()[ k ] = _fig->outline()[ k ][ id ];
 	  }
 	  _fig->triangulate();
+#ifdef ACTIVATE_RECORDING_MODE
+	  //------------------------------------------------------------------------------
+	  // Prepare the directory name for saving snapshot images
+	  dirname = "raster/" + _headname;
+	  //------------------------------------------------------------------------------
+	  // Start to save the output image data
+	  outname = dirname + "/out.png";
+	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  _capture( outname.c_str() );
+#endif	// ACTIVATE_RECORDING_MODE
 	  break;
 	  // squaring building polygons
       case 'r': // == 114
