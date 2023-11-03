@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-21 04:00:37 shigeo"
+//				Time-stamp: "2023-10-22 11:55:36 shigeo"
 //
 //==============================================================================
 
@@ -327,6 +327,16 @@ class Drawing {
 	_convexForLabel( net, label, CH, dummyID );
     }
 
+#ifdef USING_HOLLOW
+    void		_hollowForLabel( Network & net, const Set & label,
+					  Polygon2 & CH, Set & PN );
+    void		_hollowForLabel( Network & net, const Set & label,
+					  Polygon2 & CH ) {
+	Set dummyID;
+	_hollowForLabel( net, label, CH, dummyID );
+    }
+#endif	// USING_HOLLOW
+
     void		_concaveForLabel( Network & net, const Set & label,
 					  Polygon2 & CH, Set & PN );
     void		_concaveForLabel( Network & net, const Set & label,
@@ -455,6 +465,17 @@ public:
 					  Polygon2 & CH ) {
 	_convexForLabel( net, label, CH );
     }
+
+#ifdef USING_HOLLOW
+    void		hollowForLabel	( Network & net, const Set & label,
+					  Polygon2 & CH, Set & PN ) {
+	_hollowForLabel( net, label, CH, PN );
+    }
+    void		hollowForLabel	( Network & net, const Set & label,
+					  Polygon2 & CH ) {
+	_hollowForLabel( net, label, CH );
+    }
+#endif	// USING_HOLLOW
 
     void		concaveForLabel	( Network & net, const Set & label,
 					  Polygon2 & CH, Set & PN ) {

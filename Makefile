@@ -21,11 +21,13 @@ MACDEFS =	-D__MAC__
 ##########
 MACINC =	-I$(PREFIX)/include \
 		-I./include \
+		`pkg-config --cflags flann` \
 		`pkg-config --cflags opencv4` \
 		`pkg-config --cflags gmp` \
 	    				     
 ##########
 MACLIBS =	-L$(PREFIX)/lib \
+		`pkg-config --libs flann` \
 		`pkg-config --libs opencv4` \
 		`pkg-config --libs gmp` \
        		-lfltk_gl -lfltk \
@@ -42,6 +44,8 @@ SRC =           \
 		Triangulate.cpp \
 		Votes.cpp \
 		Outline.cpp \
+		\
+		Concave.cpp \
 		\
 		CSVIO.cpp \
 		\
@@ -78,6 +82,8 @@ HDR =	        \
 		Triangulate.h \
 		Votes.h \
 		Outline.h \
+		\
+		Concave.h \
 		\
 		CSVIO.h \
 		\

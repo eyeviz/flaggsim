@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-20 03:29:27 shigeo"
+//				Time-stamp: "2023-10-31 14:16:12 shigeo"
 //
 //==============================================================================
 
@@ -40,6 +40,15 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
+#define RESAMPLE_BOUNDARY
+#ifdef RESAMPLE_BOUNDARY
+#define RESAMPLE_INTERVAL	(0.02) // 120m / 2.0 * 0.02 = 1.2m
+// #define RESAMPLE_INTERVAL	(0.05)
+//#define RESAMPLE_INTERVAL	(0.10) // 120m / 2.0 * 0.10 = 6.0m <== Current selection
+// #define RESAMPLE_INTERVAL	(0.20) // <== Previous seleciton
+//#define RESAMPLE_INTERVAL	(0.25)
+#endif	// RESAMPLE_BOUNDARY
+
 #define PICKING_ERROR		(20.0)
 
 

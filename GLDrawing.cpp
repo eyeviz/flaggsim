@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-25 11:18:38 shigeo"
+//				Time-stamp: "2023-11-04 00:51:57 shigeo"
 //
 //==============================================================================
 
@@ -204,8 +204,10 @@ void GLDrawing::_draw_rubberband( void )
 	gluOrtho2D( 0.5, this->w() - 0.5, this->h() - 0.5, 0.5 );
 	glColor4d( 0.9, 0.5, 0.1, 0.5 );
 	glLineWidth( 3.0 );
+#ifdef SKIP
 	cerr << HERE << " _corner = " << _corner;
 	cerr << HERE << " _cursor = " << _cursor;
+#endif	// SKIP
 	glBegin( GL_LINE_LOOP );
 	glVertex2d( _corner.x(), _corner.y() );
 	glVertex2d( _cursor.x(), _corner.y() );
@@ -320,13 +322,31 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
     Set ids;
     nHits = glRenderMode( GL_RENDER );
     _retrieve( ids, nHits, selectBuf );
+    cerr << HERE << " Candidate group : ";
+    for ( unsigned int i = 0; i < ids.size(); ++i )
+	cerr << ids[ i ] << " ";
+    cerr << endl;
+
     if ( ids.size() != 0 ) {
 	bool doExist = false;
 	for ( unsigned int j = 0; j < _fig->labelDes().size(); ++j ) {
-	    if ( _fig->labelDes()[ j ] == ids ) doExist = true;
+	    if ( _fig->labelDes()[ j ] == ids ) {
+		cerr << HERE <<" Design label No. " << j << " is equal : ";
+		for ( unsigned int i = 0; i < _fig->labelDes()[ j ].size(); ++i )
+		    cerr << _fig->labelDes()[ j ][ i ] << " ";
+		cerr << endl;
+		
+		doExist = true;
+	    }
 	    if ( doExist ) break;
 	}
-	if ( ! doExist ) _fig->labelDes().push_back( ids );
+	if ( !doExist ) {
+	    _fig->labelDes().push_back( ids );
+	    cerr << HERE << " The set of design label accommodates a new group: ";
+	    for ( unsigned int i = 0; i < ids.size(); ++i )
+		cerr << ids[ i ] << " ";
+	    cerr << endl;
+	}
     }
     
     cerr << HERE << " Selected polygons : ";

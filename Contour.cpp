@@ -689,7 +689,6 @@ void Contour::_calc( void )
 //------------------------------------------------------------------------------
 //	Special treatment: Check intersections with obstacles
 //------------------------------------------------------------------------------
-    // cerr << HERE << " ****** Number of obstacles = " << _obstacle.size() << endl;
     for ( unsigned int i = 0; i < sz; ++i ) {
 	Segment2 edCurr		= _polygon.edge( i );
 	Point2 ptOrig = edCurr.source();
@@ -1489,7 +1488,7 @@ bool Contour::_simplifyByNum( int numLowerLimit )
 }
 
 //
-//  Contour::_registerObstacles --	register obstacles
+//  Contour::_registerConflicts --	register obstacles
 //
 //  Inputs
 //	id	:	ID in the obstacle list
@@ -1501,19 +1500,40 @@ bool Contour::_simplifyByNum( int numLowerLimit )
 void Contour::_registerConflicts( const unsigned int & id,
 				  const vector< Polygon2 > & conflict )
 {
-    Bbox2 thisBox = _polygon.bbox();
+    Polygon2 curPoly = _polygon;
     
+    // Extend the polygon by the scale of 2
+    Vector2 center( 0.0, 0.0 );
+    for ( unsigned int k = 0; k < curPoly.size(); ++k )
+	center += curPoly[ k ] - CGAL::ORIGIN;
+    center /= ( double )curPoly.size();
+    for ( unsigned int k = 0; k < curPoly.size(); ++k )
+	curPoly[ k ] = CGAL::ORIGIN + 2.0 * ( curPoly[ k ] - CGAL::ORIGIN - center ) + center;
+
+    Bbox2 thisBox = curPoly.bbox();
+
+    _obstacle.clear();
+    for ( unsigned int i = 0; i < conflict.size(); ++i ) {
+        if ( i != id ) {
+            Bbox2 thatBox = conflict[ i ].bbox();
+            if ( do_overlap( thisBox, thatBox ) ) {
+                for ( unsigned int j = 0; j < conflict[ i ].size(); ++j ) {
+                    _obstacle.push_back( conflict[ i ].edge( j ) );
+                }
+            }
+        }
+    }
+
+#ifdef OBSOLETE
     _obstacle.clear();
     for ( unsigned int i = 0; i < conflict.size(); ++i ) {
 	if ( i != id ) {
-	    Bbox2 thatBox = conflict[ i ].bbox();
-	    if ( do_overlap( thisBox, thatBox ) ) {
-		for ( unsigned int j = 0; j < conflict[ i ].size(); ++j ) {
-		    _obstacle.push_back( conflict[ i ].edge( j ) );
-		}
+	    for ( unsigned int j = 0; j < conflict[ i ].size(); ++j ) {
+		_obstacle.push_back( conflict[ i ].edge( j ) );
 	    }
 	}
     }
+#endif	// OBSOLETE
 }
 
 //
@@ -1569,7 +1589,9 @@ vector< double > Contour::_voteAngles( const double bandwidth )
 	slant		= 180.0 * slant / M_PI; // radian to degree
 	while ( slant < 0.0 ) { slant += 180.0; }
 	while ( slant > 180.0 ) { slant -= 180.0; }
-	// cerr << HERE << " slanting angle[ " << setw( 2 ) << i << " ] = " << slant << endl;
+#ifdef DEBUG
+	cerr << HERE << " slanting angle[ " << setw( 2 ) << i << " ] = " << slant << endl;
+#endif	// DEBUG
 
 	for ( unsigned int k = 0; k < nSamples; ++k ) {
 	    double x = ( double )k;
@@ -1663,11 +1685,11 @@ void Contour::_alignEdges( const vector< double > & proxy )
 		idProj = j;
 	    }
 	}
-#ifdef SKIP
+#ifdef DEBUG
 	cerr << HERE << " Closest orientation for edge [ "
 	     << setw( 3 ) << i << " ] => angle[ " << idProj
 	     << " ] difference = " << minSpan << endl;
-#endif	// SKIP
+#endif	// DEBUG
 
 	// project the edge
 	Vector2 T = orient[ idProj ];

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-24 22:28:11 shigeo"
+//				Time-stamp: "2023-11-04 00:57:46 shigeo"
 //
 //==============================================================================
 
@@ -19,6 +19,7 @@
 #include "Triangulate.h"
 #include "Contour.h"
 #include "Votes.h"
+#include "Concave.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -1181,8 +1182,9 @@ void Drawing::_convexForLabel( Network & net, const Set & label,
 }
 
 
+#ifdef USING_HOLLOW
 //
-//  Drawing::_concaveForLabel	--	compute the concave hull (alpha shape)
+//  Drawing::_hollowForLabel	--	compute the concave hull (alpha shape)
 //					of the polygons tagged with the specific
 //					label ID
 //
@@ -1193,8 +1195,8 @@ void Drawing::_convexForLabel( Network & net, const Set & label,
 //  Outputs
 //	concave hull as an enclosure
 //
-void Drawing::_concaveForLabel( Network & net, const Set & label,
-				Polygon2 & CH, Set & PN )
+void Drawing::_hollowForLabel( Network & net, const Set & label,
+			       Polygon2 & CH, Set & PN )
 {
     Polygon2 coord;
     Set index;
@@ -1257,7 +1259,10 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	unsigned int idS = index[ i ];
 	unsigned int idT = index[ (i+1)%index.size() ];
 	Set path = shortestPath( idS, idT, _wrapper );
+<<<<<<< HEAD
 
+=======
+>>>>>>> c43163d (Provisionally implemented concave hull algorithm)
 #ifdef DEBUG
 	bool isFlag = false;
 	for ( int k = 0; k < ( int )path.size() - 1; ++k ) {
@@ -1300,7 +1305,11 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 		PN.push_back( idM );
 	    }
 #ifdef DEBUG
+<<<<<<< HEAD
 	    if ( isFlag ) cerr << endl;
+=======
+ 	    if ( isFlag ) cerr << endl;
+>>>>>>> c43163d (Provisionally implemented concave hull algorithm)
 #endif	// DEBUG
 	}
 	// getchar();
@@ -1329,6 +1338,90 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
     cerr << endl;
 #endif	// SKIP
 
+    return;
+}
+#endif	// USING_HOLLOW
+
+
+//
+//  Drawing::_concaveForLabel	--	compute the concave hull of the polygons
+//					tagged with the specific label ID.
+//
+//  Inputs
+//	net	: k-neighbor graph
+//	label	: Label IDs in the label
+//
+//  Outputs
+//	convex hull as an enclosure
+//
+void Drawing::_concaveForLabel( Network & net, const Set & label,
+				Polygon2 & CH, Set & PN )
+{
+    vector< Point2 >		point;
+    vector< unsigned int >	glob;
+    NetVertexPolyMap		vertexPoly	= get( vertex_mypoly, net );
+    NetVertexGlobMap		vertexGlob	= get( vertex_myglob, net );
+    
+    CH.clear();
+    PN.clear();
+    
+    for ( unsigned int i = 0; i < label.size(); ++i ) {
+	NetVertexDescriptor vd = vertex( label[ i ], net );
+	Polygon2 & poly = vertexPoly[ vd ];
+	for ( unsigned int j = 0; j < poly.size(); ++j ) {
+	    point.push_back( poly[ j ] );
+	}
+	Set & curID = vertexGlob[ vd ];
+	for ( unsigned int j = 0; j < curID.size(); ++j ) {
+	    glob.push_back( curID[ j ] );
+	}
+    }
+    // cerr << HERE << " Number of corners in the polygon = " << points.size();
+
+#ifdef SKIP
+    vector< unsigned int >	indices( point.size() ), out;
+    iota( indices.begin(), indices.end(), 0 );
+    // CGAL::convex_hull_2( points.begin(), points.end(), std::back_inserter( result ) );
+    CGAL::convex_hull_2( indices.begin(), indices.end(), std::back_inserter( out ),
+			 Convex_hull_traits_2( CGAL::make_property_map( point ) ) );
+
+    // cerr << result.size() << " points on the convex hull" << std::endl;
+#endif	// SKIP
+
+#ifdef DEBUG
+    ofstream ofs( "target.dat" );
+    if ( ! ofs ) exit( -1 );
+    ofs << point.size() << endl;
+    for ( unsigned int i = 0; i < point.size(); ++i ) {
+	ofs << point[ i ].x() << "\t" << point[ i ].y() << endl;
+    }
+    ofs.close();
+#endif	// DEBUG
+    
+    vector< unsigned int >	out =	concave_hull_2( point, 2 );
+    // vector< unsigned int >	out =	concave_hull_2( point, 3 );
+    
+#ifdef DEBUG
+    for ( unsigned int k = 0; k < out.size(); ++k ) {
+	cerr << HERE << "out[ " << k << " ] : ( " << out[ k ] << " ) " << endl;
+    }
+#endif	// DEBUG
+
+    CH.clear();
+#ifdef SKIP
+    for ( unsigned int k = 0; k < result.size(); ++k ) {
+	// cerr << "[ " << k << " ] : ( " << result[ k ] << " ) " << endl;
+	CH.push_back( result[ k ] );
+    }
+#endif	// SKIP
+
+    for ( unsigned int k = 0; k < out.size(); ++k ) {
+	// Convex hull
+	CH.push_back( point[ out[ k ] ] );
+	// Associated point numbers
+	PN.push_back( glob[ out[ k ] ] );
+    }
+    
     return;
 }
 
@@ -1512,10 +1605,12 @@ void Drawing::_assignLabels( void )
     vector< Set >	tmpLabelDes;
     for ( unsigned int i = 0; i < _labelDes.size(); ++i ) {
 	bool doExist = false;
+#ifdef AVOID_DUPLICATED_LABELS
 	for ( unsigned int j = 0; j < _labelAll.size(); ++j ) {
 	    if ( _labelAll[ j ] == _labelDes[ i ] ) doExist = true;
 	    if ( doExist ) break;
 	}
+#endif	// AVOID_DUPLICATED_LABELS
 	if ( ! doExist ) tmpLabelDes.push_back( _labelDes[ i ] );
     }
     _labelAll.insert( _labelAll.end(), tmpLabelDes.begin(), tmpLabelDes.end() );
@@ -2386,7 +2481,7 @@ void Drawing::_aggregateLabels( const vector< Set > & gestalt,
 #ifdef SKIP
 	Polygon2 hull;
 	Set glob;
-	_concaveForLabel( net, gestalt[ k ], hull, glob );
+	_hollowForLabel( net, gestalt[ k ], hull, glob );
 	boundSet.push_back( hull );
 #endif	// SKIP
 	cerr << HERE << " Gestalt k = " << k << " : " << gestalt[ k ] << endl;
