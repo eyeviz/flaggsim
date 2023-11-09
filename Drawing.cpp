@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-04 00:57:46 shigeo"
+//				Time-stamp: "2023-11-10 01:10:07 shigeo"
 //
 //==============================================================================
 
@@ -32,6 +32,8 @@
 //------------------------------------------------------------------------------
 //	Variables
 //------------------------------------------------------------------------------
+// bool		Drawing::flagDebug			= false;
+
 unsigned int	Drawing::num_trials			= NUM_TRIALS;
 double		Drawing::interval_threshold		= LIMIT_BUILDING_INTERVAL;
 double		Drawing::proximity_upper		= PROXIMITY_UPPER;
@@ -55,7 +57,6 @@ double		Drawing::label_cost_upper		= LABEL_COST_UPPER;
 double		Drawing::label_cost_single		= LABEL_COST_SINGLE;
 
 void		(*Drawing::redraw)( void )		= NULL;
-
 
 //------------------------------------------------------------------------------
 //	Private Functions
@@ -82,18 +83,15 @@ double Drawing::_maxMinVSets( const Polygon2 & p, const Polygon2 & q )
 	double minDoubleJ = 1.0e+8;
 	for ( unsigned int j = 0; j < q.size(); ++j ) {
 	    double curDouble = ( p[ i ] - q[ j ] ).squared_length();
-	    // cerr << " i = " << i << " j = " << j << " D = " << curDouble << endl;
 	    if ( curDouble < minDoubleJ ) {
 		minDoubleJ = curDouble;
-		// cerr << " i = " << i << " j = " << j << " minDJ = " << minDoubleJ << endl;
 	    }
 	}
 	if ( minDoubleJ > maxDoubleI ) {
 	    maxDoubleI = minDoubleJ;
-	    // cerr << " i = " << i << " maxDI = " << maxDoubleI << endl;
 	}
     }
-    // cerr << " FINAL maxDI = " << maxDoubleI << endl;
+
     return sqrt( maxDoubleI );
 }
 
@@ -604,15 +602,32 @@ void Drawing::_wrapBSkeleton( void )
 	    tie( ed, ok ) = add_edge( vdPolyE, vdPolyL, net );
 	    assert( ok );
 	    cerr << HERE << " New edge ID = " << idE << " : "
-		 << " adding Edge " << idPolyE << " ==> " << idPolyL << endl;
+		 << " adding Edge " << idPolyE << " ==> " << idPolyL;
 	    edgeID[ ed ] = idE++;
-	    edgeWeight[ ed ] = _distPolys( idPolyE, idPolyL );
+	    // This conventional distance between polygons does not work in
+	    // building aggregation. Instead, we employ the closeness between
+	    // the building polygon boundaries.
+	    // Noted by ST on 2023/11/09
+	    // edgeWeight[ ed ] = _distPolys( idPolyE, idPolyL );
+	    edgeWeight[ ed ] = linkLength;
+	    cerr << " edgeWeight = " << edgeWeight[ ed ] << endl;
 #ifdef USING_SIMILARITY_CONJOINING
 	    // aspect ratio
 	    edgeRatio[ ed ] = _simPolys( idPolyE, idPolyL );
 #endif	// USING_SIMILARITY_CONJOINING
 	}
 	else {
+	    // We employ the closeness between the building polygon boundaries.
+	    // Noted by ST on 2023/11/09
+	    NetEdgeDescriptor ed;
+	    bool ok;
+	    tie( ed, ok ) = edge( vdPolyE, vdPolyL, net );
+	    if ( linkLength < edgeWeight[ ed ] ) {
+		cerr << " changing edge weight " << idPolyE << " ==> " << idPolyL;
+		cerr << " edgeWeight : " << edgeWeight[ ed ] << " => ";
+		edgeWeight[ ed ] = linkLength;
+		cerr << edgeWeight[ ed ] << endl;
+	    }
 	    // cerr << HERE << " Illegal case: The identical edge already exists" << endl;
 	    // cerr << HERE << " Edge : " << idS << " == " << idL << endl;
 	    // exit( 0 );
@@ -862,6 +877,7 @@ void Drawing::_calcNewProximity( const double & ratio )
 }
 
 
+#ifdef SKIP
 //
 //  Drawing::_calcCnvProximity --	employ the conventional approach for
 //					calculating the graph for proximity
@@ -971,6 +987,7 @@ void Drawing::_calcCnvProximity( void )
 #endif	// USING_SIMILARITY_CONJOINING
     }
 }
+#endif	// SKIP
 
 
 #ifdef USING_SIMILARITY_CONJOINING
@@ -1388,32 +1405,10 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
     // cerr << result.size() << " points on the convex hull" << std::endl;
 #endif	// SKIP
 
-#ifdef DEBUG
-    ofstream ofs( "target.dat" );
-    if ( ! ofs ) exit( -1 );
-    ofs << point.size() << endl;
-    for ( unsigned int i = 0; i < point.size(); ++i ) {
-	ofs << point[ i ].x() << "\t" << point[ i ].y() << endl;
-    }
-    ofs.close();
-#endif	// DEBUG
-    
     vector< unsigned int >	out =	concave_hull_2( point, 2 );
     // vector< unsigned int >	out =	concave_hull_2( point, 3 );
     
-#ifdef DEBUG
-    for ( unsigned int k = 0; k < out.size(); ++k ) {
-	cerr << HERE << "out[ " << k << " ] : ( " << out[ k ] << " ) " << endl;
-    }
-#endif	// DEBUG
-
     CH.clear();
-#ifdef SKIP
-    for ( unsigned int k = 0; k < result.size(); ++k ) {
-	// cerr << "[ " << k << " ] : ( " << result[ k ] << " ) " << endl;
-	CH.push_back( result[ k ] );
-    }
-#endif	// SKIP
 
     for ( unsigned int k = 0; k < out.size(); ++k ) {
 	// Convex hull
@@ -2048,25 +2043,51 @@ void Drawing::_calcDataCost( void )
 void Drawing::_calcSmoothCost( void )
 {
     Network &		net		= _netNbr;
+    NetEdgeWeightMap	edgeWeight	= get( edge_weight, net );
+    NetVertexIDMap	vertexID	= get( vertex_myid, net );
     unsigned int	nVertices	= num_vertices( net );
-
+    
     // initialize the smooth cost
     _smoothCost.clear();
     
-    for ( unsigned int i = 0; i < nVertices; ++i ) {
+    unsigned int ii = 0, jj = 0;
+    BGL_FORALL_VERTICES( vdI, net, Network ) {
+	unsigned int i = vertexID[ vdI ];
+	if ( ii != i ) {
+	    cerr << HERE << " i = " << i << " ii = " << ii << endl;
+	    assert( ii == i );
+	}
 	vector< double > pairCost;
-	for ( unsigned int j = 0; j < nVertices; ++j ) {
+	jj = 0;
+	BGL_FORALL_VERTICES( vdJ, net, Network ) {
+	    unsigned int j = vertexID[ vdJ ];
+	    if ( jj != j ) {
+		cerr << HERE << " j = " << j << " jj = " << jj << endl;
+		assert( jj == j );
+	    }
 	    if ( i == j ) pairCost.push_back( 0.0 );
 	    else {
+		// This is just the default distance (weight).
 		double dist = _distPolys( i, j );
+		// double dist = 1.0e+8;
+		// The smoothness cost should reflect the closeness between the
+		// corresponding building polygon pairs, instead of MaxMin
+		// Distance between polygon boundary samples.
+		// Noted by ST on 2023/11/09	
+		NetEdgeDescriptor ed;
+		bool ok;
+		tie( ed, ok ) = edge( vdI, vdJ, net );
+		if ( ok ) dist = edgeWeight[ ed ];
 #ifdef SQUARED_SMOOTH_COST
 		pairCost.push_back( 1.0/(dist*dist) );
 #else	// SQUARED_SMOOTH_COST
 		pairCost.push_back( 1.0/dist );
 #endif	// SQUARED_SMOOTH_COST
 	    }
+	    jj++;
 	}
 	_smoothCost.push_back( pairCost );
+	ii++;
     }
     _normalizeMatrix( _smoothCost, Drawing::smooth_cost_lower, Drawing::smooth_cost_upper );
 
@@ -2644,9 +2665,9 @@ void Drawing::_squarePolys( void )
 //
 void Drawing::_squareOutlines( void )
 {
-    const int nBands = 5;
+    const int nBands = 6;
     const double bandwidth[ nBands ] = {
-	180.0/40.0, 180.0/25.0, 180.0/20.0, 180.0/16.0, 180.0/10.0
+	180.0/40.0, 180.0/25.0, 180.0/20.0, 180.0/16.0, 180.0/8.0, 180.0/4.0
     };
 
     vector< vector< Votes > >	proxy;
@@ -2711,7 +2732,7 @@ void Drawing::_clear( void )
     _onelayer.clear();
     _twolayer.clear();
     _wrapper.clear();
-    
+
     _poly.clear();
     _glID.clear();
 

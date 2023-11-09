@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-22 11:55:36 shigeo"
+//				Time-stamp: "2023-11-10 01:08:59 shigeo"
 //
 //==============================================================================
 
@@ -305,10 +305,12 @@ class Drawing {
     void		_calcWrapper	( void );
     
     void		_calcNewProximity	( const double & ratio );
+#ifdef SKIP
     void		_calcCnvProximity	( void );
     void		_calcProximity		( void ) {
 	_calcCnvProximity();
     }
+#endif	// SKIP
 
 #ifdef USING_SIMILARITY_CONJOINING
     void		_calcCnvSimilarity	( void );
@@ -388,6 +390,8 @@ public:
 //------------------------------------------------------------------------------
 //	Static variables
 //------------------------------------------------------------------------------
+    // static bool			flagDebug;
+    
     static unsigned int		num_trials;
 
     static double		interval_threshold;
@@ -411,6 +415,19 @@ public:
     static double		label_cost_lower;
     static double		label_cost_upper;
     static double		label_cost_single;
+
+    static void initParams( void ) {
+	data_cost_lower		= DATA_COST_LOWER;
+	data_cost_upper		= DATA_COST_UPPER;
+	data_cost_inside	= DATA_COST_INSIDE;
+
+	smooth_cost_lower	= SMOOTH_COST_LOWER;
+	smooth_cost_upper	= SMOOTH_COST_UPPER;
+
+	label_cost_lower	= LABEL_COST_LOWER;
+	label_cost_upper	= LABEL_COST_UPPER;
+	label_cost_single	= LABEL_COST_SINGLE;
+    }
 
     static void			(*redraw)( void );
 

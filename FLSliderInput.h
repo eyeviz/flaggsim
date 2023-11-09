@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-19 22:27:36 shigeo"
+//				Time-stamp: "2023-11-09 23:33:06 shigeo"
 //
 //==============================================================================
 
@@ -103,38 +103,7 @@ public:
 //	Referrring to members
 //------------------------------------------------------------------------------
 
-#ifdef SKIP
-    const double value( void ) const		{
-	return ( double )_slider->value();
-    }
-    void value( double val )			{
-	_slider->value( ( float )val );
-	_slider_handler();
-    }
-    const double minumum( void ) const		{
-	return ( double )_slider->minimum();
-    }
-    void minumum( double val )			{
-	_slider->minimum( ( float )val );
-    }
-    const double maximum( void ) const		{
-	return ( double )_slider->maximum();
-    }
-    void maximum( double val )			{
-	_slider->maximum( ( float )val );
-    }
-    void bounds( double low, double high )	{
-	_slider->bounds( ( float )low, ( float )high );
-    }
-
-    void setInputCallback( void (*__callback)( Fl_Widget *, void * ) ) {
-	_input->callback( __callback, ( void * )this );
-    }
-    void setSliderCallback( void (*__callback)( Fl_Widget *, void * ) ) {
-	_slider->callback( __callback, ( void * )this );
-    }
-#endif	// SKIP
-
+    void resetValues( void );
 
 //------------------------------------------------------------------------------
 //	Class name

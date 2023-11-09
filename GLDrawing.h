@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-20 04:19:34 shigeo"
+//				Time-stamp: "2023-11-09 17:40:29 shigeo"
 //
 //==============================================================================
 
@@ -78,6 +78,8 @@ class GLDrawing : public GLBase {
     void _draw_directed		( Directed & g );
     // void _draw_polygon_ids	( const Drawing & fig );
     void _draw_hulls		( vector< Polygon2 > & hull );
+    void _draw_polygon_samples	( const Polygon2 & poly );
+    void _draw_hull_samples	( vector< Polygon2 > & hull );
 
     void _draw_rubberband	( void );
     

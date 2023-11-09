@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-19 22:27:50 shigeo"
+//				Time-stamp: "2023-11-09 23:44:32 shigeo"
 //
 //==============================================================================
 
@@ -712,14 +712,52 @@ FLSliderInput::~FLSliderInput()
 }
 
 
-//------------------------------------------------------------------------------
-//	Referrring to members
-//------------------------------------------------------------------------------
 
 
 //------------------------------------------------------------------------------
-//	Functions for sorting
+//	Parameter setups
 //------------------------------------------------------------------------------
+// Reset parameter values
+void FLSliderInput::resetValues( void )
+{
+    ostringstream ostr;
+    
+    _adjust->interval()	=	_adjust->intervalScale() * Drawing::interval_threshold;
+    _intervalSlider->value	( _adjust->interval() );
+
+    ostr.str("");
+    ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _intervalSlider->value() << ends;
+    _intervalInput->value( ostr.str().c_str() );
+
+    _adjust->upperDataCost()	= Drawing::data_cost_upper;
+    _dataCostSlider->value	( _adjust->upperDataCost() );
+
+    ostr.str("");
+    ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _dataCostSlider->value() << ends;
+    _dataCostInput->value( ostr.str().c_str() );
+    
+    _adjust->upperSmoothCost()	= Drawing::smooth_cost_upper;
+    _smoothCostSlider->value	( _adjust->upperSmoothCost() );
+
+    ostr.str("");
+    ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _smoothCostSlider->value() << ends;
+    _smoothCostInput->value( ostr.str().c_str() );
+
+    _adjust->upperLabelCost()	= Drawing::label_cost_upper;
+    _labelCostSlider->value	( _adjust->upperLabelCost() );
+
+    ostr.str("");
+    ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _labelCostSlider->value() << ends;
+    _labelCostInput->value( ostr.str().c_str() );
+
+    _cutThresholdSlider->value	( _adjust->upperLabelCost() );
+
+    ostr.str("");
+    ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _cutThresholdSlider->value() << ends;
+    _cutThresholdInput->value( ostr.str().c_str() );
+}
+
+
 
 
 // end of header file

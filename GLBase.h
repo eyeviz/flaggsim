@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-31 14:16:12 shigeo"
+//				Time-stamp: "2023-11-04 02:02:41 shigeo"
 //
 //==============================================================================
 
@@ -42,7 +42,12 @@ using namespace std;
 //------------------------------------------------------------------------------
 #define RESAMPLE_BOUNDARY
 #ifdef RESAMPLE_BOUNDARY
-#define RESAMPLE_INTERVAL	(0.02) // 120m / 2.0 * 0.02 = 1.2m
+//#define RESAMPLE_INTERVAL	(0.02)
+//#define RESAMPLE_INTERVAL	(0.025)
+#define RESAMPLE_INTERVAL	(0.024)
+// #define RESAMPLE_INTERVAL	(0.030) // OK
+// #define RESAMPLE_INTERVAL	(0.032) // OK
+// #define RESAMPLE_INTERVAL	(0.04) // OK
 // #define RESAMPLE_INTERVAL	(0.05)
 //#define RESAMPLE_INTERVAL	(0.10) // 120m / 2.0 * 0.10 = 6.0m <== Current selection
 // #define RESAMPLE_INTERVAL	(0.20) // <== Previous seleciton

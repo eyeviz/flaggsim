@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-31 14:50:00 shigeo"
+//				Time-stamp: "2023-11-09 23:24:28 shigeo"
 //
 //==============================================================================
 
@@ -176,6 +176,7 @@ void GLBase::_retrieve_headname( const char * args )
 void GLBase::_load_drawing( const char * filename )
 {
     cerr << HERE << " load_drawing => " << filename << endl;
+    Drawing::initParams();
 
     _retrieve_headname( filename );
     

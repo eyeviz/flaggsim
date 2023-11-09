@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-20 03:36:56 shigeo"
+//				Time-stamp: "2023-11-09 23:37:30 shigeo"
 //
 //==============================================================================
 
@@ -68,6 +68,7 @@ void FLControl::_fileHandler( Fl_Menu_Bar * bar )
 	  cerr << HERE << " _gl_drawing = " << FLControl::_gl_drawing << endl;
 	  if ( strcmp( ipath, "&File/&Load" ) == 0 ) {
 	      FLControl::_gl_drawing->load_drawing( chooser.filename() );
+	      _panel->resetValues();
 	  }
 	  else if ( strcmp( ipath, "&File/&Save" ) == 0 ) {
 	      FLControl::_gl_drawing->save_drawing( chooser.filename() );

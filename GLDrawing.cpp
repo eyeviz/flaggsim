@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-04 00:51:57 shigeo"
+//				Time-stamp: "2023-11-09 18:15:40 shigeo"
 //
 //==============================================================================
 
@@ -193,6 +193,35 @@ void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
 	_draw_polygon( hull[ k ] );
     }
 }
+
+
+// Draw the set of convex hulls
+void GLDrawing::_draw_polygon_samples( const Polygon2 & poly )
+{
+    glBegin( GL_POINTS );
+    for ( unsigned int k = 0; k < poly.size(); ++k ) {
+	glVertex2d( poly[ k ].x(), poly[ k ].y() );
+    }
+    glEnd();
+    for ( unsigned int k = 0; k < poly.size(); ++k ) {
+	ostringstream strID;
+	strID << setw( 2 ) << setfill( '0' ) << k << ends;
+	_string2D( poly[ k ].x(), poly[ k ].y(), strID.str().c_str(), 8 );
+    }
+}
+
+
+// Draw the set of convex hulls
+void GLDrawing::_draw_hull_samples( vector< Polygon2 > & hull )
+{
+    glEnable( GL_POINT_SMOOTH ); 
+    glPointSize( 3.0 );
+    // cerr << HERE << " Number of hulls = " << hull.size() << endl;
+    for ( unsigned int k = 0; k < hull.size(); ++k ) {
+	_draw_polygon_samples( hull[ k ] );
+    }
+}
+
 
 // Draw the rubberband for the polygon selection
 void GLDrawing::_draw_rubberband( void )
@@ -818,6 +847,8 @@ void GLDrawing::Display( void )
 #endif	// USING_SIMILARITY_CONJOINING
 	glColor4d( 0.5, 0.0, 0.0, 0.8 );
 	_draw_hulls( _fig->hullDes() );
+
+	_draw_hull_samples( _fig->poly() );
     }
 
     // for disabling antialiasing
@@ -834,6 +865,14 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 {
     int polyID = NO_NAME;
 	
+    cerr << HERE << "##############################" << endl;
+    cerr << HERE << " FL_LEFT_MOUSE = " << FL_LEFT_MOUSE << endl;
+    cerr << HERE << " FL_MIDDLE_MOUSE = " << FL_MIDDLE_MOUSE << endl;
+    cerr << HERE << " FL_RIGHT_MOUSE = " << FL_RIGHT_MOUSE << endl;
+    cerr << HERE << " button = " << button << endl;
+    cerr << HERE << "##############################" << endl;
+    // std::this_thread::sleep_for( std::chrono::milliseconds( 10000 ) );
+
     make_current();
 
     switch ( button ) {
