@@ -214,14 +214,13 @@ int iterative_graph_cut( const unsigned int & num_pixels,
 	gc->setSmoothCost( smooth );
 	gc->setLabelCost( label );
 	
-	//#ifdef SKIP
+	// This initialization is quite important!!
+	// noted by ST on 2023/11/11
 	for ( unsigned int i = 0; i < num_pixels; ++i )
-	    // gc->setLabel( i, i % 3 );
 	    gc->setLabel( i, i % num_labels );
-	    // #endif	// SKIP
 
 	cerr << HERE << "Before optimization energy is " << gc->compute_energy() << endl;
-	cerr << HERE;
+
 	gc->printStatus( ">>>>>" );
 	cerr << HERE << "Labels : " << ends;
 	for ( unsigned int i = 0; i < num_pixels; ++i ) {

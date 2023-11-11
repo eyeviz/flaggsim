@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-10 01:08:59 shigeo"
+//				Time-stamp: "2023-11-11 20:03:55 shigeo"
 //
 //==============================================================================
 
@@ -35,6 +35,10 @@ using namespace std;
 // ************************************************************
 // #define AUTOMATIC_CONJOINING
 
+#define CONCAVE_HULL_GENERATION
+#ifndef CONCAVE_HULL_GENERATION
+#define CONVEX_HULL_GENERATION
+#endif	// CONCAVE_HULL_GENERATION
 
 #define SQUARED_SMOOTH_COST
 // #define DATA_COST_PANALTY_WITH_TOPOLOGY
@@ -58,6 +62,7 @@ using namespace std;
 #define DATA_COST_FILE		"log/data.txt"
 #define SMOOTH_COST_FILE	"log/smooth.txt"
 #define LABEL_COST_FILE		"log/label.txt"
+#define CONCAVE_HULL_FILE	"log/concave.txt"
 
 
 // The height and width of the window is 2.0, which is equivalent to 120mm

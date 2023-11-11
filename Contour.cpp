@@ -91,7 +91,10 @@ double Contour::_solveQuadratic( const double & a, const double & b, const doubl
     if ( abs( a ) < EPSILON ) {
 	cerr << HERE << " >>>>>>>>>> Coefficient for the quadratic term vanishes." << endl;
 	sol = -c/b;
-	if ( abs( sol - 1.0 ) < EPSILON ) sol = 0.999;
+	if ( abs( sol - 1.0 ) < EPSILON )
+	    // sol = 0.9999;
+	    sol = 0.999;
+	    // sol = 0.99;
     }
     else {
 	sol = ( -b + sqrt( b*b - 4*a*c ) )/( 2.0 * a );
@@ -1264,7 +1267,7 @@ bool Contour::_contract( double areaUpperLimit, int numLowerLimit )
     }
 
     uint	sz		= _polygon.size();
-    if ( sz < numLowerLimit ) {
+    if ( sz <= numLowerLimit ) {
 	cerr << HERE << " contraction polygon size exceets the lower limit " << endl;
 	isFeasible = false;
     }
@@ -1537,7 +1540,7 @@ void Contour::_registerConflicts( const unsigned int & id,
 }
 
 //
-//  Contour::_simplifyFully --	fully schematize the polygon until it converges
+//  Contour::_fullySimplify --	fully schematize the polygon until it converges
 //				(Call this before registering obstacles!!)
 //  Inputs
 //	none
@@ -1555,6 +1558,30 @@ void Contour::_fullySimplify( void )
     bool isPossible = true;
     do {
 	isPossible = _simplifyByArea( INFINITY );
+    } while ( isPossible );
+}
+
+
+//
+//  Contour::_modelatelySimplify --	modeletely schematize the polygon until
+//				it converges
+//				(Call this before registering obstacles!!)
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+void Contour::_moderatelySimplify( unsigned int limit )
+{
+    _reset();
+	
+    // contour.setContractible();
+    if ( ! _prepare() ) _isContractible = false;
+	
+    bool isPossible = true;
+    do {
+	isPossible = _simplifyByNum( limit );
     } while ( isPossible );
 }
 

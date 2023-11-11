@@ -131,6 +131,7 @@ protected:
     void	_registerConflicts	( const unsigned int & id,
 					  const vector< Polygon2 > & conflict );
     void	_fullySimplify	( void );
+    void	_moderatelySimplify	( unsigned int limit = 6 );
 
     vector< double >	_voteAngles	( const double bandwidth );
     void		_alignEdges	( const vector< double > & proxy );
@@ -224,6 +225,9 @@ protected:
     }
     void fullySimplify	( void ) {
 	_fullySimplify();
+    }
+    void moderatelySimplify	( unsigned int limit ) {
+	_moderatelySimplify( limit );
     }
 
     vector< double > squaring( const double bandwidth = 180.0/16.0 ) {

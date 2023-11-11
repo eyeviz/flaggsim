@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-10 01:10:07 shigeo"
+//				Time-stamp: "2023-11-11 20:26:29 shigeo"
 //
 //==============================================================================
 
@@ -1394,8 +1394,26 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	}
     }
     // cerr << HERE << " Number of corners in the polygon = " << points.size();
+    //------------------------------------------------------------------------------
+    //	Print out the polygon coordinates for debug
+    //------------------------------------------------------------------------------
+    ofstream ofs_concave( CONCAVE_HULL_FILE );
+    streambuf* buf_concave;
+    if ( ofs_concave ) buf_concave = cerr.rdbuf( ofs_concave.rdbuf() );
+    cerr << setw( 4 ) << point.size() << endl;
+    for ( unsigned int i = 0; i < point.size(); ++i ) {
+	cerr << std::fixed << setprecision( 4 ) << setw( 8 )
+	     << point[ i ].x() << " ";
+	cerr << std::fixed << setprecision( 4 ) << setw( 8 )
+	     << point[ i ].y() << " ";
+	cerr << endl;
+    }
+    if ( ofs_concave ) {
+	cerr.rdbuf( buf_concave );
+	ofs_concave.close();
+    }
 
-#ifdef SKIP
+#ifdef CONVEX_HULL_GENERATION
     vector< unsigned int >	indices( point.size() ), out;
     iota( indices.begin(), indices.end(), 0 );
     // CGAL::convex_hull_2( points.begin(), points.end(), std::back_inserter( result ) );
@@ -1403,10 +1421,12 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 			 Convex_hull_traits_2( CGAL::make_property_map( point ) ) );
 
     // cerr << result.size() << " points on the convex hull" << std::endl;
-#endif	// SKIP
+#endif	// CONVEX_HULL_GENERATION
 
+#ifdef CONCAVE_HULL_GENERATION
     vector< unsigned int >	out =	concave_hull_2( point, 2 );
     // vector< unsigned int >	out =	concave_hull_2( point, 3 );
+#endif	// CONCAVE_HULL_GENERATION
     
     CH.clear();
 
@@ -2665,9 +2685,11 @@ void Drawing::_squarePolys( void )
 //
 void Drawing::_squareOutlines( void )
 {
-    const int nBands = 6;
+    // const int nBands = 6;
+    const int nBands = 3;
     const double bandwidth[ nBands ] = {
-	180.0/40.0, 180.0/25.0, 180.0/20.0, 180.0/16.0, 180.0/8.0, 180.0/4.0
+	// 180.0/40.0, 180.0/25.0, 180.0/20.0, 180.0/16.0, 180.0/8.0, 180.0/4.0
+	180.0/40.0, 180.0/20.0, 180.0/4.0
     };
 
     vector< vector< Votes > >	proxy;
@@ -2694,8 +2716,34 @@ void Drawing::_squareOutlines( void )
 #ifdef CHECK_CONFLICTS_WITH_OTHERS
 		contour.registerConflicts( i, _bound );
 #endif	// CHECK_CONFLICTS_WITH_OTHERS
-		contour.fullySimplify();
+		// contour.simplifyByArea( 0.10 );
+		// ====================
+		contour.moderatelySimplify( 10 );
+		unsigned int nPoints = contour.polygon().size();
 		_outline[ i ].push_back( contour.polygon() );
+		// ====================
+		contour.moderatelySimplify( 8 );
+		if ( nPoints != contour.polygon().size() ) {
+		    cerr << HERE << "========== : " << nPoints
+			 << " => " << contour.polygon().size() << endl;
+		    _outline[ i ].push_back( contour.polygon() );
+		    nPoints = contour.polygon().size();
+		}
+		// ====================
+		contour.moderatelySimplify( 6 );
+		if ( nPoints != contour.polygon().size() ) {
+		    cerr << HERE << "========== : " << nPoints
+			 << " => " << contour.polygon().size() << endl;
+		    _outline[ i ].push_back( contour.polygon() );
+		    nPoints = contour.polygon().size();
+		}
+		// ====================
+		contour.fullySimplify();
+		// if ( nPoints != contour.polygon().size() ) {
+		cerr << HERE << "++++++++++ NPoints : " << nPoints
+		     << " => " << contour.polygon().size() << endl;
+		_outline[ i ].push_back( contour.polygon() );
+		// nPoints = contour.polygon().size();
 	    }
 	}
     }

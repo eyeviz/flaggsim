@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-09 18:15:40 shigeo"
+//				Time-stamp: "2023-11-11 21:07:32 shigeo"
 //
 //==============================================================================
 
@@ -887,19 +887,6 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 	      _left = 0;
 	  }
 	  break;
-      case FL_MIDDLE_MOUSE:
-	  if ( state ) {
-	      // cerr << HERE << " Middle mouse pressed " << endl;
-	      _corner = _cursor = Point2( x, y );
-	      _middle = 1;
-	  }
-	  else{
-	      // cerr << HERE << " Middle mouse released " << endl;
-	      _cursor = Point2( x, y );
-	      _bound( x, y, FL_MIDDLE_MOUSE );
-	      _middle = 0;
-	  }
-	  break;
       case FL_RIGHT_MOUSE:
 	  if ( state ) {
 	      // cerr << HERE << " Right mouse pressed " << endl;
@@ -919,8 +906,32 @@ void GLDrawing::Mouse( int button, int state, int x, int y )
 	      _right = 0;
 	  }
 	  break;
+      case FL_MIDDLE_MOUSE:
+	  if ( state ) {
+	      // cerr << HERE << " Middle mouse pressed " << endl;
+	      _corner = _cursor = Point2( x, y );
+	      _middle = 1;
+	  }
+	  else{
+	      // cerr << HERE << " Middle mouse released " << endl;
+	      _cursor = Point2( x, y );
+	      _bound( x, y, FL_MIDDLE_MOUSE );
+	      _middle = 0;
+	  }
+	  break;
       default:
 	  cerr << "Unknown button" << endl;
+	  if ( state ) {
+	      // cerr << HERE << " Middle mouse pressed " << endl;
+	      _corner = _cursor = Point2( x, y );
+	      _middle = 1;
+	  }
+	  else{
+	      // cerr << HERE << " Middle mouse released " << endl;
+	      _cursor = Point2( x, y );
+	      _bound( x, y, FL_MIDDLE_MOUSE );
+	      _middle = 0;
+	  }
 	  break;
     }
 
