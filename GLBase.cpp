@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:45:40 shigeo"
+//				Time-stamp: "2023-11-13 22:12:34 shigeo"
 //
 //==============================================================================
 
@@ -138,7 +138,7 @@ void GLBase::_string2D( double x, double y, const char *str, int size )
 
 
 // Draw the set of convex hulls
-void GLBase::_draw_polygon( Polygon2 & poly )
+void GLBase::_drawPolygon( Polygon2 & poly )
 {
     // cerr << HERE << " Number of corners = " << poly.size() << endl;
 
@@ -154,7 +154,7 @@ void GLBase::_draw_polygon( Polygon2 & poly )
 //	Functions for File I/O
 //------------------------------------------------------------------------------
 // retrieve the head name of the input file name
-void GLBase::_retrieve_headname( const char * args )
+void GLBase::_retrieveHeadname( const char * args )
 {
     string inputname = args;
     vector< string > slashlist = CSVIO::split( inputname, '/' );
@@ -173,12 +173,12 @@ void GLBase::_retrieve_headname( const char * args )
 
 
 // load a drawging from the given file
-void GLBase::_load_drawing( const char * filename )
+void GLBase::_loadDrawing( const char * filename )
 {
     cerr << HERE << " load_drawing => " << filename << endl;
     Drawing::initParams();
 
-    _retrieve_headname( filename );
+    _retrieveHeadname( filename );
     
     if ( _fig == NULL ) {
 	cerr << HERE << " NULL pointer to the line drawing" << endl;
@@ -283,7 +283,7 @@ void GLBase::_load_drawing( const char * filename )
 }
 
 // save a drawging into the given file
-void GLBase::_save_drawing( const char * filename )
+void GLBase::_saveDrawing( const char * filename )
 {
     if ( _fig == NULL ) {
 	cerr << HERE << " NULL pointer to the line drawing" << endl;

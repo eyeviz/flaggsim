@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:45:09 shigeo"
+//				Time-stamp: "2023-11-13 22:15:05 shigeo"
 //
 //==============================================================================
 
@@ -48,7 +48,7 @@ using namespace std;
 //	Protected Functions
 //------------------------------------------------------------------------------
 // Function for drawing all the building polygons with names
-void GLDrawing::_draw_polygon_set( void )
+void GLDrawing::_drawPolygonSet( void )
 {
 //------------------------------------------------------------------------------
     glLoadName( NO_NAME );
@@ -57,7 +57,7 @@ void GLDrawing::_draw_polygon_set( void )
 //------------------------------------------------------------------------------
 	glLoadName( i );
 //------------------------------------------------------------------------------
-	_draw_polygon( _fig->bound()[ i ] );
+	_drawPolygon( _fig->bound()[ i ] );
     }
 //------------------------------------------------------------------------------
     glLoadName( NO_NAME );
@@ -66,7 +66,7 @@ void GLDrawing::_draw_polygon_set( void )
 
 
 // Function for drawing all the building polygons with names
-void GLDrawing::_draw_outline_set( void )
+void GLDrawing::_drawOutlineSet( void )
 {
 //------------------------------------------------------------------------------
     glLoadName( NO_NAME );
@@ -86,7 +86,7 @@ void GLDrawing::_draw_outline_set( void )
 		else
 		    glColor3d( 0.7, 0.7, 0.7 );
 	    }
-	    _draw_polygon( _fig->outline()[ i ][ k ] );
+	    _drawPolygon( _fig->outline()[ i ][ k ] );
 	}
     }
 //------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void GLDrawing::_draw_outline_set( void )
 
 
 // Draw the neighbor graph
-void GLDrawing::_draw_vertex_ids( Network & g )
+void GLDrawing::_drawVertexIDs( Network & g )
 {
     NetVertexIDMap	vertexID	= get( vertex_myid, g );
     NetVertexCntrMap	vertexCntr	= get( vertex_mycntr, g );
@@ -114,7 +114,7 @@ void GLDrawing::_draw_vertex_ids( Network & g )
 
 
 // Draw the neighbor graph
-void GLDrawing::_draw_vertex_ids( Directed & g )
+void GLDrawing::_drawVertexIDs( Directed & g )
 {
     DirVertexAddrMap	vertexAddr	= get( vertex_myaddr, g );
     DirVertexPointMap	vertexPoint	= get( vertex_mypoint, g );
@@ -136,7 +136,7 @@ void GLDrawing::_draw_vertex_ids( Directed & g )
 
 
 // Draw the neighbor graph
-void GLDrawing::_draw_network( Network & g )
+void GLDrawing::_drawNetwork( Network & g )
 {
     // VertexIDMap	vertexID	= get( vertex_myid, g );
     NetVertexCntrMap	vertexCntr	= get( vertex_mycntr, g );
@@ -158,7 +158,7 @@ void GLDrawing::_draw_network( Network & g )
 
 
 // Draw the neighbor graph
-void GLDrawing::_draw_directed( Directed & g )
+void GLDrawing::_drawDirected( Directed & g )
 {
     DirVertexPointMap	vertexPoint	= get( vertex_mypoint, g );
 
@@ -186,17 +186,17 @@ void GLDrawing::_draw_directed( Directed & g )
 
 
 // Draw the set of convex hulls
-void GLDrawing::_draw_hulls( vector< Polygon2 > & hull )
+void GLDrawing::_drawHulls( vector< Polygon2 > & hull )
 {
     // cerr << HERE << " Number of hulls = " << hull.size() << endl;
     for ( unsigned int k = 0; k < hull.size(); ++k ) {
-	_draw_polygon( hull[ k ] );
+	_drawPolygon( hull[ k ] );
     }
 }
 
 
 // Draw the set of convex hulls
-void GLDrawing::_draw_polygon_samples( const Polygon2 & poly )
+void GLDrawing::_drawPolygonSamples( const Polygon2 & poly )
 {
     glBegin( GL_POINTS );
     for ( unsigned int k = 0; k < poly.size(); ++k ) {
@@ -214,19 +214,19 @@ void GLDrawing::_draw_polygon_samples( const Polygon2 & poly )
 
 
 // Draw the set of convex hulls
-void GLDrawing::_draw_hull_samples( vector< Polygon2 > & hull )
+void GLDrawing::_drawHullSamples( vector< Polygon2 > & hull )
 {
     glEnable( GL_POINT_SMOOTH ); 
     glPointSize( 5.0 );
     // cerr << HERE << " Number of hulls = " << hull.size() << endl;
     for ( unsigned int k = 0; k < hull.size(); ++k ) {
-	_draw_polygon_samples( hull[ k ] );
+	_drawPolygonSamples( hull[ k ] );
     }
 }
 
 
 // Draw the rubberband for the polygon selection
-void GLDrawing::_draw_rubberband( void )
+void GLDrawing::_drawRubberband( void )
 {
     if ( _middle == 1 ) {
 	glMatrixMode( GL_PROJECTION );
@@ -341,7 +341,7 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
     glLoadIdentity();
 
     // draw the set of building polygons
-    _draw_polygon_set();
+    _drawPolygonSet();
 
     glMatrixMode( GL_PROJECTION );
     glPopMatrix(); // <====
@@ -709,7 +709,7 @@ void GLDrawing::Display( void )
 //------------------------------------------------------------------------------
 //	Drawing the rubberband
 //------------------------------------------------------------------------------
-    _draw_rubberband();
+    _drawRubberband();
 
 //------------------------------------------------------------------------------
 //	Skip the drawing without building polygons 
@@ -745,7 +745,7 @@ void GLDrawing::Display( void )
 	//------------------------------------------------------------------------------
 	//	Draw simplification candidates
 	else if ( _mode == SIMPLIFICATION_MODE ) {
-	    _draw_outline_set();
+	    _drawOutlineSet();
 	}
     }
     else {
@@ -756,13 +756,13 @@ void GLDrawing::Display( void )
 	    glLineWidth( 1.0 );
 	    glColor3d( 0.0, 0.0, 0.0 );
 	    // cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
-	    _draw_polygon_set();
+	    _drawPolygonSet();
 	}
 
 	//------------------------------------------------------------------------------
 	//	Draw simplification candidates
 	else if ( _mode == SIMPLIFICATION_MODE ) {
-	    _draw_outline_set();
+	    _drawOutlineSet();
 	}
     }
 
@@ -774,7 +774,7 @@ void GLDrawing::Display( void )
 	// _draw_hull_samples( _fig->poly() );
 	// glPointSize( 5.0 );
 	// glColor3d( 0.8, 0.4, 0.0 );
-	_draw_hull_samples( _fig->bound() );
+	_drawHullSamples( _fig->bound() );
 #ifdef SKIP
 	glBegin( GL_POINTS );
 	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
@@ -792,7 +792,7 @@ void GLDrawing::Display( void )
 	    glColor3d( 1.0, 0.5, 0.0 );
 	    glLineWidth( 7.0 );
 	    Polygon2 curPoly = _worksp->coverBand()[ _worksp->pickID() ][ i ];
-	    _draw_polygon( curPoly );
+	    _drawPolygon( curPoly );
 	}
     }
 
@@ -806,10 +806,10 @@ void GLDrawing::Display( void )
 	glLineWidth( 2.0 );
 	// glColor3d( 0.0, 1.0, 0.5 );
 #endif	// DEBUGGING_PHASE
-	_draw_directed( _fig->wrapper() );
+	_drawDirected( _fig->wrapper() );
 #ifdef SHOW_SAMPLE_IDS
 	glColor3d( 1.0, 0.5, 0.0 );
-	_draw_vertex_ids( _fig->wrapper() );
+	_drawVertexIDs( _fig->wrapper() );
 #endif	// SHOW_SAMPLE_IDS
 	glDepthFunc( GL_LESS );
 
@@ -820,20 +820,20 @@ void GLDrawing::Display( void )
     if ( _isConjoined ) {
 	glColor4d( 0.0, 0.0, 0.0, 1.0 );
 	// draw_vertex_ids( netN );
-	_draw_vertex_ids( _fig->netNbr() );
+	_drawVertexIDs( _fig->netNbr() );
 	
 	// glColor4d( 1.0, 0.5, 0.0, 0.4 );
 	//glColor4d( 0.3, 0.3, 0.3, 0.4 );
 	glColor4d( 0.8, 0.6, 0.0, 0.6 );
 	// glLineWidth( 1.0 );
 	glLineWidth( 2.0 );
-	_draw_network( _fig->netNbr() );
+	_drawNetwork( _fig->netNbr() );
 	
 	glPushMatrix();
 	glTranslated( -offset, -offset, 0.0 );
 	glColor4d( 1.0, 0.5, 0.0, 0.7 );
 	glLineWidth( 5.0 );
-	_draw_network( _fig->netPrx() );
+	_drawNetwork( _fig->netPrx() );
 	glPopMatrix();
     
 #ifdef USING_SIMILARITY_CONJOINING
@@ -841,22 +841,22 @@ void GLDrawing::Display( void )
 	glTranslated( offset, offset, 0.0 );
 	glColor4d( 0.0, 0.0, 1.0, 0.7 );
 	glLineWidth( 5.0 );
-	_draw_network( _fig->netSim() );
+	_drawNetwork( _fig->netSim() );
 	glPopMatrix();
 #endif	// USING_SIMILARITY_CONJOINING
 	
 	// drawing concave polygons
 	glLineWidth( 3.0 );
 	glColor4d( 0.0, 0.5, 0.0, 0.8 );
-	_draw_hulls( _fig->hullPrx() );
+	_drawHulls( _fig->hullPrx() );
 #ifdef USING_SIMILARITY_CONJOINING
 	glColor4d( 0.0, 0.0, 0.5, 0.8 );
-	_draw_hulls( _fig->hullSim() );
+	_drawHulls( _fig->hullSim() );
 #endif	// USING_SIMILARITY_CONJOINING
 	glColor4d( 0.5, 0.0, 0.0, 0.8 );
-	_draw_hulls( _fig->hullDes() );
+	_drawHulls( _fig->hullDes() );
 
-	// _draw_hull_samples( _fig->poly() );
+	// _drawHullSamples( _fig->poly() );
     }
 
     // for disabling antialiasing
@@ -1106,7 +1106,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
       case 'L':
 	  cerr << "Input the file name for loading data : ";
 	  getline( cin, line );
-	  _load_drawing( line.c_str() );
+	  _loadDrawing( line.c_str() );
 	  // isLoaded = false;
 	  break;      
       // save the map drawings into files
@@ -1114,7 +1114,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
       case 'S':
 	  cerr << "Input the file name for saving data : ";
 	  getline( cin, line );
-	  _save_drawing( line.c_str() );
+	  _saveDrawing( line.c_str() );
 	  break;
       case 'j': // == 106
       case 'J':

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:44:38 shigeo"
+//				Time-stamp: "2023-11-13 22:13:37 shigeo"
 //
 //==============================================================================
 
@@ -70,18 +70,18 @@ class GLDrawing : public GLBase {
 //------------------------------------------------------------------------------
 //	Fundamental functions
 //------------------------------------------------------------------------------
-    void _draw_polygon_set	( void );
-    void _draw_outline_set	( void );
-    void _draw_vertex_ids	( Network & g );
-    void _draw_vertex_ids	( Directed & g );
-    void _draw_network		( Network & g );
-    void _draw_directed		( Directed & g );
+    void _drawPolygonSet	( void );
+    void _drawOutlineSet	( void );
+    void _drawVertexIDs		( Network & g );
+    void _drawVertexIDs		( Directed & g );
+    void _drawNetwork		( Network & g );
+    void _drawDirected		( Directed & g );
     // void _draw_polygon_ids	( const Drawing & fig );
-    void _draw_hulls		( vector< Polygon2 > & hull );
-    void _draw_polygon_samples	( const Polygon2 & poly );
-    void _draw_hull_samples	( vector< Polygon2 > & hull );
+    void _drawHulls		( vector< Polygon2 > & hull );
+    void _drawPolygonSamples	( const Polygon2 & poly );
+    void _drawHullSamples	( vector< Polygon2 > & hull );
 
-    void _draw_rubberband	( void );
+    void _drawRubberband	( void );
     
 //------------------------------------------------------------------------------
 //	Functions for Polygon Selection

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 03:55:56 shigeo"
+//				Time-stamp: "2023-11-13 22:09:24 shigeo"
 //
 //==============================================================================
 
@@ -38,12 +38,6 @@
 class FLControl : public Fl_Window {
 
   private:
-
-    void _IOHandler( Fl_Menu_Bar * bar );
-    static void _IOCallback( Fl_Widget *w, void * userdata );
-
-    void _menuHandler( Fl_Menu_Bar * bar );
-    static void _menuCallback( Fl_Widget *w, void * userdata );
 
     //------------------------------------------------------------------------------
     void _fileHandler( Fl_Button * b );

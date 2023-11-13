@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:45:56 shigeo"
+//				Time-stamp: "2023-11-13 22:12:13 shigeo"
 //
 //==============================================================================
 
@@ -93,15 +93,15 @@ class GLBase : public Fl_Gl_Window {
 //	Fundamental functions
 //------------------------------------------------------------------------------
     void _string2D		( double x, double y, const char * str, int size = 12 );
-    void _draw_polygon		( Polygon2 & poly );
+    void _drawPolygon		( Polygon2 & poly );
 
 
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
-    void _retrieve_headname	( const char * args );
-    void _load_drawing		( const char * filename );
-    void _save_drawing		( const char * filename );
+    void _retrieveHeadname	( const char * args );
+    void _loadDrawing		( const char * filename );
+    void _saveDrawing		( const char * filename );
     void _capture		( const char * filename );
 
   public:
@@ -167,13 +167,13 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Functions for File I/O
 //------------------------------------------------------------------------------
-    void load_drawing		( const char * filename ) {
-	_load_drawing( filename );
+    void loadDrawing		( const char * filename ) {
+	_loadDrawing( filename );
 	if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
 	redrawAll();
     }
-    void save_drawing		( const char * filename ) {
-	_save_drawing( filename );
+    void saveDrawing		( const char * filename ) {
+	_saveDrawing( filename );
     }
     void capture		( const char * filename ) {
 	_capture( filename );

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-20 04:25:40 shigeo"
+//				Time-stamp: "2023-11-13 22:15:15 shigeo"
 //
 //==============================================================================
 
@@ -205,7 +205,7 @@ void GLLayout::_place_option( vector< Polygon2 > & polys )
 {
     // cerr << HERE << " polys.size() = " << polys.size() << endl;
     for ( unsigned int i = 0; i < polys.size(); ++i ) {
-	_draw_polygon( polys[ i ] );
+	_drawPolygon( polys[ i ] );
     }
 }
 

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:48:35 shigeo"
+//				Time-stamp: "2023-11-13 22:15:28 shigeo"
 //
 //==============================================================================
 
@@ -35,143 +35,6 @@ using namespace std;
 
 //------------------------------------------------------------------------------
 //	File Load & Save
-
-// handler function for loading data from files
-void FLControl::_IOHandler( Fl_Menu_Bar * bar )
-{
-    const Fl_Menu_Item *item = bar->mvalue(); // Get the menu item that was picked
-
-    // Get full pathname of picked item
-    char ipath[ 256 ];
-    bar->item_pathname( ipath, sizeof( ipath ) );
-
-    // Create the file chooser, and show it
-    Fl_Native_File_Chooser chooser( Fl_Native_File_Chooser::BROWSE_FILE );
-    chooser.title( "Select File" );
-    chooser.type( Fl_Native_File_Chooser::BROWSE_FILE );
-    chooser.directory( "./map/" );
-    if ( ( strcmp( ipath, "&File/&Load" ) == 0 ) ||
-	 ( strcmp( ipath, "&File/&Save" ) == 0 ) )
-	chooser.filter( "*.dat" );
-    else
-	chooser.filter( "*" );
-    
-    switch ( chooser.show() ) {
-      case -1: // ERROR
-	  cerr << HERE << "ERROR: " << chooser.errmsg() << endl;
-	  break;
-      case 1: // CANCEL
-	  cerr << HERE << "CANCEL" << endl;
-	  break;
-      default: // FILE CHOSEN
-	  cerr << HERE << "PICKED: " << chooser.filename() << endl;
-	  cerr << HERE << " _gl_drawing = " << _glDrawing << endl;
-	  if ( strcmp( ipath, "&File/&Load" ) == 0 ) {
-	      _glDrawing->load_drawing( chooser.filename() );
-	      _slider->resetValues();
-	  }
-	  else if ( strcmp( ipath, "&File/&Save" ) == 0 ) {
-	      _glDrawing->save_drawing( chooser.filename() );
-	  }
-	  else {
-	      cerr << HERE << " No menu items matched" << endl;
-	  }
-#ifdef SKIP
-	  // Multiple files? Show all of them
-	  if ( chooser.count() > 0 ) {
-	      for ( int t = 0; t < chooser.count(); t++ ) {
-		  fprintf(stderr, " VALUE[%d]: '%s'\n", t, chooser.filename( t ) );
-	      }
-	  }
-#endif	// SKIP
-	  break;
-    }
-}
-    
-// callback function for loading data from files
-void FLControl::_IOCallback( Fl_Widget *w, void * userdata )
-{
-    Fl_Menu_Bar *bar = (Fl_Menu_Bar*)w;	      // Get the menubar widget
-    cerr << HERE << " bar = " << bar << endl;
-    FLControl *appwin = (FLControl*)userdata;
-    cerr << HERE << " appwin = " << appwin << endl;
-    
-    appwin->_IOHandler( bar );
-}
-
-//------------------------------------------------------------------------------
-//	Menu selection
-
-// handler function for handling menu selections
-void FLControl::_menuHandler( Fl_Menu_Bar * bar )
-{
-    const Fl_Menu_Item *item = bar->mvalue(); // Get the menu item that was picked
-
-    // Get full pathname of picked item
-    char ipath[ 256 ];
-    bar->item_pathname( ipath, sizeof( ipath ) );
-    
-    cerr << "callback: You picked " << item->label(); // Print item picked
-    cerr << ", item_pathname() is " << ipath;	      // ..and full pathname
-
-    // Toggle or radio item?
-    if ( item->flags & (FL_MENU_RADIO|FL_MENU_TOGGLE) )	{
-	cerr << ", value is " << item->value()?"on":"off";
-    }
-    cerr << endl;
-
-    if ( strcmp( ipath, "&Edit/Clear" ) == 0 ) {
-	if ( _glDrawing->fig() != NULL ) _glDrawing->fig()->clear();
-	if ( _adjust != NULL ) _adjust->clear();
-	_glDrawing->redraw();
-	_glLayout->redraw();
-    }
-
-    if ( strcmp( ipath, "&Edit/Unselect" ) == 0 ) {
-	if ( _glDrawing != NULL ) {
-	    _glDrawing->release();
-	    _glDrawing->redraw();
-	}
-    }
-
-    if ( strcmp( ipath, "&Switch/Conjoined" ) == 0 ) {
-	if ( _glDrawing != NULL ) {
-	    if ( _glDrawing->isConjoined() ) _glDrawing->clearConjoined();
-	    else _glDrawing->setConjoined();
-	    _glDrawing->redraw();
-	}
-    }
-
-    if ( strcmp( ipath, "&Switch/Wrapped" ) == 0 ) {
-	if ( _glDrawing != NULL ) {
-	    if ( _glDrawing->isWrapped() ) _glDrawing->clearWrapped();
-	    else _glDrawing->setWrapped();
-	    _glDrawing->redraw();
-	}
-    }
-
-    if ( strcmp( ipath, "&Capture/&Drawing" ) == 0 ) {
-	if ( _glDrawing != NULL )
-	    _glDrawing->capture( "drawing.png" );
-    }
-
-    if ( strcmp( ipath, "&Capture/&Layout" ) == 0 ) {
-	if ( _glLayout != NULL )
-	    _glLayout->capture( "layout.png" );
-    }
-
-    if ( strcmp( item->label(), "&Quit" ) == 0 ) { exit(0); }
-}
-
-// callback function for handling menu selections
-void FLControl::_menuCallback( Fl_Widget *w, void * userdata )
-{
-    Fl_Menu_Bar *bar = (Fl_Menu_Bar*)w;	      // Get the menubar widget
-    FLControl *appwin = (FLControl*)userdata;
-    
-    appwin->_menuHandler( bar );
-}
-
 
 //------------------------------------------------------------------------------
 //	For buttons
@@ -209,7 +72,7 @@ void FLControl::_fileHandler( Fl_Button * b )
 		  cerr << HERE << " Null pointer to the city block" << endl;
 	      }
 	      else {
-		  _glDrawing->load_drawing( chooser.filename() );
+		  _glDrawing->loadDrawing( chooser.filename() );
 		  _slider->resetValues();
 	      }
 	      redrawAll();
@@ -487,29 +350,6 @@ FLControl::FLControl( Adjuster * __adjust,
     _glDrawing		= __glDrawing;
     _glLayout		= __glLayout;
     
-#ifdef SKIP
-    //------------------------------------------------------------------------------
-    //	Preparing the menu bar
-    //------------------------------------------------------------------------------
-    _menubar = new Fl_Menu_Bar( 0, 0, _w, 25 );
-
-    _menubar->add( "&File/&Load",	0,	_IOCallback,	( void* )this );
-    _menubar->add( "&File/&Save",	0,	_IOCallback,	( void* )this );
-    _menubar->add( "&File/&Clear",	0,	_menuCallback,	( void* )this );
-    
-    _menubar->add( "&Edit/Unselect",	0,	_menuCallback,	( void* )this );
-    _menubar->add( "&Edit/con&Join",	0,	_menuCallback,	( void* )this );
-    _menubar->add( "&Edit/&Optimize",	0,	_menuCallback,	( void* )this );
-    
-    _menubar->add( "&Switch/Conjoined",	0,	_menuCallback,	( void* )this );
-    _menubar->add( "&Switch/Wrapped",	0,	_menuCallback,	( void* )this );
-
-    _menubar->add( "&Capture/&Drawing",	0,	_menuCallback,	( void* )this );
-    _menubar->add( "&Capture/&Layout",	0,	_menuCallback,	( void* )this );
-
-    _menubar->add( "&Quit",		0,	_menuCallback,	( void* )this );
-#endif	// SKIP
-
 //------------------------------------------------------------------------------
 //	
 //	Preparing the control panel
