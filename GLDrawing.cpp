@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-11 21:07:32 shigeo"
+//				Time-stamp: "2023-11-13 21:23:38 shigeo"
 //
 //==============================================================================
 
@@ -82,9 +82,9 @@ void GLDrawing::_draw_outline_set( void )
 	    else {
 		glLineWidth( 1.0 );
 		if ( _isFilled )
-		    glColor3d( 0.6, 0.6, 0.6 );
+		    glColor3d( 0.3, 0.3, 0.3 );
 		else
-		    glColor3d( 0.4, 0.4, 0.4 );
+		    glColor3d( 0.7, 0.7, 0.7 );
 	    }
 	    _draw_polygon( _fig->outline()[ i ][ k ] );
 	}
@@ -203,11 +203,13 @@ void GLDrawing::_draw_polygon_samples( const Polygon2 & poly )
 	glVertex2d( poly[ k ].x(), poly[ k ].y() );
     }
     glEnd();
+#ifdef ENABLE_DRAWING_SAMPLE_IDS
     for ( unsigned int k = 0; k < poly.size(); ++k ) {
 	ostringstream strID;
 	strID << setw( 2 ) << setfill( '0' ) << k << ends;
 	_string2D( poly[ k ].x(), poly[ k ].y(), strID.str().c_str(), 8 );
     }
+#endif	// ENABLD_DRAWING_SAMPLE_IDS
 }
 
 
@@ -215,7 +217,7 @@ void GLDrawing::_draw_polygon_samples( const Polygon2 & poly )
 void GLDrawing::_draw_hull_samples( vector< Polygon2 > & hull )
 {
     glEnable( GL_POINT_SMOOTH ); 
-    glPointSize( 3.0 );
+    glPointSize( 5.0 );
     // cerr << HERE << " Number of hulls = " << hull.size() << endl;
     for ( unsigned int k = 0; k < hull.size(); ++k ) {
 	_draw_polygon_samples( hull[ k ] );
@@ -632,6 +634,7 @@ GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l )
     _isConjoined	= false;
     _isWrapped		= false;
     _isPlotted		= false;
+    // _flagAggregated	= false;
 
     _nPolys		= 0;
     
@@ -766,9 +769,14 @@ void GLDrawing::Display( void )
 
     if ( _isPlotted ) {
 	// Plotting polygons
-	glEnable( GL_POINT_SMOOTH );
-	glPointSize( 9.0 );
-	glColor3d( 0.4, 0.8, 0.0 );
+	// glEnable( GL_POINT_SMOOTH );
+	// glPointSize( 1.0 );
+	glColor3d( 0.2, 0.8, 0.0 );
+	// _draw_hull_samples( _fig->poly() );
+	// glPointSize( 5.0 );
+	// glColor3d( 0.8, 0.4, 0.0 );
+	_draw_hull_samples( _fig->bound() );
+#ifdef SKIP
 	glBegin( GL_POINTS );
 	for ( unsigned int i = 0; i < _fig->bound().size(); ++i ) {
 	    for ( unsigned int j = 0; j < _fig->bound()[ i ].size(); j++ ) {
@@ -776,6 +784,7 @@ void GLDrawing::Display( void )
 	    }
 	}
 	glEnd();
+#endif	// SKIP
     }
 
     if ( _worksp->pickID() != NO_NAME ) {
@@ -848,7 +857,7 @@ void GLDrawing::Display( void )
 	glColor4d( 0.5, 0.0, 0.0, 0.8 );
 	_draw_hulls( _fig->hullDes() );
 
-	_draw_hull_samples( _fig->poly() );
+	// _draw_hull_samples( _fig->poly() );
     }
 
     // for disabling antialiasing

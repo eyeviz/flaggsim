@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-08-19 22:25:01 shigeo"
+//				Time-stamp: "2023-11-13 03:55:56 shigeo"
 //
 //==============================================================================
 
@@ -16,6 +16,9 @@
 //------------------------------------------------------------------------------
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Radio_Round_Button.H>
 #include <FL/Fl_Value_Slider.H>
 
 #include "Adjuster.h"
@@ -35,19 +38,40 @@
 class FLControl : public Fl_Window {
 
   private:
-    void _fileHandler( Fl_Menu_Bar * bar );
-    static void _fileCallback( Fl_Widget *w, void * userdata );
+
+    void _IOHandler( Fl_Menu_Bar * bar );
+    static void _IOCallback( Fl_Widget *w, void * userdata );
 
     void _menuHandler( Fl_Menu_Bar * bar );
     static void _menuCallback( Fl_Widget *w, void * userdata );
 
+    //------------------------------------------------------------------------------
+    void _fileHandler( Fl_Button * b );
+    static void _fileCallback( Fl_Widget *w, void * userdata );
+
+    //------------------------------------------------------------------------------
+    void _editHandler( Fl_Button * b );
+    static void _editCallback( Fl_Widget *w, void * userdata );
+
+    //------------------------------------------------------------------------------
+    void _switchHandler( Fl_Check_Button * b );
+    static void _switchCallback( Fl_Widget *w, void * userdata );
+
+    //------------------------------------------------------------------------------
+    void _captureHandler( Fl_Button * b );
+    static void _captureCallback( Fl_Widget *w, void * userdata );
+
+    //------------------------------------------------------------------------------
+    void _quitHandler( Fl_Button * bar );
+    static void _quitCallback( Fl_Widget *w, void * userdata );
+
   protected:
     Adjuster		* _adjust;
-    GLDrawing		* _gl_drawing;
-    GLLayout		* _gl_layout;
+    GLDrawing		* _glDrawing;
+    GLLayout		* _glLayout;
 
     Fl_Menu_Bar		* _menubar;
-    FLSliderInput	* _panel;	
+    FLSliderInput	* _slider;	
     
   public:
 
@@ -65,6 +89,12 @@ class FLControl : public Fl_Window {
 //	Destructor
 //------------------------------------------------------------------------------
     ~FLControl();			// destructor
+
+//------------------------------------------------------------------------------
+//	Redrawing function
+//------------------------------------------------------------------------------
+    void redrawAll	( void );
+
 
 //------------------------------------------------------------------------------
 //	Class name
