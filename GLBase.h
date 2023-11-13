@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-04 02:02:41 shigeo"
+//				Time-stamp: "2023-11-13 21:45:56 shigeo"
 //
 //==============================================================================
 
@@ -80,6 +80,8 @@ class GLBase : public Fl_Gl_Window {
 
     bool			_isFilled;
 
+    bool			_flagAggregated;
+
     static string		_headname;
 
 //------------------------------------------------------------------------------
@@ -138,6 +140,10 @@ class GLBase : public Fl_Gl_Window {
     void setFilled( void )			{ _isFilled = true; }
     void clearFilled( void )			{ _isFilled = false; }
 
+    const bool & flagAggregated( void ) const	{ return _flagAggregated; }
+    void enableAggregated( void )	 	{ _flagAggregated = true; }
+    void disableAggregated( void )		{ _flagAggregated = false; }
+    
     static const string & headname( void ) {
 	return GLBase::_headname;
     }
@@ -163,7 +169,7 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
     void load_drawing		( const char * filename ) {
 	_load_drawing( filename );
-	Keyboard( 'a', 0, 0 );
+	if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
 	redrawAll();
     }
     void save_drawing		( const char * filename ) {

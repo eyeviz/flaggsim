@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:23:38 shigeo"
+//				Time-stamp: "2023-11-13 21:45:09 shigeo"
 //
 //==============================================================================
 
@@ -389,7 +389,7 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
     }
 
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
-    Keyboard( 'a', 0, 0 );
+    if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
     redrawAll();
 }
 
@@ -398,7 +398,7 @@ void GLDrawing::_release( void )
 {
     cerr << HERE << " Clearing the all selected building polygons" << endl;
     _fig->labelDes().clear();
-    Keyboard( 'a', 0, 0 );
+    if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
     redrawAll();
 }
     
@@ -634,7 +634,6 @@ GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l )
     _isConjoined	= false;
     _isWrapped		= false;
     _isPlotted		= false;
-    // _flagAggregated	= false;
 
     _nPolys		= 0;
     

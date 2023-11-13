@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-09 23:24:28 shigeo"
+//				Time-stamp: "2023-11-13 21:45:40 shigeo"
 //
 //==============================================================================
 
@@ -376,6 +376,8 @@ GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
     _flwin.clear();
     _isFilled		= false;
     // _isFilled		= true;
+
+    _flagAggregated	= false;
 
     _fig		= NULL;
     _worksp		= NULL;

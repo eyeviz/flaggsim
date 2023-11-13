@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 21:16:35 shigeo"
+//				Time-stamp: "2023-11-13 21:48:35 shigeo"
 //
 //==============================================================================
 
@@ -254,6 +254,8 @@ void FLControl::_editHandler( Fl_Button * b )
 {
     if ( strcmp( b->label(), "Aggregate" ) == 0 ) {
 	cerr << HERE << " aggregate building polygons" << endl;
+	_glDrawing->enableAggregated();
+	_glDrawing->Keyboard( 'a', 0, 0 );
 	// _urban->restore();
 	// _urban->modeOpt() = ORIGINAL;
 	// _glUrban->clearPlot();
@@ -262,6 +264,7 @@ void FLControl::_editHandler( Fl_Button * b )
 
     if ( strcmp( b->label(), "Simplify" ) == 0 ) {
 	cerr << HERE << " simplify aggregated polygons " << endl;
+	_glDrawing->disableAggregated();
 	_glDrawing->Keyboard( 'z', 0, 0 );
 	// State currState;
 	// _glUrban->record();
@@ -275,6 +278,7 @@ void FLControl::_editHandler( Fl_Button * b )
 
     if ( strcmp( b->label(), "Fix" ) == 0 ) {
 	cerr << HERE << " fix the selection of aggregated polygons " << endl;
+	_glDrawing->disableAggregated();
 	_glDrawing->Keyboard( 'x', 0, 0 );
 	// _urban->allFix();
 	redrawAll();
