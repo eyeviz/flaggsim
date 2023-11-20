@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-20 19:47:26 shigeo"
+//				Time-stamp: "2023-11-20 20:22:20 shigeo"
 //
 //==============================================================================
 
@@ -1017,7 +1017,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	      befname = "vector/" + _headname + "-in.dat";
 	      cerr << HERE << " saved polygon before genralization ======> : "
 		   << befname << endl;
-	      save_drawing( befname.c_str() );
+	      saveDrawing( befname.c_str() );
 	      //------------------------------------------------------------------------------
 	      // Prepare the directory
 	      if ( ! stat( dirname.c_str(), &statbuf ) ) {
@@ -1070,6 +1070,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
       case 'K':
 	  if ( _mode == NORMAL_MODE ) {
 	      _fig->shrinkBounds();
+	      _fig->triangulate();
 	  }
 	  else {
 	      cerr << "We are not in NORMAL MODE now." << endl;
@@ -1089,8 +1090,8 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  dirname = "raster/" + _headname;
 	  //------------------------------------------------------------------------------
 	  // Start to save the output image data
-	  outname = dirname + "/out.png";
-	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  outname = dirname + "/out-s.png";
+	  cerr << HERE << " output image (png) ======> : " << outname << endl;
 	  _capture( outname.c_str() );
 #endif	// ACTIVATE_RECORDING_MODE
 	  break;
@@ -1223,7 +1224,7 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  aftname = "vector/" + _headname + "-out.dat";
 	  cerr << HERE << " saved polygon after genralization ======> : "
 	       << aftname << endl;
-	  save_drawing( aftname.c_str() );
+	  saveDrawing( aftname.c_str() );
 	  //------------------------------------------------------------------------------
 	  // Start to save the output image data
 	  outname = dirname + "/out.png";
