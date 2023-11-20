@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-09 23:44:32 shigeo"
+//				Time-stamp: "2023-11-14 00:16:43 shigeo"
 //
 //==============================================================================
 
@@ -65,7 +65,7 @@ void FLSliderInput::_intervalInputHandler( Fl_Float_Input * input )
     _adjust->interval() = _intervalSlider->value();
     Drawing::interval_threshold =
 	_intervalSlider->value() / _adjust->intervalScale();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -112,7 +112,7 @@ void FLSliderInput::_intervalSliderHandler( Fl_Slider * slider )
     _adjust->interval() = _intervalSlider->value();
     Drawing::interval_threshold =
 	_intervalSlider->value() / _adjust->intervalScale();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -164,7 +164,7 @@ void FLSliderInput::_dataCostInputHandler( Fl_Float_Input * input )
     
     _adjust->upperDataCost() = _dataCostSlider->value();
     Drawing::data_cost_upper = _dataCostSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -209,7 +209,7 @@ void FLSliderInput::_dataCostSliderHandler( Fl_Slider * slider )
 
     _adjust->upperDataCost() = _dataCostSlider->value();
     Drawing::data_cost_upper = _dataCostSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -260,7 +260,7 @@ void FLSliderInput::_smoothCostInputHandler( Fl_Float_Input * input )
 
     _adjust->upperSmoothCost() = _smoothCostSlider->value();
     Drawing::smooth_cost_upper = _smoothCostSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -305,7 +305,7 @@ void FLSliderInput::_smoothCostSliderHandler( Fl_Slider * slider )
 
     _adjust->upperSmoothCost() = _smoothCostSlider->value();
     Drawing::smooth_cost_upper = _smoothCostSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -356,7 +356,7 @@ void FLSliderInput::_labelCostInputHandler( Fl_Float_Input * input )
 
     _adjust->upperLabelCost() = _labelCostSlider->value();
     Drawing::label_cost_upper = _labelCostSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -401,7 +401,7 @@ void FLSliderInput::_labelCostSliderHandler( Fl_Slider * slider )
 
     _adjust->upperLabelCost() = _labelCostSlider->value();
     Drawing::label_cost_upper = _labelCostSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -451,7 +451,7 @@ void FLSliderInput::_cutThresholdInputHandler( Fl_Float_Input * input )
     }
 
     _adjust->cutThreshold() = _cutThresholdSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
     
@@ -494,7 +494,7 @@ void FLSliderInput::_cutThresholdSliderHandler( Fl_Slider * slider )
     }
 
     _adjust->cutThreshold() = _cutThresholdSlider->value();
-    _gl_drawing->Keyboard( 'a', 0, 0 );
+    if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
     _gl_drawing->redraw();
     _gl_layout->redraw();
 
@@ -510,6 +510,36 @@ void FLSliderInput::_cutThresholdSliderCallback( Fl_Widget *w, void * userdata )
     Fl_Slider *slider = (Fl_Slider*)w; // Get the menubar widget
     FLSliderInput *appwin = (FLSliderInput*)userdata;
     appwin->_cutThresholdSliderHandler( slider );
+}
+
+
+
+//------------------------------------------------------------------------------
+//	Parameter initialization
+
+// handler function for handling button selections
+void FLSliderInput::_initHandler( Fl_Button * b )
+{
+    if ( strcmp( b->label(), "Init" ) == 0 ) {
+	cerr << HERE << " reset parameter values" << endl;
+	Drawing::initParams();
+	_adjust->clear();
+	resetValues();
+	
+	// std::this_thread::sleep_for( std::chrono::milliseconds( 50000 ) );
+	if ( _gl_drawing->flagAggregated() ) _gl_drawing->Keyboard( 'a', 0, 0 );
+	_gl_drawing->redraw();
+	_gl_layout->redraw();
+    }
+}
+
+// callback function for handling edit buttons
+void FLSliderInput::_initCallback( Fl_Widget *w, void * userdata )
+{
+    Fl_Button *b = (Fl_Button*)w;	      // Get the button widget
+    FLSliderInput *appwin = (FLSliderInput*)userdata;
+    
+    appwin->_initHandler( b );
 }
 
 
@@ -584,7 +614,16 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
 {
     int in_w = 40;
     int	bottom	= y;
-    int thickness = h / 5;
+    int thickness = h / 6;
+
+    this->box( FL_ENGRAVED_BOX );
+    // groupQuit->box( FL_ROUNDED_BOX );
+    // groupQuit->box( FL_SHADOW_BOX );
+    // groupQuit->align( FL_ALIGN_INSIDE | FL_ALIGN_TOP );
+    this->align( FL_ALIGN_TOP );
+    this->labelsize( 18 );
+    box( FL_BORDER_BOX );
+    color( 52 );
 
     cerr << " x = " << x << " y = " << y << " w = " << w << " h = " << h << endl;
     cerr << " label = " << label << endl;
@@ -689,6 +728,21 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
 
     bottom	+= thickness;
     
+//------------------------------------------------------------------------------
+//	For parameter initialization button
+    int		placeX, placeY, placeW, placeH;
+    placeX		= w;
+    placeY		= bottom + 5;
+    placeW		= w / 4;
+    placeH		= 25;
+
+    _initButton		= new Fl_Button( placeX, placeY, placeW, placeH, "Init" );
+    _initButton->callback( _initCallback, this );
+    
+    bottom	+= thickness;
+
+//------------------------------------------------------------------------------
+
     end();             // close the group
 }
 
@@ -727,6 +781,7 @@ void FLSliderInput::resetValues( void )
 
     ostr.str("");
     ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _intervalSlider->value() << ends;
+    cerr << HERE << " Interval = " << ostr.str() << endl;
     _intervalInput->value( ostr.str().c_str() );
 
     _adjust->upperDataCost()	= Drawing::data_cost_upper;
@@ -734,6 +789,7 @@ void FLSliderInput::resetValues( void )
 
     ostr.str("");
     ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _dataCostSlider->value() << ends;
+    cerr << HERE << " Data cost limit = " << ostr.str() << endl;
     _dataCostInput->value( ostr.str().c_str() );
     
     _adjust->upperSmoothCost()	= Drawing::smooth_cost_upper;
@@ -741,6 +797,7 @@ void FLSliderInput::resetValues( void )
 
     ostr.str("");
     ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _smoothCostSlider->value() << ends;
+    cerr << HERE << " Smooth cost limit = " << ostr.str() << endl;
     _smoothCostInput->value( ostr.str().c_str() );
 
     _adjust->upperLabelCost()	= Drawing::label_cost_upper;
@@ -748,12 +805,14 @@ void FLSliderInput::resetValues( void )
 
     ostr.str("");
     ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _labelCostSlider->value() << ends;
+    cerr << HERE << " Label cost limit = " << ostr.str() << endl;
     _labelCostInput->value( ostr.str().c_str() );
 
     _cutThresholdSlider->value	( _adjust->upperLabelCost() );
 
     ostr.str("");
     ostr << fixed << right << setw( 5 ) << setprecision( 2 ) << _cutThresholdSlider->value() << ends;
+    cerr << HERE << " Threshold = " << ostr.str() << endl;
     _cutThresholdInput->value( ostr.str().c_str() );
 }
 

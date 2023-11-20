@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:15:28 shigeo"
+//				Time-stamp: "2023-11-20 20:10:08 shigeo"
 //
 //==============================================================================
 
@@ -143,6 +143,14 @@ void FLControl::_editHandler( Fl_Button * b )
 	cerr << HERE << " fix the selection of aggregated polygons " << endl;
 	_glDrawing->disableAggregated();
 	_glDrawing->Keyboard( 'x', 0, 0 );
+	// _urban->allFix();
+	redrawAll();
+    }
+
+    if ( strcmp( b->label(), "Shrink" ) == 0 ) {
+	cerr << HERE << " shrink polygons " << endl;
+	// NORMAL_MODE ONLY
+	_glDrawing->Keyboard( 'k', 0, 0 );
 	// _urban->allFix();
 	redrawAll();
     }
@@ -343,8 +351,8 @@ FLControl::FLControl( Adjuster * __adjust,
     : Fl_Window( _x, _y, _w, _h, _l )  	
 {
     int bottom = 0;
-    // int vsize = 18;
-    int vsize = 15;
+    int vsize = 18;
+    // int vsize = 15;
     
     _adjust		= __adjust;
     _glDrawing		= __glDrawing;
@@ -397,7 +405,7 @@ FLControl::FLControl( Adjuster * __adjust,
 
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
-    placeX = groupX + 4*groupW/25;
+    placeX = groupX + 1*groupW/25;
     placeY = groupY + 10;
     placeW = 2*groupW/10;
     placeH = 25;
@@ -410,6 +418,10 @@ FLControl::FLControl( Adjuster * __adjust,
 
     placeX += 6*groupW/25;
     b = new Fl_Button( placeX, placeY, placeW, placeH, "Fix" );
+    b->callback( _editCallback, this );
+
+    placeX += 6*groupW/25;
+    b = new Fl_Button( placeX, placeY, placeW, placeH, "Shrink" );
     b->callback( _editCallback, this );
 
     groupEdit->end();
@@ -448,16 +460,17 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //	Preparing sliders for parameter tuning
     //------------------------------------------------------------------------------
-    groupX = 100; groupW = _w - groupX - 20; groupY = 6*_h/vsize + 25, groupH = 180;
+    // groupX = 100; groupW = _w - groupX - 20; groupY = 6*_h/vsize + 25, groupH = 180;
+    groupX = 100; groupW = _w - groupX - 20; groupY = 6*_h/vsize + 25, groupH = 240;
     _slider = new FLSliderInput( __adjust, __glDrawing, __glLayout,
 				 groupX, groupY, groupW, groupH,
 				 // border, bottom, this->w() - border - 40, 200,
-				 "Parameter panel" );
+				 "[Parameter panel]" );
     
     //------------------------------------------------------------------------------
     //  Preparing buttons for the CAPTURE category
     //------------------------------------------------------------------------------
-    groupX = 10; groupW = _w - 20; groupY = 11*_h/vsize + 25, groupH = 45;
+    groupX = 10; groupW = _w - 20; groupY = (vsize-4)*_h/vsize + 25, groupH = 45;
     Fl_Group	* groupCapture = new Fl_Group( groupX, groupY, groupW, groupH,
 					       "[Capture]" );
     groupCapture->box( FL_ENGRAVED_BOX );

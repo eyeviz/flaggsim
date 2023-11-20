@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-11 20:26:29 shigeo"
+//				Time-stamp: "2023-11-20 20:02:44 shigeo"
 //
 //==============================================================================
 
@@ -623,10 +623,10 @@ void Drawing::_wrapBSkeleton( void )
 	    bool ok;
 	    tie( ed, ok ) = edge( vdPolyE, vdPolyL, net );
 	    if ( linkLength < edgeWeight[ ed ] ) {
-		cerr << " changing edge weight " << idPolyE << " ==> " << idPolyL;
-		cerr << " edgeWeight : " << edgeWeight[ ed ] << " => ";
+		// cerr << " changing edge weight " << idPolyE << " ==> " << idPolyL;
+		// cerr << " edgeWeight : " << edgeWeight[ ed ] << " => ";
 		edgeWeight[ ed ] = linkLength;
-		cerr << edgeWeight[ ed ] << endl;
+		// cerr << edgeWeight[ ed ] << endl;
 	    }
 	    // cerr << HERE << " Illegal case: The identical edge already exists" << endl;
 	    // cerr << HERE << " Edge : " << idS << " == " << idL << endl;
@@ -851,8 +851,7 @@ void Drawing::_calcNewProximity( const double & ratio )
     // exceptions
     for ( map< double, NetEdgeDescriptor >::iterator iter = edgeMap.begin();
 	  iter != edgeMap.end(); iter++ ) {
-	cerr << HERE << " Edge : " << iter->first << " , "
-	     << iter->second << endl;
+	// cerr << HERE << " Edge : " << iter->first << " , " << iter->second << endl;
 	NetEdgeDescriptor	edN	= iter->second;
         // double nDst = edgeNDstN[ edN ];
 	NetVertexDescriptor	vdSN	= source( edN, nbr );
@@ -2765,6 +2764,31 @@ void Drawing::_squareOutlines( void )
 
 
 //
+//  Drawing::_shrinkBounds --	shrink the boundary contours
+//
+//  Inputs
+//	scale	: shrink scale
+//
+//  Outputs
+//	none
+//
+void Drawing::_shrinkBounds( double scale )
+{
+    for ( unsigned int i = 0; i < _bound.size(); ++i ) {
+	Vector2 sum( 0.0, 0.0 );
+	for ( unsigned int j = 0; j < _bound[ i ].size(); ++j ) {
+	    sum += _bound[ i ][ j ] - CGAL::ORIGIN;
+	}
+	Vector2 gcenter = sum / ( double )_bound[ i ].size();
+	for ( unsigned int j = 0; j < _bound[ i ].size(); ++j ) {
+	    Vector2 displace = _bound[ i ][ j ] - CGAL::ORIGIN - gcenter;
+	    _bound[ i ][ j ] = CGAL::ORIGIN + scale * displace + gcenter;
+	}
+    }
+}
+
+
+//
 //  Drawing::_clear --	clear the data
 //
 //  Inputs
@@ -2815,11 +2839,7 @@ void Drawing::_clear( void )
     _smoothCost.clear();
     _labelCost.clear();
 
-
-    Drawing::interval_threshold		= LIMIT_BUILDING_INTERVAL;
-    Drawing::data_cost_lower		= DATA_COST_LOWER;
-    Drawing::data_cost_upper		= DATA_COST_UPPER;
-    Drawing::data_cost_inside		= DATA_COST_INSIDE;
+    initParams();
 }
 
 

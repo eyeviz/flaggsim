@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-09 23:33:06 shigeo"
+//				Time-stamp: "2023-11-13 22:35:52 shigeo"
 //
 //==============================================================================
 
@@ -20,6 +20,7 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Float_Input.H>
 #include <FL/Fl_Slider.H>
+#include <FL/Fl_Button.H>
 
 #include "Adjuster.h"
 #include "GLDrawing.h"
@@ -63,7 +64,11 @@ class FLSliderInput : public Fl_Group {
     void _cutThresholdSliderHandler		( Fl_Slider * slider );
     static void _cutThresholdSliderCallback	( Fl_Widget *w, void * userdata );
 
-  protected:
+    //------------------------------------------------------------------------------
+    void _initHandler( Fl_Button * b );
+    static void _initCallback( Fl_Widget *w, void * userdata );
+
+protected:
     Adjuster			* _adjust;
     GLDrawing			* _gl_drawing;
     GLLayout			* _gl_layout;
@@ -83,6 +88,9 @@ class FLSliderInput : public Fl_Group {
     Fl_Float_Input		* _cutThresholdInput;
     Fl_Slider			* _cutThresholdSlider;
 
+    Fl_Button			* _initButton;
+
+    
 public:
 
 //------------------------------------------------------------------------------

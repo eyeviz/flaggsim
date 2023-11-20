@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-11 20:03:55 shigeo"
+//				Time-stamp: "2023-11-20 19:52:46 shigeo"
 //
 //==============================================================================
 
@@ -374,6 +374,7 @@ class Drawing {
 
 
     void		_squareOutlines	( void );
+    void		_shrinkBounds	( double scale );
 
     void		_clear		( void );
     
@@ -422,16 +423,19 @@ public:
     static double		label_cost_single;
 
     static void initParams( void ) {
-	data_cost_lower		= DATA_COST_LOWER;
-	data_cost_upper		= DATA_COST_UPPER;
-	data_cost_inside	= DATA_COST_INSIDE;
+	cerr << HERE << " Initializing the parameters in drawings" << endl;
+	Drawing::interval_threshold	= LIMIT_BUILDING_INTERVAL;
+	
+	Drawing::data_cost_lower	= DATA_COST_LOWER;
+	Drawing::data_cost_upper	= DATA_COST_UPPER;
+	Drawing::data_cost_inside	= DATA_COST_INSIDE;
 
-	smooth_cost_lower	= SMOOTH_COST_LOWER;
-	smooth_cost_upper	= SMOOTH_COST_UPPER;
+	Drawing::smooth_cost_lower	= SMOOTH_COST_LOWER;
+	Drawing::smooth_cost_upper	= SMOOTH_COST_UPPER;
 
-	label_cost_lower	= LABEL_COST_LOWER;
-	label_cost_upper	= LABEL_COST_UPPER;
-	label_cost_single	= LABEL_COST_SINGLE;
+	Drawing::label_cost_lower	= LABEL_COST_LOWER;
+	Drawing::label_cost_upper	= LABEL_COST_UPPER;
+	Drawing::label_cost_single	= LABEL_COST_SINGLE;
     }
 
     static void			(*redraw)( void );
@@ -599,6 +603,10 @@ public:
     void squareOutlines( void ) {
 	if ( _poly.size() == 0 ) return;
 	_squareOutlines();
+    }
+    void shrinkBounds( double scale = 0.95 ) {
+	if ( _poly.size() == 0 ) return;
+	_shrinkBounds( scale );
     }
 
     

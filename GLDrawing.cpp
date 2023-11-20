@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:15:05 shigeo"
+//				Time-stamp: "2023-11-20 19:47:26 shigeo"
 //
 //==============================================================================
 
@@ -1066,6 +1066,15 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  _fig->squareOutlines();
 	  break;
 	  // Fix the simplification choices
+      case 'k':
+      case 'K':
+	  if ( _mode == NORMAL_MODE ) {
+	      _fig->shrinkBounds();
+	  }
+	  else {
+	      cerr << "We are not in NORMAL MODE now." << endl;
+	  }
+	  break;
       case 'x':
       case 'X':
 	  _mode = NORMAL_MODE;

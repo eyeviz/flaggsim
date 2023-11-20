@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:12:13 shigeo"
+//				Time-stamp: "2023-11-14 00:24:17 shigeo"
 //
 //==============================================================================
 
@@ -169,6 +169,8 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
     void loadDrawing		( const char * filename ) {
 	_loadDrawing( filename );
+	_adjust->clear();
+	disableAggregated();
 	if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
 	redrawAll();
     }
