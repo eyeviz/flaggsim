@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-20 20:22:20 shigeo"
+//				Time-stamp: "2023-11-23 18:51:53 shigeo"
 //
 //==============================================================================
 
@@ -625,7 +625,7 @@ void GLDrawing::_isometric( vector< Expansion > & expand )
 //	none
 //
 GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l ) 
-    : GLBase( _x, _y, _w, _h, _l )  	
+    : GLMacro( _x, _y, _w, _h, _l )  	
 {
     _glLayout		= NULL;
 

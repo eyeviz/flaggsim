@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:15:15 shigeo"
+//				Time-stamp: "2023-11-23 18:39:09 shigeo"
 //
 //==============================================================================
 
@@ -409,7 +409,7 @@ bool GLLayout::_pick( int & hitID, int x, int y, int button )
 //	none
 //
 GLLayout::GLLayout( int _x, int _y, int _w, int _h, const char *_l ) 
-    : GLBase( _x, _y, _w, _h, _l )
+    : GLMacro( _x, _y, _w, _h, _l )
 {
     _num_options_in_line
 			= DEFAULT_NUM_OPTIONS_IN_LINE;

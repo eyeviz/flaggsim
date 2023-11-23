@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:13:37 shigeo"
+//				Time-stamp: "2023-11-23 18:46:00 shigeo"
 //
 //==============================================================================
 
@@ -25,7 +25,7 @@ using namespace std;
 #include <GL/glut.h>
 #endif
 
-#include "GLBase.h"
+#include "GLMacro.h"
 
 //------------------------------------------------------------------------------
 //	Macro switches
@@ -46,13 +46,13 @@ using namespace std;
 //	Defining Classes
 //------------------------------------------------------------------------------
 
-class GLDrawing : public GLBase {
+class GLDrawing : public GLMacro {
 
   private:
 
   protected:
     
-    GLBase *		_glLayout;
+    GLMacro *		_glLayout;
     
     int			_mode;	// 0: Normal
 				// 1: Aggregated
@@ -117,7 +117,7 @@ public:
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
-    void setGLLayout( GLBase * __glLayout )	{
+    void setGLLayout( GLMacro * __glLayout )	{
 	_glLayout = __glLayout;
     }
 

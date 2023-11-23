@@ -1,10 +1,10 @@
 //==============================================================================
-// GLBase.cpp
+// GLMacro.cpp
 //	: program file for GL Window basement
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:12:34 shigeo"
+//				Time-stamp: "2023-11-23 18:38:34 shigeo"
 //
 //==============================================================================
 
@@ -19,7 +19,7 @@ using namespace std;
 #include <opencv2/opencv.hpp>
 
 #include "CSVIO.h"
-#include "GLBase.h"
+#include "GLMacro.h"
 
 
 //------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Static Variables
 //------------------------------------------------------------------------------
-string GLBase::_headname;
+string GLMacro::_headname;
 
 //------------------------------------------------------------------------------
 //	Private Functions
 //------------------------------------------------------------------------------
 // function for handling redrawing events
-void GLBase::draw( void )
+void GLMacro::draw( void )
 {
     if ( !context_valid() ) {
 	// context_valid() : OpenGLコンテキストが生成された際にfalseとなる．draw関数呼び出し後trueになる．
@@ -53,7 +53,7 @@ void GLBase::draw( void )
 
 
 // function for handling resizing events
-void GLBase::resize(int x_, int y_, int w_, int h_)
+void GLMacro::resize(int x_, int y_, int w_, int h_)
 {
     Fl_Gl_Window::resize(x_, y_, w_, h_);
     //Resize(w_, h_);	// リサイズ処理はこちらにおいてもよい．
@@ -61,7 +61,7 @@ void GLBase::resize(int x_, int y_, int w_, int h_)
 
 
 // Event handler
-int GLBase::handle( int ev )
+int GLMacro::handle( int ev )
 {
     switch ( ev ) {
       case FL_PUSH:
@@ -101,7 +101,7 @@ int GLBase::handle( int ev )
 //	Protected Functions
 //------------------------------------------------------------------------------
 // Function for placing character strings
-void GLBase::_string2D( double x, double y, const char *str, int size )
+void GLMacro::_string2D( double x, double y, const char *str, int size )
 {
     double basex = x;
     double basey = y;
@@ -138,7 +138,7 @@ void GLBase::_string2D( double x, double y, const char *str, int size )
 
 
 // Draw the set of convex hulls
-void GLBase::_drawPolygon( Polygon2 & poly )
+void GLMacro::_drawPolygon( Polygon2 & poly )
 {
     // cerr << HERE << " Number of corners = " << poly.size() << endl;
 
@@ -154,7 +154,7 @@ void GLBase::_drawPolygon( Polygon2 & poly )
 //	Functions for File I/O
 //------------------------------------------------------------------------------
 // retrieve the head name of the input file name
-void GLBase::_retrieveHeadname( const char * args )
+void GLMacro::_retrieveHeadname( const char * args )
 {
     string inputname = args;
     vector< string > slashlist = CSVIO::split( inputname, '/' );
@@ -173,7 +173,7 @@ void GLBase::_retrieveHeadname( const char * args )
 
 
 // load a drawging from the given file
-void GLBase::_loadDrawing( const char * filename )
+void GLMacro::_loadDrawing( const char * filename )
 {
     cerr << HERE << " load_drawing => " << filename << endl;
     Drawing::initParams();
@@ -205,6 +205,7 @@ void GLBase::_loadDrawing( const char * filename )
     
     // load the coordinates of the points
     unsigned int countID = 0;
+    _fig->poly().clear();
     for ( unsigned int i = 0; i < _nPolys; ++i ) {
 	unsigned int nPoints;
 	getline( ifs, line );
@@ -214,7 +215,7 @@ void GLBase::_loadDrawing( const char * filename )
 #ifdef DEBUG
 	cerr << "[ " << setw( 3 ) << i << " ] : Number of points = " << nPoints << endl;
 #endif	// DEBUG
-	Polygon2 poly;
+	Polygon2 curpoly;
 	for ( unsigned int j = 0; j < nPoints; ++j ) {
 	    double px, py;
 	    getline( ifs, line );
@@ -228,53 +229,22 @@ void GLBase::_loadDrawing( const char * filename )
 	    py = py * 2.0 - 1.0;
 #endif	// TENTATIVE_COORDINATE_NORMALIZATION
 	    // cerr << HERE << " px = " << px << " py = " << py << endl;
-	    poly.push_back( Point2( px, py ) );
+	    curpoly.push_back( Point2( px, py ) );
 	}
 
-	if ( poly.orientation() != CGAL::COUNTERCLOCKWISE ) {
-	    cerr << HERE << "%%%%% Polygon No. " << _fig->poly().size() << " CW " << endl;
-
-	    poly.reverse_orientation();
+	if ( curpoly.orientation() != CGAL::COUNTERCLOCKWISE ) {
+	    cerr << HERE << "%%%%% Polygon No. " << i << " -> CW " << endl;
+	    curpoly.reverse_orientation();
 	}
 
-	assert( poly.orientation() == CGAL::COUNTERCLOCKWISE );
+	assert( curpoly.orientation() == CGAL::COUNTERCLOCKWISE );
 	
-#ifdef RESAMPLE_BOUNDARY
-	const double div = RESAMPLE_INTERVAL;
-	// Resample the polygon boundary;
-	Polygon2 fine;
-	unsigned int sz = poly.size();
-	for ( unsigned int j = 0; j < sz; ++j ) {
-	    fine.push_back( poly[ j ] );
-	    double length = sqrt( ( poly[ (j+1)%sz ] - poly[ j ] ).squared_length() );
-	    int nDiv = ceil( length / div );
-	    for ( unsigned int k = 1; k < nDiv; ++k ) {
-		double t = ( double )k/( double )nDiv;
-		Point2 newP = CGAL::ORIGIN +
-		    (1.0 - t)*( poly[ j ] - CGAL::ORIGIN ) +
-		    t*(poly[ (j+1)%sz ] - CGAL::ORIGIN );
-		fine.push_back( newP );
-	    }
-	}
-	// cerr << HERE << " poly = " << poly << endl;
-	// cerr << HERE << " fine = " << fine << endl;
-	Set glob;
-	for ( unsigned int j = 0; j < fine.size(); ++j ) {
-	    glob.push_back( countID++ );
-	}
-	_fig->poly().push_back( fine );
-	_fig->glID().push_back( glob );
-#else	// RESAMPLE_BOUNDARY
-	Set glob;
-	for ( unsigned int j = 0; j < poly.size(); ++j ) {
-	    glob.push_back( countID++ );
-	}
-	_fig.poly().push_back( poly );
-	_fig.glID().push_back( glob );
-#endif	// RESAMPLE_BOUNDARY
+	_fig->poly().push_back( curpoly );
     }
     ifs.close();
 
+    _fig->resample();
+    
     _fig->bound() = _fig->poly();
     cerr << HERE << " Finished loading the data!" << endl;  
 
@@ -283,7 +253,7 @@ void GLBase::_loadDrawing( const char * filename )
 }
 
 // save a drawging into the given file
-void GLBase::_saveDrawing( const char * filename )
+void GLMacro::_saveDrawing( const char * filename )
 {
     if ( _fig == NULL ) {
 	cerr << HERE << " NULL pointer to the line drawing" << endl;
@@ -314,7 +284,7 @@ void GLBase::_saveDrawing( const char * filename )
 
 
 // Capture the window as a image file
-void GLBase::_capture( const char * name )
+void GLMacro::_capture( const char * name )
 {
     static cv::Mat              image;          // Mesh image
     static GLubyte *            pixel   = NULL;
@@ -362,7 +332,7 @@ void GLBase::_capture( const char * name )
 //------------------------------------------------------------------------------
 
 //
-//  GLBase::GLBase --	default constructor
+//  GLMacro::GLMacro --	default constructor
 //
 //  Inputs
 //	none
@@ -370,7 +340,7 @@ void GLBase::_capture( const char * name )
 //  Outputs
 //	none
 //
-GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
+GLMacro::GLMacro( int _x, int _y, int _w, int _h, const char *_l )
     : Fl_Gl_Window( _x, _y, _w, _h, _l )  	
 {
     _flwin.clear();
@@ -393,7 +363,7 @@ GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
 //------------------------------------------------------------------------------
 
 //
-//  GLBase::~GLBase --	destructor
+//  GLMacro::~GLMacro --	destructor
 //
 //  Inputs
 //	none
@@ -401,7 +371,7 @@ GLBase::GLBase( int _x, int _y, int _w, int _h, const char *_l )
 //  Outputs
 //	none
 //
-GLBase::~GLBase()
+GLMacro::~GLMacro()
 {
     _flwin.clear();
 }
@@ -416,7 +386,7 @@ GLBase::~GLBase()
 //	OpenGL functions
 //------------------------------------------------------------------------------
 // function for initialized GL setups
-void GLBase::InitGL( void )
+void GLMacro::InitGL( void )
 {
     cout << "OpenGL Ver. " << glGetString(GL_VERSION) << endl;
     
@@ -429,7 +399,7 @@ void GLBase::InitGL( void )
 }
 
 // function fo resizing the window
-void GLBase::Resize(int w, int h)
+void GLMacro::Resize(int w, int h)
 {
     cerr << HERE << " Resize " << w << " x " << h << endl;
     glViewport( 0, 0, w, h );
@@ -445,9 +415,9 @@ void GLBase::Resize(int w, int h)
 
 
 // Function for drawing the window
-void GLBase::Display( void )
+void GLMacro::Display( void )
 {
-    cerr << HERE << " in GLBase::Display" << endl;
+    cerr << HERE << " in GLMacro::Display" << endl;
 
     glClear( GL_COLOR_BUFFER_BIT );
     
@@ -456,7 +426,7 @@ void GLBase::Display( void )
 }
 
 // Function for handling mouse events
-void GLBase::Mouse( int button, int state, int x, int y )
+void GLMacro::Mouse( int button, int state, int x, int y )
 {
     make_current();
 
@@ -506,21 +476,21 @@ void GLBase::Mouse( int button, int state, int x, int y )
 
 
 // Function for handling mouse dragging events
-void GLBase::Motion( int x, int y )
+void GLMacro::Motion( int x, int y )
 {
-    cerr << HERE << "GLBase::Motion" << endl;
+    cerr << HERE << "GLMacro::Motion" << endl;
 }
 
 // Function for handling mouse moving events
-void GLBase::PassiveMotion( int x, int y )
+void GLMacro::PassiveMotion( int x, int y )
 {
-    cerr << HERE << "GLBase::PassiveMotion" << endl;
+    cerr << HERE << "GLMacro::PassiveMotion" << endl;
 }
 
 // Function for handling keyboard events
-void GLBase::Keyboard( int key, int x, int y )
+void GLMacro::Keyboard( int key, int x, int y )
 {
-    cerr << HERE << "GLBase::Keyboard" << endl;
+    cerr << HERE << "GLMacro::Keyboard" << endl;
     make_current();
 
     cerr << HERE << " key = " << key << endl;
@@ -537,7 +507,7 @@ void GLBase::Keyboard( int key, int x, int y )
 }
 
 // Function for redrawing associative windows as well as this one
-void GLBase::redrawAll( void )
+void GLMacro::redrawAll( void )
 {
     redraw();
     // Redrawing other associative windows

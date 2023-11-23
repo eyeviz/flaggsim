@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-10-20 03:29:29 shigeo"
+//				Time-stamp: "2023-11-23 18:39:02 shigeo"
 //
 //==============================================================================
 
@@ -25,7 +25,7 @@ using namespace std;
 #include <GL/glut.h>
 #endif
 
-#include "GLBase.h"
+#include "GLMacro.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -38,7 +38,7 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Classes
 //------------------------------------------------------------------------------
-class GLLayout : public GLBase {
+class GLLayout : public GLMacro {
 
   private:
 
@@ -47,7 +47,7 @@ class GLLayout : public GLBase {
     
   protected:
 
-    GLBase *		_glDrawing;
+    GLMacro *		_glDrawing;
     
     Point2		_cursor;	// mouse position
     int			_left, _middle, _right;
@@ -91,7 +91,7 @@ public:
 //------------------------------------------------------------------------------
 //	Referrring to members
 //------------------------------------------------------------------------------
-    void setGLDrawing( GLBase * __glDrawing )	{
+    void setGLDrawing( GLMacro * __glDrawing )	{
 	_glDrawing = __glDrawing;
     }
     

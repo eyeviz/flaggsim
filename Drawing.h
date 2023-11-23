@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-20 19:52:46 shigeo"
+//				Time-stamp: "2023-11-23 18:31:48 shigeo"
 //
 //==============================================================================
 
@@ -57,6 +57,20 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
+#define RESAMPLE_BOUNDARY
+#ifdef RESAMPLE_BOUNDARY
+//#define RESAMPLE_INTERVAL	(0.02)
+//#define RESAMPLE_INTERVAL	(0.025)
+#define RESAMPLE_INTERVAL	(0.024)
+// #define RESAMPLE_INTERVAL	(0.030) // OK
+// #define RESAMPLE_INTERVAL	(0.032) // OK
+// #define RESAMPLE_INTERVAL	(0.04) // OK
+// #define RESAMPLE_INTERVAL	(0.05)
+//#define RESAMPLE_INTERVAL	(0.10) // 120m / 2.0 * 0.10 = 6.0m <== Current selection
+// #define RESAMPLE_INTERVAL	(0.20) // <== Previous seleciton
+//#define RESAMPLE_INTERVAL	(0.25)
+#endif	// RESAMPLE_BOUNDARY
+
 // Log files
 #define GROUP_CHOICE_FILE	"log/group.txt"
 #define DATA_COST_FILE		"log/data.txt"
@@ -294,6 +308,12 @@ class Drawing {
     static void		_normalizeMatrix( vector< vector< double > > & cost,
 					  const double lower = 0.0,
 					  const double upper = 1.0 );
+
+//------------------------------------------------------------------------------
+//	Geometric computations
+//------------------------------------------------------------------------------
+    void		_centralize	( void );
+    void		_resample	( double div );
 
 //------------------------------------------------------------------------------
 //	Triangulation
@@ -557,6 +577,18 @@ public:
 //	Initialization
 //------------------------------------------------------------------------------
     void clear( void ) { _clear(); }
+
+//------------------------------------------------------------------------------
+//	Geometric computation
+//------------------------------------------------------------------------------
+    void centralize	( void ) {
+	if ( _poly.size() == 0 ) return;
+	_centralize();
+    }
+    void resample	( double div = RESAMPLE_INTERVAL ) {
+	if ( _poly.size() == 0 ) return;
+	_resample( div );
+    }
 
 //------------------------------------------------------------------------------
 //	Triangulation

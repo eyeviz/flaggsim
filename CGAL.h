@@ -1,3 +1,6 @@
+#ifndef _CGAL_H		// begining of header file
+#define _CGAL_H		// notifying that this file is included
+
 #include <vector>
 using namespace std;
 
@@ -44,3 +47,8 @@ typedef Kernel::Vector_3				Vector3;
 
 typedef CGAL::Convex_hull_traits_adapter_2<Kernel,
         CGAL::Pointer_property_map<Point2>::type > Convex_hull_traits_2;
+
+#endif // _CGAL_H
+
+// end of header file
+// Do not add any stuff under this line.

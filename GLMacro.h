@@ -1,15 +1,15 @@
 //==============================================================================
-// GLBase.h
+// GLMacro.h
 //	: header file for GL Window basement 
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-14 00:24:17 shigeo"
+//				Time-stamp: "2023-11-23 18:38:20 shigeo"
 //
 //==============================================================================
 
-#ifndef _GLBase_H		// begining of header file
-#define _GLBase_H		// notifying that this file is included
+#ifndef _GLMacro_H		// begining of header file
+#define _GLMacro_H		// notifying that this file is included
 
 //------------------------------------------------------------------------------
 //	Including Header Files
@@ -40,19 +40,6 @@ using namespace std;
 //------------------------------------------------------------------------------
 //	Defining Macros
 //------------------------------------------------------------------------------
-#define RESAMPLE_BOUNDARY
-#ifdef RESAMPLE_BOUNDARY
-//#define RESAMPLE_INTERVAL	(0.02)
-//#define RESAMPLE_INTERVAL	(0.025)
-#define RESAMPLE_INTERVAL	(0.024)
-// #define RESAMPLE_INTERVAL	(0.030) // OK
-// #define RESAMPLE_INTERVAL	(0.032) // OK
-// #define RESAMPLE_INTERVAL	(0.04) // OK
-// #define RESAMPLE_INTERVAL	(0.05)
-//#define RESAMPLE_INTERVAL	(0.10) // 120m / 2.0 * 0.10 = 6.0m <== Current selection
-// #define RESAMPLE_INTERVAL	(0.20) // <== Previous seleciton
-//#define RESAMPLE_INTERVAL	(0.25)
-#endif	// RESAMPLE_BOUNDARY
 
 #define PICKING_ERROR		(20.0)
 
@@ -61,7 +48,7 @@ using namespace std;
 //	Defining Classes
 //------------------------------------------------------------------------------
 
-class GLBase : public Fl_Gl_Window {
+class GLMacro : public Fl_Gl_Window {
 
   private:
 
@@ -109,13 +96,13 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Constructors
 //------------------------------------------------------------------------------
-    GLBase( int _x, int _y, int _w, int _h, const char *_l );
+    GLMacro( int _x, int _y, int _w, int _h, const char *_l );
 				// default constructor
 
 //------------------------------------------------------------------------------
 //	Destructor
 //------------------------------------------------------------------------------
-    ~GLBase();			// destructor
+    ~GLMacro();			// destructor
 
 //------------------------------------------------------------------------------
 //	Referrring to members
@@ -145,7 +132,7 @@ class GLBase : public Fl_Gl_Window {
     void disableAggregated( void )		{ _flagAggregated = false; }
     
     static const string & headname( void ) {
-	return GLBase::_headname;
+	return GLMacro::_headname;
     }
     
 //------------------------------------------------------------------------------
@@ -185,7 +172,7 @@ class GLBase : public Fl_Gl_Window {
 //------------------------------------------------------------------------------
 //	Class name
 //------------------------------------------------------------------------------
-    virtual const char * className( void ) const { return "GLBase"; }
+    virtual const char * className( void ) const { return "GLMacro"; }
 				// class name
 };
 

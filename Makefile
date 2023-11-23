@@ -55,7 +55,7 @@ SRC =           \
 		Workspace.cpp \
 		Adjuster.cpp \
 		\
-		GLBase.cpp \
+		GLMacro.cpp \
     		GLDrawing.cpp \
 		GLLayout.cpp \
 		\

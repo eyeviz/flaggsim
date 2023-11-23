@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-20 20:02:44 shigeo"
+//				Time-stamp: "2023-11-23 18:31:56 shigeo"
 //
 //==============================================================================
 
@@ -237,6 +237,103 @@ void Drawing::_normalizeMatrix( vector< vector< double > > & cost,
     }
 }
 
+
+//------------------------------------------------------------------------------
+//	Geometric computations
+//------------------------------------------------------------------------------
+
+//
+//  Drawing::_centralize --	centralize the points on  boundary of building
+//				polygons 
+//
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+void Drawing::_centralize( void )
+{
+    // for centralizing polygon samples
+    unsigned int nPoints = 0;
+    Vector2 gc( 0.0, 0.0 );
+    for ( unsigned int i = 0; i < _poly.size(); ++i ) {
+	for ( unsigned int j = 0; j < _poly[ i ].size(); ++j ) {
+	    gc += _poly[ i ][ j ] - CGAL::ORIGIN;
+	}
+	nPoints += _poly[ i ].size();
+    }
+
+    // compute the gravity center
+    gc /= ( double )nPoints;
+
+    // centralize the contours
+    for ( unsigned int i = 0; i < _poly.size(); ++i ) {
+	for ( unsigned int j = 0; j < _poly[ i ].size(); ++j ) {
+	    _poly[ i ][ j ] = CGAL::ORIGIN + ( _poly[ i ][ j ] - CGAL::ORIGIN - gc );
+	}
+    }
+}
+
+
+//
+//  Drawing::_resample --	resample the boundary of building polygons
+//
+//  Inputs
+//	div:	interval for sampling
+//
+//  Outputs
+//	none
+//
+void Drawing::_resample( double div )
+{
+    vector< Polygon2 > polyset = _poly;
+    _poly.clear();
+    _glID.clear();
+    unsigned int countID = 0;
+#ifdef RESAMPLE_BOUNDARY
+    // Resample the polygon boundary;
+    // for each polygon
+    for ( unsigned int i = 0; i < polyset.size(); ++i ) {
+	unsigned int sz = polyset[ i ].size();
+	Polygon2 fine;
+	for ( unsigned int j = 0; j < sz; ++j ) {
+	    fine.push_back( polyset[ i ][ j ] );
+	    double length =
+		sqrt( ( polyset[ i ][ (j+1)%sz ] - polyset[ i ][ j ] ).squared_length() );
+	    int nDivs = ceil( length / div );
+	    for ( unsigned int k = 1; k < nDivs; ++k ) {
+		double t = ( double )k/( double )nDivs;
+		Point2 newpoint = CGAL::ORIGIN +
+		    (1.0 - t)*( polyset[ i ][ j ] - CGAL::ORIGIN ) +
+		    t*( polyset[ i ][ (j+1)%sz ] - CGAL::ORIGIN );
+		fine.push_back( newpoint );
+	    }
+	}
+	// cerr << HERE << " poly = " << polyset[ i ] << endl;
+	// cerr << HERE << " fine = " << fine << endl;
+	Set glob;
+	for ( unsigned int j = 0; j < fine.size(); ++j ) {
+	    glob.push_back( countID++ );
+	}
+	_poly.push_back( fine );
+	_glID.push_back( glob );
+#else	// RESAMPLE_BOUNDARY
+	Set glob;
+	for ( unsigned int j = 0; j < polyset[ i ].size(); ++j ) {
+	    glob.push_back( countID++ );
+	}
+	_poly.push_back( poly );
+	_glID.push_back( glob );
+#endif	// RESAMPLE_BOUNDARY
+    }
+}
+
+
+
+//------------------------------------------------------------------------------
+//	Triangulation
+//------------------------------------------------------------------------------
 
 //
 //  Drawing::_triangulate --	triangulate each polygon
