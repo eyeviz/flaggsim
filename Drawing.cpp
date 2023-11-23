@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 19:47:29 shigeo"
+//				Time-stamp: "2023-11-24 00:28:16 shigeo"
 //
 //==============================================================================
 
@@ -2781,7 +2781,8 @@ void Drawing::_squareOutlines( void )
     const int nBands = 3;
     const double bandwidth[ nBands ] = {
 	// 180.0/40.0, 180.0/25.0, 180.0/20.0, 180.0/16.0, 180.0/8.0, 180.0/4.0
-	180.0/40.0, 180.0/20.0, 180.0/4.0
+	// 180.0/40.0, 180.0/20.0, 180.0/4.0
+	180.0/16.0, 180.0/8.0, 180.0/4.0
     };
 
     vector< vector< Votes > >	proxy;
@@ -2857,7 +2858,7 @@ void Drawing::_squareOutlines( void )
 
 
 //
-//  Drawing::_shrinkBounds --	shrink the boundary contours
+//  Drawing::_scaleBounds --	shrink the boundary contours
 //
 //  Inputs
 //	scale	: shrink scale
@@ -2865,7 +2866,7 @@ void Drawing::_squareOutlines( void )
 //  Outputs
 //	none
 //
-void Drawing::_shrinkBounds( double scale )
+void Drawing::_scaleBounds( double scale )
 {
     for ( unsigned int i = 0; i < _bound.size(); ++i ) {
 	Vector2 sum( 0.0, 0.0 );

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 19:49:26 shigeo"
+//				Time-stamp: "2023-11-24 00:28:04 shigeo"
 //
 //==============================================================================
 
@@ -394,7 +394,7 @@ class Drawing {
 
 
     void		_squareOutlines	( void );
-    void		_shrinkBounds	( double scale );
+    void		_scaleBounds	( double scale );
 
     void		_clear		( void );
     
@@ -635,9 +635,9 @@ public:
 	if ( _poly.size() == 0 ) return;
 	_squareOutlines();
     }
-    void shrinkBounds( double scale = 0.95 ) {
+    void scaleBounds( double scale = 0.95 ) {
 	if ( _poly.size() == 0 ) return;
-	_shrinkBounds( scale );
+	_scaleBounds( scale );
     }
 
     

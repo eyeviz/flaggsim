@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 19:56:47 shigeo"
+//				Time-stamp: "2023-11-24 00:30:13 shigeo"
 //
 //==============================================================================
 
@@ -1078,7 +1078,17 @@ void GLDrawing::Keyboard( int key, int x, int y )
       case 'k':
       case 'K':
 	  if ( _mode == NORMAL_MODE ) {
-	      _fig->shrinkBounds();
+	      _fig->scaleBounds( 0.95 );
+	      _fig->triangulate();
+	  }
+	  else {
+	      cerr << "We are not in NORMAL MODE now." << endl;
+	  }
+	  break;
+      case 'n':
+      case 'N':
+	  if ( _mode == NORMAL_MODE ) {
+	      _fig->scaleBounds( 1.0/0.95 );
 	      _fig->triangulate();
 	  }
 	  else {

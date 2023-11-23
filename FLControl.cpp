@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-20 20:10:08 shigeo"
+//				Time-stamp: "2023-11-24 00:35:34 shigeo"
 //
 //==============================================================================
 
@@ -151,6 +151,14 @@ void FLControl::_editHandler( Fl_Button * b )
 	cerr << HERE << " shrink polygons " << endl;
 	// NORMAL_MODE ONLY
 	_glDrawing->Keyboard( 'k', 0, 0 );
+	// _urban->allFix();
+	redrawAll();
+    }
+
+    if ( strcmp( b->label(), "Expand" ) == 0 ) {
+	cerr << HERE << " expand polygons " << endl;
+	// NORMAL_MODE ONLY
+	_glDrawing->Keyboard( 'n', 0, 0 );
 	// _urban->allFix();
 	redrawAll();
     }
@@ -395,7 +403,7 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //  Preparing buttons for the EDIT category
     //------------------------------------------------------------------------------
-    groupX = 10; groupW = _w - 20; groupY = 2*_h/vsize + 25, groupH = 45;
+    groupX = 10; groupW = _w - 20; groupY = 2*_h/vsize + 25, groupH = 90;
     Fl_Group	* groupEdit = new Fl_Group( groupX, groupY, groupW, groupH,
 					    "[Edit]" );
     groupEdit->box( FL_ENGRAVED_BOX );
@@ -405,7 +413,7 @@ FLControl::FLControl( Adjuster * __adjust,
 
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
-    placeX = groupX + 1*groupW/25;
+    placeX = groupX + 4*groupW/25;
     placeY = groupY + 10;
     placeW = 2*groupW/10;
     placeH = 25;
@@ -420,8 +428,15 @@ FLControl::FLControl( Adjuster * __adjust,
     b = new Fl_Button( placeX, placeY, placeW, placeH, "Fix" );
     b->callback( _editCallback, this );
 
-    placeX += 6*groupW/25;
+//------------------------------------------------------------------------------
+//	2nd row
+    placeY += 45;
+    placeX = groupX + 7*groupW/25;
     b = new Fl_Button( placeX, placeY, placeW, placeH, "Shrink" );
+    b->callback( _editCallback, this );
+
+    placeX += 6*groupW/25;
+    b = new Fl_Button( placeX, placeY, placeW, placeH, "Expand" );
     b->callback( _editCallback, this );
 
     groupEdit->end();
@@ -429,7 +444,7 @@ FLControl::FLControl( Adjuster * __adjust,
     //------------------------------------------------------------------------------
     //  Preparing buttons for the SWITCH category
     //------------------------------------------------------------------------------
-    groupX = 10; groupW = _w - 20; groupY = 4*_h/vsize + 25, groupH = 45;
+    groupX = 10; groupW = _w - 20; groupY = 5*_h/vsize + 25, groupH = 45;
     Fl_Group	* groupSwitch = new Fl_Group( groupX, groupY, groupW, groupH,
 					      "[Switch]" );
     groupSwitch->box( FL_ENGRAVED_BOX );
@@ -461,7 +476,7 @@ FLControl::FLControl( Adjuster * __adjust,
     //	Preparing sliders for parameter tuning
     //------------------------------------------------------------------------------
     // groupX = 100; groupW = _w - groupX - 20; groupY = 6*_h/vsize + 25, groupH = 180;
-    groupX = 100; groupW = _w - groupX - 20; groupY = 6*_h/vsize + 25, groupH = 240;
+    groupX = 100; groupW = _w - groupX - 20; groupY = 7*_h/vsize + 25, groupH = 240;
     _slider = new FLSliderInput( __adjust, __glDrawing, __glLayout,
 				 groupX, groupY, groupW, groupH,
 				 // border, bottom, this->w() - border - 40, 200,
