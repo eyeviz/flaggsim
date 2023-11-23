@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 18:38:20 shigeo"
+//				Time-stamp: "2023-11-23 19:56:11 shigeo"
 //
 //==============================================================================
 
@@ -59,6 +59,9 @@ class GLMacro : public Fl_Gl_Window {
 
     vector< Fl_Gl_Window * >	_flwin;
 
+    Point2			_origin;
+    double			_side;
+
     unsigned int		_nPolys;
 
     Drawing			* _fig;
@@ -110,6 +113,9 @@ class GLMacro : public Fl_Gl_Window {
     void addFlWin	( Fl_Gl_Window * ptr )  { _flwin.push_back( ptr ); }
     void clearFlWin	( void )		{ _flwin.clear(); }
 
+    void setOrigin	( const Point2 & __origin ) { _origin = __origin; }
+    void setSide	( const double & __side ) { _side = __side; }	
+    
     void setFig		( Drawing * __fig )	{ _fig = __fig; }
     void setWorkspace	( Workspace * __worksp )
 						{ _worksp = __worksp; }
@@ -178,7 +184,7 @@ class GLMacro : public Fl_Gl_Window {
 
 
 
-#endif // _GLBase_H
+#endif // _GLMacro_H
 
 // end of header file
 // Do not add any stuff under this line.

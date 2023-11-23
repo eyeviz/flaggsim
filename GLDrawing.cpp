@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 18:51:53 shigeo"
+//				Time-stamp: "2023-11-23 19:56:47 shigeo"
 //
 //==============================================================================
 
@@ -335,7 +335,10 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
 
     gluPickMatrix( center_x, ( double )viewport[ 3 ] - center_y,
 		   full_x, full_y, viewport );
-    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    // glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glOrtho( _origin.x()-_side, _origin.x()+_side,
+	     _origin.y()-_side, _origin.y()+_side,
+	     -1.0, 1.0 );
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix(); // <====
     glLoadIdentity();
@@ -505,7 +508,10 @@ bool GLDrawing::_pick( int & hitID, int x, int y, int button )
 	 << viewport[ 2 ] << " , " << viewport[ 3 ] << endl;
 #endif	// SKIP
     gluPickMatrix( (double)x, (double)(viewport[3]-y), tolerance, tolerance, viewport );
-    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    // glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glOrtho( _origin.x()-_side, _origin.x()+_side,
+	     _origin.y()-_side, _origin.y()+_side,
+	     -1.0, 1.0 );
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix(); // <====
     glLoadIdentity();
@@ -692,7 +698,10 @@ void GLDrawing::Resize(int w, int h)
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     // gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
-    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    // glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glOrtho( _origin.x()-_side, _origin.x()+_side,
+	     _origin.y()-_side, _origin.y()+_side,
+	     -1.0, 1.0 );
     
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();

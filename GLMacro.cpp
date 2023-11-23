@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 18:38:34 shigeo"
+//				Time-stamp: "2023-11-23 19:55:09 shigeo"
 //
 //==============================================================================
 
@@ -346,6 +346,9 @@ GLMacro::GLMacro( int _x, int _y, int _w, int _h, const char *_l )
     _flwin.clear();
     _isFilled		= false;
     // _isFilled		= true;
+
+    _origin		= Point2( 0.0, 0.0 );;
+    _side		= 1.0;
 
     _flagAggregated	= false;
 

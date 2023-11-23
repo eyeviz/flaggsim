@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 18:39:09 shigeo"
+//				Time-stamp: "2023-11-23 20:09:24 shigeo"
 //
 //==============================================================================
 
@@ -96,8 +96,11 @@ void GLLayout::_setViewport( unsigned int idRow, unsigned int idCol )
 #endif	// DEBUG
     glViewport( minW, minH, quarterW, quarterH );
     glMatrixMode( GL_PROJECTION );
-    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glOrtho( _origin.x()-_side, _origin.x()+_side,
+	     _origin.y()-_side, _origin.y()+_side,
+	     -1.0, 1.0 );
     // gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+    // glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
 }
 
 
@@ -106,8 +109,11 @@ void GLLayout::_clearViewport( void )
 {
     glViewport( 0, 0, this->w(), this->h() );
     glMatrixMode( GL_PROJECTION );
-    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
     // gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
+    // glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glOrtho( _origin.x()-_side, _origin.x()+_side,
+	     _origin.y()-_side, _origin.y()+_side,
+	     -1.0, 1.0 );
 }
 
 
@@ -473,7 +479,10 @@ void GLLayout::Resize( int w, int h )
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     // gluOrtho2D( -1.0, 1.0, -1.0, 1.0 );
-    glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    // glOrtho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
+    glOrtho( _origin.x()-_side, _origin.x()+_side,
+	     _origin.y()-_side, _origin.y()+_side,
+	     -1.0, 1.0 );
     
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
@@ -583,14 +592,14 @@ void GLLayout::Mouse( int button, int state, int x, int y )
       case FL_LEFT_MOUSE:
 	  if ( state ) {
 	      switch ( _worksp->mode() ) {
-		case FREE:
+		case DROP:
 		    _cursor = Point2( x, y );
 		    if ( _pick( _worksp->pickID(), x, y, button ) ) {
 			// cerr << HERE << " select pickID = " << _worksp->pickID() << endl;
 			; // do nothing
 		    }
 		    break;
-		case SELECTED:
+		case PICK:
 		    break;
 	      }
 	      _left = 1;
@@ -600,19 +609,19 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 		  _worksp->isPressed() = true;
 	      }
 #ifdef MODE_DEBUG
-	      if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
-	      else cerr << HERE << " mode is SELECTED" << endl;
+	      if ( _worksp->mode() == DROP ) cerr << HERE << " mode is DROP" << endl;
+	      else cerr << HERE << " mode is PICK" << endl;
 #endif	// MODE_DEBUG
 	  }
 	  else {
 	      if ( ( _worksp->pickID() != NO_NAME ) && _worksp->isPressed() ) {
 		  switch ( _worksp->mode() ) {
-		    case FREE:
+		    case DROP:
 			// cerr << HERE << " pickID = " << _worksp->pickID() << endl;
-			_worksp->mode() = SELECTED;
+			_worksp->mode() = PICK;
 			// cerr << HERE << " mode => selected" << endl;
 			break;
-		    case SELECTED:
+		    case PICK:
 			// cerr << HERE << " Selected the choice No. " << _worksp->pickID() << endl;
 			_glDrawing->Keyboard( 'f', 0, 0 );
 			break;
@@ -623,8 +632,8 @@ void GLLayout::Mouse( int button, int state, int x, int y )
 	      _left = 0;  
 	      // cerr << HERE << " Left is OFF " << endl;
 #ifdef MODE_DEBUG
-	      if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
-	      else cerr << HERE << " mode is SELECTED" << endl;
+	      if ( _worksp->mode() == DROP ) cerr << HERE << " mode is DROP" << endl;
+	      else cerr << HERE << " mode is PICK" << endl;
 #endif	// MODE_DEBUG
 	  }
 	  break;
@@ -673,12 +682,12 @@ void GLLayout::Motion( int x, int y )
 	    // ------------------------------
 	    // This line is necessary.
 	    // Noted by ST on 2023/08/08 
-	    _worksp->mode() = SELECTED;
+	    _worksp->mode() = PICK;
 	    // ------------------------------
 	}
 #ifdef MODE_DEBUG
-	if ( _worksp->mode() == FREE ) cerr << HERE << " mode is FREE" << endl;
-	else cerr << HERE << " mode is SELECTED" << endl;
+	if ( _worksp->mode() == DROP ) cerr << HERE << " mode is DROP" << endl;
+	else cerr << HERE << " mode is PICK" << endl;
 #endif	// MODE_DEBUG
     }
     else if ( _middle ) {

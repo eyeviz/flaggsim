@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 18:31:48 shigeo"
+//				Time-stamp: "2023-11-23 19:49:26 shigeo"
 //
 //==============================================================================
 
@@ -214,7 +214,7 @@ class Drawing {
 
     vector< Polygon2 >		_poly;		// polygons
     vector< Set >		_glID;		// global IDs of points
-    Point2			_center;	// center of the line drawing
+    // Point2			_center;	// center of the line drawing
     
     vector< Polygon2 >		_bound;		// simplified boundary
     vector< vector< Triangle2 > >
@@ -312,7 +312,7 @@ class Drawing {
 //------------------------------------------------------------------------------
 //	Geometric computations
 //------------------------------------------------------------------------------
-    void		_centralize	( void );
+    Point2		_origin		( void ) const;
     void		_resample	( double div );
 
 //------------------------------------------------------------------------------
@@ -581,9 +581,8 @@ public:
 //------------------------------------------------------------------------------
 //	Geometric computation
 //------------------------------------------------------------------------------
-    void centralize	( void ) {
-	if ( _poly.size() == 0 ) return;
-	_centralize();
+    Point2 origin	( void ) const {
+	return _origin();
     }
     void resample	( double div = RESAMPLE_INTERVAL ) {
 	if ( _poly.size() == 0 ) return;

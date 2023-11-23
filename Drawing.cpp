@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 18:31:56 shigeo"
+//				Time-stamp: "2023-11-23 19:47:29 shigeo"
 //
 //==============================================================================
 
@@ -252,7 +252,7 @@ void Drawing::_normalizeMatrix( vector< vector< double > > & cost,
 //  Outputs
 //	none
 //
-void Drawing::_centralize( void )
+Point2 Drawing::_origin( void ) const
 {
     // for centralizing polygon samples
     unsigned int nPoints = 0;
@@ -267,12 +267,8 @@ void Drawing::_centralize( void )
     // compute the gravity center
     gc /= ( double )nPoints;
 
-    // centralize the contours
-    for ( unsigned int i = 0; i < _poly.size(); ++i ) {
-	for ( unsigned int j = 0; j < _poly[ i ].size(); ++j ) {
-	    _poly[ i ][ j ] = CGAL::ORIGIN + ( _poly[ i ][ j ] - CGAL::ORIGIN - gc );
-	}
-    }
+    Point2 center = CGAL::ORIGIN + gc;
+    return center;
 }
 
 
