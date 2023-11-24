@@ -60,7 +60,7 @@ SRC =           \
 		GLLayout.cpp \
 		\
 		FLSliderInput.cpp \
-		FLControl.cpp \
+		FLEdit.cpp \
 		\
 		main.cpp \
 		\

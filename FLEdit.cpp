@@ -1,10 +1,10 @@
 //==============================================================================
-// FLControl.cpp
+// FLEdit.cpp
 //	: program file for control panel window
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:35:34 shigeo"
+//				Time-stamp: "2023-11-24 00:40:59 shigeo"
 //
 //==============================================================================
 
@@ -17,7 +17,7 @@ using namespace std;
 
 #include <FL/Fl_Native_File_Chooser.H>
 
-#include "FLControl.h"
+#include "FLEdit.h"
 
 
 //------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ using namespace std;
 //	File Load & Save
 
 // handler function for loading data from files
-void FLControl::_fileHandler( Fl_Button * b )
+void FLEdit::_fileHandler( Fl_Button * b )
 {
     // Create the file chooser, and show it
     Fl_Native_File_Chooser chooser( Fl_Native_File_Chooser::BROWSE_FILE );
@@ -100,10 +100,10 @@ void FLControl::_fileHandler( Fl_Button * b )
 }
     
 // callback function for loading data from files
-void FLControl::_fileCallback( Fl_Widget *w, void * userdata )
+void FLEdit::_fileCallback( Fl_Widget *w, void * userdata )
 {
     Fl_Button *b = (Fl_Button*)w;	      // Get the button widget
-    FLControl *appwin = (FLControl*)userdata;
+    FLEdit *appwin = (FLEdit*)userdata;
     
     appwin->_fileHandler( b );
 }
@@ -113,7 +113,7 @@ void FLControl::_fileCallback( Fl_Widget *w, void * userdata )
 //	Map Edit
 
 // handler function for handling button selections
-void FLControl::_editHandler( Fl_Button * b )
+void FLEdit::_editHandler( Fl_Button * b )
 {
     if ( strcmp( b->label(), "Aggregate" ) == 0 ) {
 	cerr << HERE << " aggregate building polygons" << endl;
@@ -165,10 +165,10 @@ void FLControl::_editHandler( Fl_Button * b )
 }
 
 // callback function for handling edit buttons
-void FLControl::_editCallback( Fl_Widget *w, void * userdata )
+void FLEdit::_editCallback( Fl_Widget *w, void * userdata )
 {
     Fl_Button *b = (Fl_Button*)w;	      // Get the button widget
-    FLControl *appwin = (FLControl*)userdata;
+    FLEdit *appwin = (FLEdit*)userdata;
     
     appwin->_editHandler( b );
 }
@@ -177,7 +177,7 @@ void FLControl::_editCallback( Fl_Widget *w, void * userdata )
 //	Flag switches
 
 // handler function for handling switch buttons
-void FLControl::_switchHandler( Fl_Check_Button * cb )
+void FLEdit::_switchHandler( Fl_Check_Button * cb )
 {
     if ( strcmp( cb->label(), "Conjoin" ) == 0 ) {
 	if ( _glDrawing != NULL ) {
@@ -215,10 +215,10 @@ void FLControl::_switchHandler( Fl_Check_Button * cb )
 }
 
 // callback function for switching flags
-void FLControl::_switchCallback( Fl_Widget *w, void * userdata )
+void FLEdit::_switchCallback( Fl_Widget *w, void * userdata )
 {
     Fl_Check_Button *cb = (Fl_Check_Button*)w;	      // Get the button widget
-    FLControl *appwin = (FLControl*)userdata;
+    FLEdit *appwin = (FLEdit*)userdata;
     
     appwin->_switchHandler( cb );
 }
@@ -227,7 +227,7 @@ void FLControl::_switchCallback( Fl_Widget *w, void * userdata )
 //	Capturing windows
 
 // handler function for capturing windows
-void FLControl::_captureHandler( Fl_Button * b )
+void FLEdit::_captureHandler( Fl_Button * b )
 {
     // Create the file chooser, and show it
     Fl_Native_File_Chooser chooser( Fl_Native_File_Chooser::BROWSE_SAVE_FILE );
@@ -294,10 +294,10 @@ void FLControl::_captureHandler( Fl_Button * b )
 }
 
 // callback function for switching flags
-void FLControl::_captureCallback( Fl_Widget *w, void * userdata )
+void FLEdit::_captureCallback( Fl_Widget *w, void * userdata )
 {
     Fl_Button *b = (Fl_Button*)w;	      // Get the button widget
-    FLControl *appwin = (FLControl*)userdata;
+    FLEdit *appwin = (FLEdit*)userdata;
     
     appwin->_captureHandler( b );
 }
@@ -306,7 +306,7 @@ void FLControl::_captureCallback( Fl_Widget *w, void * userdata )
 //	Quit the program
 
 // handler function for handling the quit button
-void FLControl::_quitHandler( Fl_Button * b )
+void FLEdit::_quitHandler( Fl_Button * b )
 {
     cerr << " Button " << b->label() << " was ";
     if ( b->value() ) cerr << " Pushed";
@@ -320,10 +320,10 @@ void FLControl::_quitHandler( Fl_Button * b )
 
 
 // callback function for handling program quit
-void FLControl::_quitCallback( Fl_Widget *w, void * userdata )
+void FLEdit::_quitCallback( Fl_Widget *w, void * userdata )
 {
     Fl_Button *b = (Fl_Button*)w;	      // Get the button widget
-    FLControl *appwin = (FLControl*)userdata;
+    FLEdit *appwin = (FLEdit*)userdata;
     // fprintf(stderr, "Button '%s' was %s\n", b->label(), b->value() ? "Pushed" : "Released");
     
     appwin->_quitHandler( b );
@@ -345,7 +345,7 @@ void FLControl::_quitCallback( Fl_Widget *w, void * userdata )
 //------------------------------------------------------------------------------
 
 //
-//  FLControl::FLControl --	default constructor
+//  FLEdit::FLEdit --	default constructor
 //
 //  Inputs
 //	none
@@ -353,7 +353,7 @@ void FLControl::_quitCallback( Fl_Widget *w, void * userdata )
 //  Outputs
 //	none
 //
-FLControl::FLControl( Adjuster * __adjust,
+FLEdit::FLEdit( Adjuster * __adjust,
 		      GLDrawing * __glDrawing, GLLayout * __glLayout,
 		      int _x, int _y, int _w, int _h, const char *_l )
     : Fl_Window( _x, _y, _w, _h, _l )  	
@@ -539,7 +539,7 @@ FLControl::FLControl( Adjuster * __adjust,
 //------------------------------------------------------------------------------
 
 //
-//  FLControl::~FLControl --	destructor
+//  FLEdit::~FLEdit --	destructor
 //
 //  Inputs
 //	none
@@ -547,7 +547,7 @@ FLControl::FLControl( Adjuster * __adjust,
 //  Outputs
 //	none
 //
-FLControl::~FLControl()
+FLEdit::~FLEdit()
 {
     delete _menubar;
     delete _slider;
@@ -562,7 +562,7 @@ FLControl::~FLControl()
 //	Drawing functions
 //------------------------------------------------------------------------------
 // Function for redrawing associative windows as well as this one
-void FLControl::redrawAll( void )
+void FLEdit::redrawAll( void )
 {
     if ( _glDrawing != NULL ) _glDrawing->redraw();
     if ( _glLayout != NULL ) _glLayout->redraw();

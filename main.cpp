@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:15:38 shigeo"
+//				Time-stamp: "2023-11-24 00:41:09 shigeo"
 //
 //==============================================================================
 
@@ -47,7 +47,7 @@ using namespace std;
 #include "Common.h"
 #include "GLDrawing.h"
 #include "GLLayout.h"
-#include "FLControl.h"
+#include "FLEdit.h"
 
 
 //------------------------------------------------------------------------------
@@ -215,11 +215,11 @@ int main( int argc, char *argv[] )
 //------------------------------------------------------------------------------
 //	Panel window	
 //------------------------------------------------------------------------------
-    FLControl * win_panel = new FLControl( adjust,
-					   gl_drawing, gl_layout,
-					   map_width+design_width, 0,
-					   panel_width, panel_height,
-					   "Panel window" );
+    FLEdit * win_panel = new FLEdit( adjust,
+				     gl_drawing, gl_layout,
+				     map_width+design_width, 0,
+				     panel_width, panel_height,
+				     "Panel window" );
     win_panel->end();
     win_panel->show( argc, argv );
     

@@ -1,15 +1,15 @@
 //==============================================================================
-// FLControl.h
+// FLEdit.h
 //	: header file for control panel window
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-13 22:09:24 shigeo"
+//				Time-stamp: "2023-11-24 00:40:44 shigeo"
 //
 //==============================================================================
 
-#ifndef _FLControl_H		// begining of header file
-#define _FLControl_H		// notifying that this file is included
+#ifndef _FLEdit_H		// begining of header file
+#define _FLEdit_H		// notifying that this file is included
 
 //------------------------------------------------------------------------------
 //	Including Header Files
@@ -35,7 +35,7 @@
 //	Defining Classes
 //------------------------------------------------------------------------------
 
-class FLControl : public Fl_Window {
+class FLEdit : public Fl_Window {
 
   private:
 
@@ -72,17 +72,17 @@ class FLControl : public Fl_Window {
 //------------------------------------------------------------------------------
 //	Constructors
 //------------------------------------------------------------------------------
-    FLControl( Adjuster * __adjust,
-	       GLDrawing * __gl_drawing, GLLayout * __gl_layout,
-	       int _x, int _y, int _w, int _h, const char *_l );
+    FLEdit( Adjuster * __adjust,
+	    GLDrawing * __gl_drawing, GLLayout * __gl_layout,
+	    int _x, int _y, int _w, int _h, const char *_l );
 				// default constructor
 
-    FLControl( const FLControl & obj );
+    FLEdit( const FLEdit & obj );
 				// copy constructor
 //------------------------------------------------------------------------------
 //	Destructor
 //------------------------------------------------------------------------------
-    ~FLControl();			// destructor
+    ~FLEdit();			// destructor
 
 //------------------------------------------------------------------------------
 //	Redrawing function
@@ -93,11 +93,11 @@ class FLControl : public Fl_Window {
 //------------------------------------------------------------------------------
 //	Class name
 //------------------------------------------------------------------------------
-    virtual const char * className( void ) const { return "FLControl"; }
+    virtual const char * className( void ) const { return "FLEdit"; }
 				// class name
 };
 
-#endif // _FLControl_H
+#endif // _FLEdit_H
 
 // end of header file
 // Do not add any stuff under this line.
