@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:40:59 shigeo"
+//				Time-stamp: "2023-11-27 16:17:20 shigeo"
 //
 //==============================================================================
 
@@ -179,7 +179,18 @@ void FLEdit::_editCallback( Fl_Widget *w, void * userdata )
 // handler function for handling switch buttons
 void FLEdit::_switchHandler( Fl_Check_Button * cb )
 {
-    if ( strcmp( cb->label(), "Conjoin" ) == 0 ) {
+    if ( strcmp( cb->label(), "Proximity" ) == 0 ) {
+	if ( _glDrawing != NULL ) {
+	    if ( cb->value() ) {
+		_glDrawing->setProximity(); // on
+	    }
+	    else {
+		_glDrawing->clearProximity(); // off
+	    }
+	    redrawAll();
+	}
+    }
+    else if ( strcmp( cb->label(), "Conjoin" ) == 0 ) {
 	if ( _glDrawing != NULL ) {
 	    if ( cb->value() ) {
 		_glDrawing->setConjoined(); // on
@@ -237,15 +248,21 @@ void FLEdit::_captureHandler( Fl_Button * b )
     string filename = _glDrawing->headname();
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-    if ( strcmp( b->label(), "Drawing" ) == 0 ) {
-	filename += "_drawing";
+    if ( strcmp( b->label(), "Map\n(PNG)" ) == 0 ) {
+	filename += "_map";
     }
-    else if ( strcmp( b->label(), "Layout" ) == 0 ) {
-	filename += "_layout";
+    else if ( strcmp( b->label(), "Design\n(PNG)" ) == 0 ) {
+	filename += "_design";
+    }
+    else if ( strcmp( b->label(), "Map\n(EPS)" ) == 0 ) {
+	filename += "_map";
+    }
+    else if ( strcmp( b->label(), "Design\n(EPS)" ) == 0 ) {
+	filename += "_design";
     }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-    if ( strcmp( b->label(), "Drawing" ) == 0 ) {
+    if ( strcmp( b->label(), "Map\n(PNG)" ) == 0 ) {
 	chooser.directory( "./snap/" );
 	// chooser.preset_file( filename.c_str() );
 	//------------------------------------------------------------------------------
@@ -254,7 +271,7 @@ void FLEdit::_captureHandler( Fl_Button * b )
 	chooser.preset_file( filename.c_str() );
 	chooser.filter( "*.png" );
     }
-    else if ( strcmp( b->label(), "Layout" ) == 0 ) {
+    else if ( strcmp( b->label(), "Design\n(PNG)" ) == 0 ) {
 	chooser.directory( "./snap/" );
 	// chooser.preset_file( filename.c_str() );
 	//------------------------------------------------------------------------------
@@ -262,6 +279,24 @@ void FLEdit::_captureHandler( Fl_Button * b )
 	filename += ".png";
 	chooser.preset_file( filename.c_str() );
 	chooser.filter( "*.png" );
+    }
+    else if ( strcmp( b->label(), "Map\n(EPS)" ) == 0 ) {
+	chooser.directory( "./eps/" );
+	// chooser.preset_file( filename.c_str() );
+	//------------------------------------------------------------------------------
+	// file name extension
+	filename += ".eps";
+	chooser.preset_file( filename.c_str() );
+	chooser.filter( "*.eps" );
+    }
+    else if ( strcmp( b->label(), "Design\n(EPS)" ) == 0 ) {
+	chooser.directory( "./eps/" );
+	// chooser.preset_file( filename.c_str() );
+	//------------------------------------------------------------------------------
+	// file name extension
+	filename += ".eps";
+	chooser.preset_file( filename.c_str() );
+	chooser.filter( "*.eps" );
     }
     else
 	chooser.filter( "*" );
@@ -275,15 +310,27 @@ void FLEdit::_captureHandler( Fl_Button * b )
 	  break;
       default: // FILE CHOSEN
 	  cerr << HERE << "PICKED: " << chooser.filename() << endl;
-	  if ( strcmp( b->label(), "Drawing" ) == 0 ) {
+	  if ( strcmp( b->label(), "Map\n(PNG)" ) == 0 ) {
 	      if ( _glDrawing != NULL )
 		  _glDrawing->capture( chooser.filename() );
 	      else
 		  cerr << HERE << " Cannot save the file: " << chooser.filename() << endl;
 	  }
-	  else if ( strcmp( b->label(), "Layout" ) == 0 ) {
+	  else if ( strcmp( b->label(), "Design\n(PNG)" ) == 0 ) {
 	      if ( _glLayout != NULL )
 		  _glLayout->capture( chooser.filename() );
+	      else
+		  cerr << HERE << " Cannot save the file: " << chooser.filename() << endl;
+	  }
+	  else if ( strcmp( b->label(), "Map\n(EPS)" ) == 0 ) {
+	      if ( _glDrawing != NULL )
+		  _glDrawing->printEPS( chooser.filename() );
+	      else
+		  cerr << HERE << " Cannot save the file: " << chooser.filename() << endl;
+	  }
+	  else if ( strcmp( b->label(), "Design\n(EPS)" ) == 0 ) {
+	      if ( _glLayout != NULL )
+		  _glLayout->printEPS( chooser.filename() );
 	      else
 		  cerr << HERE << " Cannot save the file: " << chooser.filename() << endl;
 	  }
@@ -454,11 +501,15 @@ FLEdit::FLEdit( Adjuster * __adjust,
 
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
-    placeX = groupX + 4*groupW/25;
+    placeX = groupX + 1*groupW/25;
     placeY = groupY + 10;
     placeW = 2*groupW/10;
     placeH = 25;
 
+    cb = new Fl_Check_Button( placeX, placeY, placeW, placeH, "Proximity" );
+    cb->callback( _switchCallback, this );
+
+    placeX += 6*groupW/25;
     cb = new Fl_Check_Button( placeX, placeY, placeW, placeH, "Conjoin" );
     cb->callback( _switchCallback, this );
 
@@ -493,16 +544,26 @@ FLEdit::FLEdit( Adjuster * __adjust,
     groupCapture->labelsize( 24 );
     box( FL_BORDER_BOX ); color( 50 );
 
-    placeX = groupX + 7*groupW/25;
-    placeY = groupY + 10;
+    placeX = groupX + 1*groupW/25;
+    // placeY = groupY + 10;
+    placeY = groupY + 5;
     placeW = 2*groupW/10;
-    placeH = 25;
+    // placeH = 25;
+    placeH = 35;
 
-    b = new Fl_Button( placeX, placeY, placeW, placeH, "Drawing" );
+    b = new Fl_Button( placeX, placeY, placeW, placeH, "Map\n(PNG)" );
     b->callback( _captureCallback, this );
 
     placeX += 6*groupW/25;
-    b = new Fl_Button( placeX, placeY, placeW, placeH, "Layout" );
+    b = new Fl_Button( placeX, placeY, placeW, placeH, "Map\n(EPS)" );
+    b->callback( _captureCallback, this );
+
+    placeX += 6*groupW/25;
+    b = new Fl_Button( placeX, placeY, placeW, placeH, "Design\n(PNG)" );
+    b->callback( _captureCallback, this );
+
+    placeX += 6*groupW/25;
+    b = new Fl_Button( placeX, placeY, placeW, placeH, "Design\n(EPS)" );
     b->callback( _captureCallback, this );
 
     groupCapture->end();

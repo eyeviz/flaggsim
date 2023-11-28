@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:30:13 shigeo"
+//				Time-stamp: "2023-11-28 13:52:57 shigeo"
 //
 //==============================================================================
 
@@ -24,6 +24,8 @@ using namespace std;
 #include <opencv2/opencv.hpp>
 
 // #include <FL/filename.H>		// fl_open_uri()
+
+#include <gl2ps.h>
 
 #include "Common.h"
 #include "GLDrawing.h"
@@ -75,16 +77,22 @@ void GLDrawing::_drawOutlineSet( void )
 	unsigned int nCands = _fig->outline()[ i ].size();
 	for ( unsigned int k = 0; k < nCands; ++k ) {
 	    double t = 0.5;
-	    if ( k == _fig->outlineID()[ i ] ) {
+	    // [Caution] Draw the original coutour shape in blue
+	    // Implemented by ST on 2023/11/27
+	    if ( k == 0 ) {
 		glLineWidth( 3.0 );
-		glColor3d( 0.8, 0.4, 0.0 );
+		glColor4d( 0.0, 0.4, 0.8, 0.5 );
+	    }
+	    else if ( k == _fig->outlineID()[ i ] ) {
+		glLineWidth( 5.0 );
+		glColor4d( 0.8, 0.4, 0.0, 1.0 );
 	    }
 	    else {
 		glLineWidth( 1.0 );
 		if ( _isFilled )
-		    glColor3d( 0.3, 0.3, 0.3 );
+		    glColor4d( 0.3, 0.3, 0.3, 0.2 );
 		else
-		    glColor3d( 0.7, 0.7, 0.7 );
+		    glColor4d( 0.7, 0.7, 0.7, 0.2 );
 	    }
 	    _drawPolygon( _fig->outline()[ i ][ k ] );
 	}
@@ -107,7 +115,7 @@ void GLDrawing::_drawVertexIDs( Network & g )
 	unsigned int id = vertexID[ vd ];
 	Point2 & point = vertexCntr[ vd ];
 	ostringstream strID;
-	strID << '#' << setw( 3 ) << setfill( '0' ) << id << ends;
+	strID << 'P' << setw( 2 ) << setfill( '0' ) << id << ends;
 	_string2D( point.x() - xdisp, point.y(), strID.str().c_str(), 10 );
     }
 }
@@ -218,6 +226,9 @@ void GLDrawing::_drawHullSamples( vector< Polygon2 > & hull )
 {
     glEnable( GL_POINT_SMOOTH ); 
     glPointSize( 5.0 );
+    // ++++++++++++++++++++++++++++++
+    gl2psPointSize( 5.0 );
+    // ++++++++++++++++++++++++++++++
     // cerr << HERE << " Number of hulls = " << hull.size() << endl;
     for ( unsigned int k = 0; k < hull.size(); ++k ) {
 	_drawPolygonSamples( hull[ k ] );
@@ -235,6 +246,9 @@ void GLDrawing::_drawRubberband( void )
 	gluOrtho2D( 0.5, this->w() - 0.5, this->h() - 0.5, 0.5 );
 	glColor4d( 0.9, 0.5, 0.1, 0.5 );
 	glLineWidth( 3.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 3.0 );
+	// ++++++++++++++++++++++++++++++
 #ifdef SKIP
 	cerr << HERE << " _corner = " << _corner;
 	cerr << HERE << " _cursor = " << _cursor;
@@ -391,6 +405,7 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
         cerr << endl;
     }
 
+    // printEPS( "eps/select.eps" );
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
     if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
     redrawAll();
@@ -637,6 +652,7 @@ GLDrawing::GLDrawing( int _x, int _y, int _w, int _h, const char *_l )
 
     _mode		= NORMAL_MODE;
     
+    _isProximity	= false;
     _isConjoined	= false;
     _isWrapped		= false;
     _isPlotted		= false;
@@ -732,12 +748,22 @@ void GLDrawing::Display( void )
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 
+    // ++++++++++++++++++++++++++++++
+    gl2psLineCap( GL2PS_LINE_CAP_ROUND );
+    // gl2psLineCap( GL2PS_LINE_CAP_BUTT );
+    gl2psLineJoin( GL2PS_LINE_JOIN_ROUND );
+    // gl2psLineJoin( GL2PS_LINE_JOIN_MITER );
+    // ++++++++++++++++++++++++++++++
+
     if ( _isFilled ) {
 	// Filling polygons
 	//------------------------------------------------------------------------------
 	//	Draw buildling polygons
 	if ( ( _mode == NORMAL_MODE ) || ( _mode == AGGREGATION_MODE ) ) {
 	    glLineWidth( 1.0 );
+	    // ++++++++++++++++++++++++++++++
+	    gl2psLineWidth( 1.0 );
+	    // ++++++++++++++++++++++++++++++
 	    glColor3d( 1.0, 1.0, 1.0 );
 	    for ( unsigned int i = 0; i < _fig->tri().size(); ++i ) {
 		for ( unsigned int j = 0; j < _fig->tri()[ i ].size(); ++j ) {
@@ -763,6 +789,9 @@ void GLDrawing::Display( void )
 	if ( ( _mode == NORMAL_MODE ) || ( _mode == AGGREGATION_MODE ) ) {
 	    // Drawing polygons
 	    glLineWidth( 1.0 );
+	    // ++++++++++++++++++++++++++++++
+	    gl2psLineWidth( 1.0 );
+	    // ++++++++++++++++++++++++++++++
 	    glColor3d( 0.0, 0.0, 0.0 );
 	    // cerr << HERE << " _fig.bound().size() = " << _fig->bound().size() << endl;
 	    _drawPolygonSet();
@@ -779,7 +808,7 @@ void GLDrawing::Display( void )
 	// Plotting polygons
 	// glEnable( GL_POINT_SMOOTH );
 	// glPointSize( 1.0 );
-	glColor3d( 0.2, 0.8, 0.0 );
+	glColor3d( 0.2, 0.2, 0.2 );
 	// _draw_hull_samples( _fig->poly() );
 	// glPointSize( 5.0 );
 	// glColor3d( 0.8, 0.4, 0.0 );
@@ -800,6 +829,9 @@ void GLDrawing::Display( void )
 	for ( unsigned int i = 0; i < nSegs; ++i ) {
 	    glColor3d( 1.0, 0.5, 0.0 );
 	    glLineWidth( 7.0 );
+	    // ++++++++++++++++++++++++++++++
+	    gl2psLineWidth( 7.0 );
+	    // ++++++++++++++++++++++++++++++
 	    Polygon2 curPoly = _worksp->coverBand()[ _worksp->pickID() ][ i ];
 	    _drawPolygon( curPoly );
 	}
@@ -810,9 +842,15 @@ void GLDrawing::Display( void )
 	// cerr << HERE << " Drawing the beta-skelton" << endl;
 #ifdef DEBUGGING_PHASE
 	glLineWidth( 2.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 2.0 );
+	// ++++++++++++++++++++++++++++++
 	glColor3d( 0.7, 0.7, 0.7 );
 #else	// DEBUGGING_PHASE
 	glLineWidth( 2.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 2.0 );
+	// ++++++++++++++++++++++++++++++
 	// glColor3d( 0.0, 1.0, 0.5 );
 #endif	// DEBUGGING_PHASE
 	_drawDirected( _fig->wrapper() );
@@ -826,22 +864,27 @@ void GLDrawing::Display( void )
 	// draw_polygon_ids( fig );
     }
 
-    if ( _isConjoined ) {
-	glColor4d( 0.0, 0.0, 0.0, 1.0 );
-	// draw_vertex_ids( netN );
-	_drawVertexIDs( _fig->netNbr() );
-	
+    if ( _isProximity ) {
 	// glColor4d( 1.0, 0.5, 0.0, 0.4 );
 	//glColor4d( 0.3, 0.3, 0.3, 0.4 );
 	glColor4d( 0.8, 0.6, 0.0, 0.6 );
-	// glLineWidth( 1.0 );
 	glLineWidth( 2.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 2.0 );
+	// ++++++++++++++++++++++++++++++
 	_drawNetwork( _fig->netNbr() );
+
+    }
+
+    if ( _isConjoined ) {
 	
 	glPushMatrix();
 	glTranslated( -offset, -offset, 0.0 );
 	glColor4d( 1.0, 0.5, 0.0, 0.7 );
 	glLineWidth( 5.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 5.0 );
+	// ++++++++++++++++++++++++++++++
 	_drawNetwork( _fig->netPrx() );
 	glPopMatrix();
     
@@ -850,12 +893,18 @@ void GLDrawing::Display( void )
 	glTranslated( offset, offset, 0.0 );
 	glColor4d( 0.0, 0.0, 1.0, 0.7 );
 	glLineWidth( 5.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 5.0 );
+	// ++++++++++++++++++++++++++++++
 	_drawNetwork( _fig->netSim() );
 	glPopMatrix();
 #endif	// USING_SIMILARITY_CONJOINING
 	
 	// drawing concave polygons
 	glLineWidth( 3.0 );
+	// ++++++++++++++++++++++++++++++
+	gl2psLineWidth( 3.0 );
+	// ++++++++++++++++++++++++++++++
 	glColor4d( 0.0, 0.5, 0.0, 0.8 );
 	_drawHulls( _fig->hullPrx() );
 #ifdef USING_SIMILARITY_CONJOINING
@@ -866,6 +915,12 @@ void GLDrawing::Display( void )
 	_drawHulls( _fig->hullDes() );
 
 	// _drawHullSamples( _fig->poly() );
+    }
+
+    if ( _isProximity || _isConjoined || _isWrapped ) {
+	glColor4d( 0.0, 0.0, 0.0, 1.0 );
+	// draw_vertex_ids( netN );
+	_drawVertexIDs( _fig->netNbr() );
     }
 
     // for disabling antialiasing
@@ -1150,6 +1205,12 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  _isConjoined = !_isConjoined;
 	  if ( _isConjoined ) cerr << HERE << " isConjoined TRUE" << endl;
 	  else cerr << HERE << " isConjoined FALSE" << endl;
+	  break;
+      case 'o': // == 106
+      case 'O':
+	  _isProximity = !_isProximity;
+	  if ( _isProximity ) cerr << HERE << " isProximity TRUE" << endl;
+	  else cerr << HERE << " isProximity FALSE" << endl;
 	  break;
       case 'b': // == 98
       case 'B':

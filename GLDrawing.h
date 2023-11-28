@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:12:57 shigeo"
+//				Time-stamp: "2023-11-27 16:13:01 shigeo"
 //
 //==============================================================================
 
@@ -63,6 +63,7 @@ class GLDrawing : public GLMacro {
     int			_left, _middle, _right;
 					// mouse buttons
 
+    bool		_isProximity;
     bool		_isConjoined;
     bool		_isWrapped;
     bool		_isPlotted;
@@ -124,6 +125,10 @@ public:
     void setMode( int __mode )			{ _mode = __mode; }
     
     void release		( void )	{ _release(); }
+
+    const bool & isProximity( void ) const 	{ return _isProximity; }
+    void setProximity( void )			{ _isProximity = true; }
+    void clearProximity( void )			{ _isProximity = false; }
 
     const bool & isConjoined( void ) const 	{ return _isConjoined; }
     void setConjoined( void )			{ _isConjoined = true; }

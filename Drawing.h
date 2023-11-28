@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:28:04 shigeo"
+//				Time-stamp: "2023-11-27 14:34:11 shigeo"
 //
 //==============================================================================
 
@@ -52,6 +52,7 @@ using namespace std;
 // This is defined in Network.h
 // #define USING_SIMILARITY_CONJOINING
 
+#define AVOID_DUPLICATE_HULL_CANDIDATES
 
 
 //------------------------------------------------------------------------------
@@ -212,9 +213,11 @@ class Drawing {
 
   protected:
 
+    Point2			_origin;	// origin of the line drawing
+    double			_side;		// side of the rectangular scope
+
     vector< Polygon2 >		_poly;		// polygons
     vector< Set >		_glID;		// global IDs of points
-    // Point2			_center;	// center of the line drawing
     
     vector< Polygon2 >		_bound;		// simplified boundary
     vector< vector< Triangle2 > >
@@ -312,7 +315,8 @@ class Drawing {
 //------------------------------------------------------------------------------
 //	Geometric computations
 //------------------------------------------------------------------------------
-    Point2		_origin		( void ) const;
+    void		_crop		( void );
+    void		_uncrop		( void );
     void		_resample	( double div );
 
 //------------------------------------------------------------------------------
@@ -470,7 +474,9 @@ public:
     const Directed & wrapper( void ) const 	{ return _wrapper; }
     Directed & wrapper( void )			{ return _wrapper; }
 
-
+    const Point2 & origin( void ) const		{ return _origin; }
+    const double & side( void ) const		{ return _side; }
+    
     const vector< Polygon2 > & poly( void ) const { return _poly; }
     vector< Polygon2 > & poly( void )		{ return _poly; }
     const vector< Set > & glID( void ) const	{ return _glID; }
@@ -581,8 +587,13 @@ public:
 //------------------------------------------------------------------------------
 //	Geometric computation
 //------------------------------------------------------------------------------
-    Point2 origin	( void ) const {
-	return _origin();
+    void crop		( void ) {
+	if ( _poly.size() == 0 ) return;
+	_crop();
+    }
+    void uncrop		( void ) {
+	if ( _poly.size() == 0 ) return;
+	_uncrop();
     }
     void resample	( double div = RESAMPLE_INTERVAL ) {
 	if ( _poly.size() == 0 ) return;

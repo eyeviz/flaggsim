@@ -30,6 +30,7 @@ MACLIBS =	-L$(PREFIX)/lib \
 		`pkg-config --libs flann` \
 		`pkg-config --libs opencv4` \
 		`pkg-config --libs gmp` \
+		-lgl2ps \
        		-lfltk_gl -lfltk \
 		-framework OpenGL -framework GLUT \
 		-lgmp \
@@ -48,6 +49,8 @@ SRC =           \
 		Concave.cpp \
 		\
 		CSVIO.cpp \
+		\
+		Sketch.cpp \
 		\
 		Spatial.cpp \
 		Contour.cpp \
@@ -86,6 +89,8 @@ HDR =	        \
 		Concave.h \
 		\
 		CSVIO.h \
+		\
+		Sketch.h \
 		\
 		Spatial.h \
 		Contour.h \

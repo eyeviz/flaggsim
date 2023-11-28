@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 19:56:11 shigeo"
+//				Time-stamp: "2023-11-24 20:04:09 shigeo"
 //
 //==============================================================================
 
@@ -93,6 +93,7 @@ class GLMacro : public Fl_Gl_Window {
     void _loadDrawing		( const char * filename );
     void _saveDrawing		( const char * filename );
     void _capture		( const char * filename );
+    void _printEPS		( const char * filename );
 
   public:
 
@@ -172,6 +173,10 @@ class GLMacro : public Fl_Gl_Window {
     }
     void capture		( const char * filename ) {
 	_capture( filename );
+	redrawAll();
+    }
+    void printEPS		( const char * filename ) {
+	_printEPS( filename );
 	redrawAll();
     }
 

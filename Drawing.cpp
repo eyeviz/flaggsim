@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:28:16 shigeo"
+//				Time-stamp: "2023-11-28 13:58:39 shigeo"
 //
 //==============================================================================
 
@@ -20,6 +20,7 @@
 #include "Contour.h"
 #include "Votes.h"
 #include "Concave.h"
+#include "Sketch.h"
 
 //------------------------------------------------------------------------------
 //	Defining Macros
@@ -243,8 +244,7 @@ void Drawing::_normalizeMatrix( vector< vector< double > > & cost,
 //------------------------------------------------------------------------------
 
 //
-//  Drawing::_centralize --	centralize the points on  boundary of building
-//				polygons 
+//  Drawing::_crop --	calculate the origin of the line drawings
 //
 //  Inputs
 //	none
@@ -252,8 +252,20 @@ void Drawing::_normalizeMatrix( vector< vector< double > > & cost,
 //  Outputs
 //	none
 //
-Point2 Drawing::_origin( void ) const
+void Drawing::_crop( void )
 {
+//------------------------------------------------------------------------------
+//	Calculate the origin
+//------------------------------------------------------------------------------
+#define USE_BOUNDING_BOXES
+#ifdef USE_BOUNDING_BOXES
+    Bbox2 region;
+    for ( unsigned int i = 0; i < _poly.size(); ++i ) {
+	region += _poly[ i ].bbox();
+    }
+    Vector2 gc( 0.5 * ( region.xmin() + region.xmax() ),
+		0.5 * ( region.ymin() + region.ymax() ) );
+#else	// USE_BOUNDING_BOXES
     // for centralizing polygon samples
     unsigned int nPoints = 0;
     Vector2 gc( 0.0, 0.0 );
@@ -266,9 +278,46 @@ Point2 Drawing::_origin( void ) const
 
     // compute the gravity center
     gc /= ( double )nPoints;
+#endif	// USE_BOUNDING_BOXES
 
-    Point2 center = CGAL::ORIGIN + gc;
-    return center;
+
+    _origin = CGAL::ORIGIN + gc;
+
+//------------------------------------------------------------------------------
+//	Side of the rectangular region
+//------------------------------------------------------------------------------
+    _side = BLOCK_SIZE_BASE;
+
+//------------------------------------------------------------------------------
+//	Transform he figure
+//------------------------------------------------------------------------------
+    for ( unsigned int i = 0; i < _poly.size(); ++i ) {
+	for ( unsigned int j = 0; j < _poly[ i ].size(); ++j ) {
+	    _poly[ i ][ j ] = CGAL::ORIGIN + ( _poly[ i ][ j ] - _origin ) / _side;
+	}
+    }
+}
+
+
+//
+//  Drawing::_uncrop --	reverse transform the figures to the map
+//
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+void Drawing::_uncrop( void )
+{
+    cerr << HERE << " side = " << _side << " origin = " << _origin << endl;
+    for ( unsigned int i = 0; i < _poly.size(); ++i ) {
+	for ( unsigned int j = 0; j < _poly[ i ].size(); ++j ) {
+	    // cerr << " Before : " << _poly[ i ][ j ] << endl;
+	    _poly[ i ][ j ] = _origin + _side * ( _poly[ i ][ j ] - CGAL::ORIGIN );
+	    // cerr << " After : " << _poly[ i ][ j ] << endl;
+	}
+    }
 }
 
 
@@ -1666,6 +1715,8 @@ void Drawing::_assignLabels( void )
     cerr << HERE << "[ 1.0 ] Number of proximity labels = " << _labelPrx.size() << endl;
     for ( unsigned int k = 1; k < numLevels; ++k ) {
 	double curRatio = 1.0/pow( 2.0, ( double )k );
+	// double curRatio = 1.0 - ( double )k/( double )numLevels;
+	// double curRatio = 1.0/( double )(k+1);
 	vector< Set >	curLabelPrx;
 	_calcNewProximity( curRatio );
 	_labelComponents( _netPrx, curLabelPrx );
@@ -2292,6 +2343,17 @@ void Drawing::_calcLabelCost( void )
     costSim.clear();
     for ( unsigned int i = 0; i < _labelSim.size(); ++i ) {
 	Polygon2 hull;
+#ifdef AVOID_DUPLICATE_HULL_CANDIDATES
+	bool doExist = false;
+	for ( unsigned int k = 0; k < _labelPrx.size(); ++k ) {
+	    if ( _labelSim[ i ] == _labelPrx[ k ] ) {
+		cerr << HERE << " Eliminating a duplicate hull candidate" << endl;
+		doExist = true;
+	    }
+	    if ( doExist ) break;
+	}
+	if ( doExist ) continue;
+#endif	// AVOID_DUPLICATE_HULL_CANDIDATES
 	_concaveForLabel( _netNbr, _labelSim[ i ], hull );
 	_boundSim.push_back( hull );
 	_hullSim.push_back( hull );
@@ -2793,6 +2855,15 @@ void Drawing::_squareOutlines( void )
     _outline.resize( _bound.size() );
     _outlineID.resize( _bound.size() );
     for ( unsigned int i = 0; i < _bound.size(); ++i ) {
+	// ==============================
+	// [Caution] We intentionally introduce the current contour profiles as
+	// the first candidate for the simplified building shape.
+	// Noted by ST on 2023/11/27
+	Contour initial;
+	initial.polygon() = _bound[ i ];
+	initial.purify();
+	_outline[ i ].push_back( initial.polygon() );
+	// ==============================
 	for ( unsigned int k = 0; k < nBands; ++k ) {
 	    Contour contour;
 	    contour.polygon() = _bound[ i ];
@@ -2842,7 +2913,11 @@ void Drawing::_squareOutlines( void )
     }
 
     for ( unsigned int i = 0; i < _outline.size(); ++i ) {
+	// This is the original setup; seems to be much better.
 	_outlineID[ i ] = _outline[ i ].size() - 1;
+	// [Caution] Set the original contour profiles as the default
+	// Noted by ST on 2023/11/27
+	// _outlineID[ i ] = 0;
     }
 
 #ifdef SKIP

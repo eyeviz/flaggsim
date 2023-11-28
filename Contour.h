@@ -117,6 +117,11 @@ protected:
 	_arrange();
 	return _match();
     }
+
+    void	_purify	( void ) {
+	while ( _delIdentical() );
+	while ( _delCollinear() );
+    }
     
     static bool _mycollinear	( const Point2 & p, const Point2 & q, const Point2 & r );
     bool	_delIdentical	( void );
@@ -203,6 +208,8 @@ protected:
     bool match		( void )			{ return _match(); }
 
     bool prepare	( void )			{ return _prepare(); }
+
+    void purify		( void )			{ _purify(); }
 
     bool contract	( double areaUpperLimit = INFINITY, int numLowerLimit = 8 )	{
 	return _contract( areaUpperLimit, numLowerLimit );

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-23 19:55:09 shigeo"
+//				Time-stamp: "2023-11-27 17:34:43 shigeo"
 //
 //==============================================================================
 
@@ -17,6 +17,8 @@ using namespace std;
 
 // OpenCV library
 #include <opencv2/opencv.hpp>
+
+#include <gl2ps.h>
 
 #include "CSVIO.h"
 #include "GLMacro.h"
@@ -105,18 +107,29 @@ void GLMacro::_string2D( double x, double y, const char *str, int size )
 {
     double basex = x;
     double basey = y;
-    gl_font( 1, size );
+    //gl_color( FL_FREE_COLOR );
+    gl_font( FL_HELVETICA, 10 );
+    // gl_font( 1, size );
     glRasterPos2d( basex, basey );
     // gl_draw( str, strlen( str ) );
+    gl2psText( str, "Helvetica", 10 );
+
+// ++++++++++++++++++++++++++++++
+#define DRAW_STRING_FOR_EPS
+// ++++++++++++++++++++++++++++++
+
+#ifndef DRAW_STRING_FOR_EPS
     gl_draw( str );
-    
-#ifdef SKIP
+    // gl_draw( str, (float)basex, (float)basey );
+    // int len = strlen( str );
+    // gl_draw( str, len, (float)basex, (float)basey );
+#else	// DRAW_STRING_FOR_EPS
     for (; *str != 0; str++) {
         if ( *str == '\n' ) {
             glRasterPos2i( basex, basey );
         }
         else {
-            // glutBitmapCharacter( FUTL_FONT_TYPE, *str );
+	    // glutBitmapCharacter( FUTL_FONT_TYPE, *str );
             // GLUT_BITMAP_8_BY_13
             // GLUT_BITMAP_9_BY_15
             // GLUT_BITMAP_TIMES_ROMAN_10
@@ -126,14 +139,14 @@ void GLMacro::_string2D( double x, double y, const char *str, int size )
             // GLUT_BITMAP_HELVETICA_18
             // glutBitmapCharacter( GLUT_BITMAP_8_BY_13, *str );
             // glutBitmapCharacter( GLUT_BITMAP_9_BY_15, *str );
-            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, *str );
+            glutBitmapCharacter( GLUT_BITMAP_HELVETICA_10, *str );
             // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_12, *str );
-            glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, *str );
+            // glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, *str );
             // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_10, *str );
             // glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, *str );
         }
     }
-#endif	// SKIP
+#endif	// DRAW_STRING_FOR_EPS
 }
 
 
@@ -320,6 +333,28 @@ void GLMacro::_capture( const char * name )
     cv::imwrite( name, image );
 
     cerr << "Capturing the drawing window as " << name << " ... done." << endl;
+}
+
+// Capture the window as an EPS file
+void GLMacro::_printEPS( const char * name )
+{
+    FILE *fp;
+    int state = GL2PS_OVERFLOW, buffsize = 0;
+
+    fp = fopen( name, "wb" );
+    cerr << "Writing the eps data into " << name << " ... " << ends;
+    while ( state == GL2PS_OVERFLOW ) {
+	buffsize += 1024*1024;
+	gl2psBeginPage( "eps", 
+			"gl2ps", 
+			NULL, GL2PS_EPS, GL2PS_SIMPLE_SORT,
+			GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
+			// GL2PS_USE_CURRENT_VIEWPORT,
+			GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, "out.eps" );
+	Display();
+	state = gl2psEndPage();
+    }
+    fclose( fp );
 }
 
 
