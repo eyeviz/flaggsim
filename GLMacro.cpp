@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-27 17:34:43 shigeo"
+//				Time-stamp: "2023-11-30 13:38:11 shigeo"
 //
 //==============================================================================
 
@@ -115,7 +115,7 @@ void GLMacro::_string2D( double x, double y, const char *str, int size )
     gl2psText( str, "Helvetica", 10 );
 
 // ++++++++++++++++++++++++++++++
-#define DRAW_STRING_FOR_EPS
+// #define DRAW_STRING_FOR_EPS
 // ++++++++++++++++++++++++++++++
 
 #ifndef DRAW_STRING_FOR_EPS
@@ -256,6 +256,11 @@ void GLMacro::_loadDrawing( const char * filename )
     }
     ifs.close();
 
+#ifdef TENTATIVE_NORMALIZATION
+    // Tentative setup
+    Drawing::normalizeCoord( _fig->poly() );
+#endif	// TENTATIVE_NORMALIZATION
+    
     _fig->resample();
     
     _fig->bound() = _fig->poly();

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-27 14:34:11 shigeo"
+//				Time-stamp: "2023-11-29 21:31:32 shigeo"
 //
 //==============================================================================
 
@@ -35,7 +35,13 @@ using namespace std;
 // ************************************************************
 // #define AUTOMATIC_CONJOINING
 
+// #define PREVIOUS_GESTALT_CONJOINING
+
+#ifndef PREVIOUS_GESTALT_CONJOINING
 #define CONCAVE_HULL_GENERATION
+#endif	// PREVIOUS_GESTALT_CONJOINING
+
+// #define CONCAVE_HULL_GENERATION
 #ifndef CONCAVE_HULL_GENERATION
 #define CONVEX_HULL_GENERATION
 #endif	// CONCAVE_HULL_GENERATION
@@ -60,9 +66,9 @@ using namespace std;
 //------------------------------------------------------------------------------
 #define RESAMPLE_BOUNDARY
 #ifdef RESAMPLE_BOUNDARY
-//#define RESAMPLE_INTERVAL	(0.02)
+// #define RESAMPLE_INTERVAL	(0.01)
 //#define RESAMPLE_INTERVAL	(0.025)
-#define RESAMPLE_INTERVAL	(0.024)
+#define RESAMPLE_INTERVAL	(0.024) // <== final choice
 // #define RESAMPLE_INTERVAL	(0.030) // OK
 // #define RESAMPLE_INTERVAL	(0.032) // OK
 // #define RESAMPLE_INTERVAL	(0.04) // OK
@@ -311,7 +317,6 @@ class Drawing {
     static void		_normalizeMatrix( vector< vector< double > > & cost,
 					  const double lower = 0.0,
 					  const double upper = 1.0 );
-
 //------------------------------------------------------------------------------
 //	Geometric computations
 //------------------------------------------------------------------------------
@@ -690,6 +695,13 @@ public:
 //------------------------------------------------------------------------------
     virtual const char * className( void ) const { return "Drawing"; }
 				// class name
+
+
+    static void		normalizeCoord( vector< Polygon2 > & coord,
+					const double lower = -1.0,
+					const double upper = 1.0 );
+
+
 };
 
 

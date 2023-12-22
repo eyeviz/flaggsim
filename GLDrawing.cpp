@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-28 13:52:57 shigeo"
+//				Time-stamp: "2023-12-22 13:43:51 shigeo"
 //
 //==============================================================================
 
@@ -70,6 +70,12 @@ void GLDrawing::_drawPolygonSet( void )
 // Function for drawing all the building polygons with names
 void GLDrawing::_drawOutlineSet( void )
 {
+    // ++++++++++++++++++++++++++++++
+    gl2psLineCap( GL2PS_LINE_CAP_ROUND );
+    // gl2psLineCap( GL2PS_LINE_CAP_BUTT );
+    gl2psLineJoin( GL2PS_LINE_JOIN_ROUND );
+    // gl2psLineJoin( GL2PS_LINE_JOIN_MITER );
+    // ++++++++++++++++++++++++++++++
 //------------------------------------------------------------------------------
     glLoadName( NO_NAME );
 //------------------------------------------------------------------------------
@@ -80,15 +86,28 @@ void GLDrawing::_drawOutlineSet( void )
 	    // [Caution] Draw the original coutour shape in blue
 	    // Implemented by ST on 2023/11/27
 	    if ( k == 0 ) {
-		glLineWidth( 3.0 );
-		glColor4d( 0.0, 0.4, 0.8, 0.5 );
+		glLineWidth( 5.0 );
+		// ++++++++++++++++++++++++++++++
+		gl2psLineWidth( 5.0 );
+		// ++++++++++++++++++++++++++++++
+		if ( _isFilled )
+		    // glColor4d( 0.6, 0.7, 0.8, 0.5 );
+		    glColor4d( 0.6, 0.7, 0.8, 1.0 );
+		else
+		    glColor4d( 0.0, 0.4, 0.8, 0.5 );
 	    }
 	    else if ( k == _fig->outlineID()[ i ] ) {
-		glLineWidth( 5.0 );
+		glLineWidth( 7.0 );
+		// ++++++++++++++++++++++++++++++
+		gl2psLineWidth( 7.0 );
+		// ++++++++++++++++++++++++++++++
 		glColor4d( 0.8, 0.4, 0.0, 1.0 );
 	    }
 	    else {
 		glLineWidth( 1.0 );
+		// ++++++++++++++++++++++++++++++
+		gl2psLineWidth( 1.0 );
+		// ++++++++++++++++++++++++++++++
 		if ( _isFilled )
 		    glColor4d( 0.3, 0.3, 0.3, 0.2 );
 		else

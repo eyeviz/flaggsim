@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-28 13:58:39 shigeo"
+//				Time-stamp: "2023-11-29 21:31:12 shigeo"
 //
 //==============================================================================
 
@@ -237,6 +237,7 @@ void Drawing::_normalizeMatrix( vector< vector< double > > & cost,
 	}
     }
 }
+
 
 
 //------------------------------------------------------------------------------
@@ -750,9 +751,12 @@ void Drawing::_wrapBSkeleton( void )
 	    // building aggregation. Instead, we employ the closeness between
 	    // the building polygon boundaries.
 	    // Noted by ST on 2023/11/09
-	    // edgeWeight[ ed ] = _distPolys( idPolyE, idPolyL );
+#ifdef PREVIOUS_GESTALT_CONJOINING
+	    edgeWeight[ ed ] = _distPolys( idPolyE, idPolyL );
+#else	// PREVIOUS_GESTALT_CONJOINING
 	    edgeWeight[ ed ] = linkLength;
-	    cerr << " edgeWeight = " << edgeWeight[ ed ] << endl;
+#endif	// PREVIOUS_GESTALT_CONJOINING
+	    // cerr << " edgeWeight = " << edgeWeight[ ed ] << endl;
 #ifdef USING_SIMILARITY_CONJOINING
 	    // aspect ratio
 	    edgeRatio[ ed ] = _simPolys( idPolyE, idPolyL );
@@ -764,15 +768,16 @@ void Drawing::_wrapBSkeleton( void )
 	    NetEdgeDescriptor ed;
 	    bool ok;
 	    tie( ed, ok ) = edge( vdPolyE, vdPolyL, net );
+#ifdef PREVIOUS_GESTALT_CONJOINING
+	    edgeWeight[ ed ] = _distPolys( idPolyE, idPolyL );
+#else	// PREVIOUS_GESTALT_CONJOINING
 	    if ( linkLength < edgeWeight[ ed ] ) {
 		// cerr << " changing edge weight " << idPolyE << " ==> " << idPolyL;
 		// cerr << " edgeWeight : " << edgeWeight[ ed ] << " => ";
 		edgeWeight[ ed ] = linkLength;
 		// cerr << edgeWeight[ ed ] << endl;
 	    }
-	    // cerr << HERE << " Illegal case: The identical edge already exists" << endl;
-	    // cerr << HERE << " Edge : " << idS << " == " << idL << endl;
-	    // exit( 0 );
+#endif	// PREVIOUS_GESTALT_CONJOINING
 	}
     }
 
@@ -1535,6 +1540,7 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	}
     }
     // cerr << HERE << " Number of corners in the polygon = " << points.size();
+#ifdef SAVE_CONCAVE_HULL_RESULTS
     //------------------------------------------------------------------------------
     //	Print out the polygon coordinates for debug
     //------------------------------------------------------------------------------
@@ -1553,13 +1559,34 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	cerr.rdbuf( buf_concave );
 	ofs_concave.close();
     }
+#endif	// SAVE_CONCAVE_HULL_RESULTS
 
 #ifdef CONVEX_HULL_GENERATION
-    vector< unsigned int >	indices( point.size() ), out;
-    iota( indices.begin(), indices.end(), 0 );
-    // CGAL::convex_hull_2( points.begin(), points.end(), std::back_inserter( result ) );
-    CGAL::convex_hull_2( indices.begin(), indices.end(), std::back_inserter( out ),
-			 Convex_hull_traits_2( CGAL::make_property_map( point ) ) );
+    // if ( label[ 0 ] == 14 ) {
+    // for ( unsigned k = 0; k < point.size(); ++k ) {
+    // cerr << HERE << " point[ " << k << " ] = " << point[ k ] << endl;
+    // }
+    // }
+
+    vector< unsigned int > out;
+    if ( label.size() == 1 ) {
+	out =	concave_hull_2( point, 2 );
+    }
+    else {
+	vector< unsigned int >	indices( point.size() );
+	iota( indices.begin(), indices.end(), 0 );
+	CGAL::convex_hull_2( indices.begin(), indices.end(), std::back_inserter( out ),
+			     Convex_hull_traits_2( CGAL::make_property_map( point ) ) );
+    }
+
+    // if ( label[ 0 ] == 14 ) {
+    // for ( unsigned k = 0; k < out.size(); ++k ) {
+    // cerr << HERE << " out[ " << k << " ] = " << out[ k ] << endl;
+    // }
+    // }
+
+    // vector< unsigned int > out;
+    // CGAL::convex_hull_2( point.begin(), point.end(), std::back_inserter( out ) );
 
     // cerr << result.size() << " points on the convex hull" << std::endl;
 #endif	// CONVEX_HULL_GENERATION
@@ -1709,13 +1736,28 @@ void Drawing::_assignLabels( void )
     // Assign a label to each proximity set of polygon components
     cerr << HERE << title << " Constructed the proximity graph " << endl;
     const unsigned int numLevels = 3;
+    // const unsigned int numLevels = 4;
     _labelPrx.clear();
     _calcNewProximity( 1.0 );
     _labelComponents( _netPrx, _labelPrx );
     cerr << HERE << "[ 1.0 ] Number of proximity labels = " << _labelPrx.size() << endl;
     for ( unsigned int k = 1; k < numLevels; ++k ) {
+	// Several choices for shrinking the proximity graph to extract possible
+	// groups of polygons
+	// Noted by ST on 2023/11/28
+	// ------------------------------
+	// linear interpolation from 1.0 to 0.5
+	// double t = ( double )k/( double )(numLevels - 1);
+	// double curRatio = ( 1.0 - t ) * 1.0 + t * 0.5;
+	// ------------------------------
+	// linear interpolation from 1.0 to 0.0
+	// double curRatio = 1.0 - ( double )k/( double )(numLevels);
+	// cerr << HERE << ">>>>>>>>>> curRatio*100.0 = " << curRatio*100.0 << endl;
+	// ------------------------------
+	// inverse of the power of 2.0
 	double curRatio = 1.0/pow( 2.0, ( double )k );
-	// double curRatio = 1.0 - ( double )k/( double )numLevels;
+	// ------------------------------
+	// inverse of the index plus one
 	// double curRatio = 1.0/( double )(k+1);
 	vector< Set >	curLabelPrx;
 	_calcNewProximity( curRatio );
@@ -2565,7 +2607,9 @@ void Drawing::_graphCut( void )
 //------------------------------------------------------------------------------
 //	Very important: Delete the last expansion HERE!!
 //------------------------------------------------------------------------------
-    _expand.erase( _expand.end() - 1 );
+    // Decided to leave the original layout
+    // noted by ST on 2023/11/29
+    // _expand.erase( _expand.end() - 1 );
 
 
 #ifdef DEBUG
@@ -3182,6 +3226,81 @@ istream & operator >> ( istream & stream, Drawing & obj )
     }
 
     return stream;
+}
+
+//
+//  Drawing::normalizeCoord --	
+//
+//  Inputs
+//	none
+//
+//  Outputs
+//	none
+//
+void Drawing::normalizeCoord( vector< Polygon2 > & coord,
+			      const double lowerLimit, const double upperLimit )
+{
+    double xAve = 0.0, yAve = 0.0;
+    unsigned int count = 0;
+
+    // up side down
+    for ( unsigned int i = 0; i < coord.size(); ++i ) {
+	for ( unsigned int j = 0; j < coord[ i ].size(); ++j ) {
+	    coord[ i ][ j ] = Point2( coord[ i ][ j ].x(), -coord[ i ][ j ].y() );
+	}
+    }
+
+    for ( unsigned int i = 0; i < coord.size(); ++i ) {
+	for ( unsigned int j = 0; j < coord[ i ].size(); ++j ) {
+	    xAve += coord[ i ][ j ].x();
+	    yAve += coord[ i ][ j ].y();
+	}
+	count += coord[ i ].size();
+    }
+    xAve /= ( double )count;
+    yAve /= ( double )count;
+    cerr << HERE << " xAve = " << xAve << " yAve = " << yAve << endl;
+
+    for ( unsigned int i = 0; i < coord.size(); ++i ) {
+	for ( unsigned int j = 0; j < coord[ i ].size(); ++j ) {
+	    coord[ i ][ j ] = Point2( coord[ i ][ j ].x() - xAve,
+				      coord[ i ][ j ].y() - yAve );
+	}
+    }
+
+    double xMax = -INFINITY, xMin = INFINITY, yMax = -INFINITY, yMin = INFINITY;
+    for ( unsigned int i = 0; i < coord.size(); ++i ) {
+	for ( unsigned int j = 0; j < coord[ i ].size(); ++j ) {
+	    if ( coord[ i ][ j ].x() > xMax ) xMax = coord[ i ][ j ].x();
+	    if ( coord[ i ][ j ].x() < xMin ) xMin = coord[ i ][ j ].x();
+	    if ( coord[ i ][ j ].y() > yMax ) yMax = coord[ i ][ j ].y();
+	    if ( coord[ i ][ j ].y() < yMin ) yMin = coord[ i ][ j ].y();
+	}
+    }
+    double xLimit = max( abs( xMax ), abs( xMin ) );
+    double yLimit = max( abs( yMax ), abs( yMin ) );
+    double cLimit = max( xLimit, yLimit );
+    cerr << HERE << " cLimit = " << cLimit << endl;
+    
+    for ( unsigned int i = 0; i < coord.size(); ++i ) {
+	for ( unsigned int j = 0; j < coord[ i ].size(); ++j ) {
+	    coord[ i ][ j ] = Point2( coord[ i ][ j ].x()/(2.5*cLimit),
+				      coord[ i ][ j ].y()/(2.5*cLimit) );
+	}
+    }
+
+    ofstream ofs( "normalization_check.dat" );
+
+    if ( ofs ) {
+	ofs << coord.size() << endl;
+	for ( unsigned int i = 0; i < coord.size(); ++i ) {
+	    ofs << coord[ i ].size() << endl;
+	    for ( unsigned int j = 0; j < coord[ i ].size(); ++j ) {
+		ofs << coord[ i ][ j ].x() << " " << coord[ i ][ j ].y() << endl;
+	    }
+	}
+    }
+    ofs.close();
 }
 
 
