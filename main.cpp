@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-24 00:41:09 shigeo"
+//				Time-stamp: "2023-12-23 04:29:30 shigeo"
 //
 //==============================================================================
 
@@ -94,14 +94,18 @@ Drawing *	fig		= NULL;
 Workspace *	worksp		= NULL;
 Adjuster *	adjust		= NULL;
 
-//int		base_size	= HUGE_SIZE;
-int		base_size	= LARGE_SIZE;
+#ifdef ACTIVE_RECORDING_MODE
+int		base_size	= FULL_SIZE;
+#else	// ACTIVATE_RECORDING_MODE
+int		base_size	= FULL_SIZE;
+//int		base_size	= LARGE_SIZE;
+#endif	// ACTIVATE_RECORDING_MODE
 int		map_width	= base_size;
 int		map_height	= base_size;
 int		design_width	= base_size;
 int		design_height	= base_size;
-int		panel_width	= base_size/2;
-int		panel_height	= base_size;
+int		panel_width	= LARGE_SIZE/2;
+int		panel_height	= LARGE_SIZE;
 
 // main function
 int main( int argc, char *argv[] )

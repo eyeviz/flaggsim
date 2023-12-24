@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-12-22 13:43:51 shigeo"
+//				Time-stamp: "2023-12-23 04:28:28 shigeo"
 //
 //==============================================================================
 
@@ -1137,8 +1137,8 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  dirname = "raster/" + _headname;
 	  //------------------------------------------------------------------------------
 	  // Start to save the output image data
-	  outname = dirname + "/out.png";
-	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  outname = dirname + "/out-a.png";
+	  cerr << HERE << " output image (png) ======> : " << outname << endl;
 	  _capture( outname.c_str() );
 #endif	// ACTIVATE_RECORDING_MODE
 	  break;
@@ -1158,6 +1158,16 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  else {
 	      cerr << "We are not in NORMAL MODE now." << endl;
 	  }
+#ifdef ACTIVATE_RECORDING_MODE
+	  //------------------------------------------------------------------------------
+	  // Prepare the directory name for saving snapshot images
+	  dirname = "raster/" + _headname;
+	  //------------------------------------------------------------------------------
+	  // Start to save the output image data
+	  outname = dirname + "/out-s.png";
+	  cerr << HERE << " output image (png) ======> : " << outname << endl;
+	  _capture( outname.c_str() );
+#endif	// ACTIVATE_RECORDING_MODE
 	  break;
       case 'n':
       case 'N':
@@ -1168,6 +1178,16 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  else {
 	      cerr << "We are not in NORMAL MODE now." << endl;
 	  }
+#ifdef ACTIVATE_RECORDING_MODE
+	  //------------------------------------------------------------------------------
+	  // Prepare the directory name for saving snapshot images
+	  dirname = "raster/" + _headname;
+	  //------------------------------------------------------------------------------
+	  // Start to save the output image data
+	  outname = dirname + "/out-s.png";
+	  cerr << HERE << " output image (png) ======> : " << outname << endl;
+	  _capture( outname.c_str() );
+#endif	// ACTIVATE_RECORDING_MODE
 	  break;
       case 'x':
       case 'X':
@@ -1199,8 +1219,8 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  dirname = "raster/" + _headname;
 	  //------------------------------------------------------------------------------
 	  // Start to save the output image data
-	  outname = dirname + "/out.png";
-	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  outname = dirname + "/out-a.png";
+	  cerr << HERE << " output image (png) ======> : " << outname << endl;
 	  _capture( outname.c_str() );
 #endif	// ACTIVATE_RECORDING_MODE
 	  break;
@@ -1326,8 +1346,8 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	  saveDrawing( aftname.c_str() );
 	  //------------------------------------------------------------------------------
 	  // Start to save the output image data
-	  outname = dirname + "/out.png";
-	  cerr << HERE << " outpu image (png) ======> : " << outname << endl;
+	  outname = dirname + "/out-a.png";
+	  cerr << HERE << " output image (png) ======> : " << outname << endl;
 	  capture( outname.c_str() );
 #endif	// ACTIVATE_RECORDING_MODE
 	  break;
