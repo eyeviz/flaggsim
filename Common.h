@@ -26,6 +26,11 @@ using namespace std;
 //------------------------------------------------------------------------------
 #define ACTIVATE_RECORDING_MODE
 
+#ifdef ACTIVATE_RECORDING_MODE
+#define INPUT_FILE_NAME		"in.png"
+#define AGGREGATE_FILE_NAME	"out-a.png"
+#define SIMPLIFY_FILE_NAME	"out-s.png"
+#endif	// ACTIVATE_RECORDING_MODE
 
 //------------------------------------------------------------------------------
 //	Macro definitions
