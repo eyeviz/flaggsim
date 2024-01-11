@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-12-24 15:59:21 shigeo"
+//				Time-stamp: "2024-01-11 23:55:50 shigeo"
 //
 //==============================================================================
 
@@ -1082,16 +1082,8 @@ void GLDrawing::Keyboard( int key, int x, int y )
       // list the aggregation choices for building polygons
       case 'a':	// == 97
       case 'A':
-	  _mode = AGGREGATION_MODE;
-	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  _fig->conjoin();
-	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  _fig->optimize();
-	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
-	  _isometric( _fig->expand() );
-	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 #ifdef ACTIVATE_RECORDING_MODE
-	  if ( _headname.length() > 0 ) {
+	  if ( ( _headname.length() > 0 ) && ( ! _isSaved ) ) {
 	      //------------------------------------------------------------------------------
 	      // Prepare the directory name for saving snapshot images
 	      dirname = "raster/" + _headname;
@@ -1116,8 +1108,17 @@ void GLDrawing::Keyboard( int key, int x, int y )
 	      inname = dirname + "/" + INPUT_FILE_NAME;
 	      cerr << HERE << " input image (png) ======> : " << inname << endl;
 	      _capture( inname.c_str() );
+	      _isSaved = true;
 	  }
 #endif	// ACTIVATE_RECORDING_MODE
+	  _mode = AGGREGATION_MODE;
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  _fig->conjoin();
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  _fig->optimize();
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
+	  _isometric( _fig->expand() );
+	  // cerr << HERE << " No. polygons in drawing = " << fig.poly().size() << endl;
 	  // Delete the last aggregation
 	  // fig.expand().erase( fig.expand().end() - 1 );
 	  // Hierarchical clustering

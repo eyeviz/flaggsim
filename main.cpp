@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-12-23 04:29:30 shigeo"
+//				Time-stamp: "2024-01-11 23:50:56 shigeo"
 //
 //==============================================================================
 
@@ -233,7 +233,7 @@ int main( int argc, char *argv[] )
 #endif	// ACTIVATE_RECORDING_MODE
 
     gl_drawing->loadDrawing( inputname.c_str() );
-
+    
 //------------------------------------------------------------------------------
 //	Printing out the program usage
     cerr << " Key commands " << endl;

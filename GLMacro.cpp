@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-30 13:38:11 shigeo"
+//				Time-stamp: "2024-01-11 23:53:07 shigeo"
 //
 //==============================================================================
 
@@ -188,6 +188,7 @@ void GLMacro::_retrieveHeadname( const char * args )
 // load a drawging from the given file
 void GLMacro::_loadDrawing( const char * filename )
 {
+    _isSaved = false;
     cerr << HERE << " load_drawing => " << filename << endl;
     Drawing::initParams();
 
@@ -391,6 +392,8 @@ GLMacro::GLMacro( int _x, int _y, int _w, int _h, const char *_l )
     _side		= 1.0;
 
     _flagAggregated	= false;
+
+    _isSaved		= false;
 
     _fig		= NULL;
     _worksp		= NULL;
