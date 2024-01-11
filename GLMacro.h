@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-01-11 23:52:45 shigeo"
+//				Time-stamp: "2024-01-12 01:25:37 shigeo"
 //
 //==============================================================================
 
@@ -74,7 +74,9 @@ class GLMacro : public Fl_Gl_Window {
 
     static string		_headname;
 
+#ifdef ACTIVATE_RECORDING_MODE
     bool			_isSaved;
+#endif	// ACTIVATE_RECORDING_MODE
     
 //------------------------------------------------------------------------------
 //	Fundamental UI functions

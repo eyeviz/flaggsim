@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-01-11 23:53:07 shigeo"
+//				Time-stamp: "2024-01-12 01:28:44 shigeo"
 //
 //==============================================================================
 
@@ -188,7 +188,9 @@ void GLMacro::_retrieveHeadname( const char * args )
 // load a drawging from the given file
 void GLMacro::_loadDrawing( const char * filename )
 {
+#ifdef ACTIVATE_RECORDING_MODE
     _isSaved = false;
+#endif	// ACTIVATE_RECORDING_MODE
     cerr << HERE << " load_drawing => " << filename << endl;
     Drawing::initParams();
 
@@ -393,7 +395,9 @@ GLMacro::GLMacro( int _x, int _y, int _w, int _h, const char *_l )
 
     _flagAggregated	= false;
 
+#ifdef ACTIVATE_RECORDING_MODE
     _isSaved		= false;
+#endif	// ACTIVATE_RECORDING_MODE
 
     _fig		= NULL;
     _worksp		= NULL;
