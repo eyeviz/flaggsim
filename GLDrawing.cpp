@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-01-12 01:25:51 shigeo"
+//				Time-stamp: "2024-02-22 17:53:58 shigeo"
 //
 //==============================================================================
 
@@ -424,7 +424,12 @@ void GLDrawing::_bound( int x, int y, int button, int modifier )
         cerr << endl;
     }
 
+    // ----------
+    // This is the trick to save the snapshot after the selection to force
+    // grouping of the specific set of building polygons
     // printEPS( "eps/select.eps" );
+    // ----------
+
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
     if ( _flagAggregated ) Keyboard( 'a', 0, 0 );
     redrawAll();

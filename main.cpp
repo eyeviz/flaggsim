@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-01-11 23:50:56 shigeo"
+//				Time-stamp: "2024-02-22 15:53:46 shigeo"
 //
 //==============================================================================
 
@@ -97,8 +97,8 @@ Adjuster *	adjust		= NULL;
 #ifdef ACTIVE_RECORDING_MODE
 int		base_size	= FULL_SIZE;
 #else	// ACTIVATE_RECORDING_MODE
-int		base_size	= FULL_SIZE;
-//int		base_size	= LARGE_SIZE;
+//int		base_size	= FULL_SIZE;
+int		base_size	= LARGE_SIZE;
 #endif	// ACTIVATE_RECORDING_MODE
 int		map_width	= base_size;
 int		map_height	= base_size;

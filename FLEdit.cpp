@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-27 16:17:20 shigeo"
+//				Time-stamp: "2024-02-22 15:27:37 shigeo"
 //
 //==============================================================================
 
@@ -74,6 +74,7 @@ void FLEdit::_fileHandler( Fl_Button * b )
 	      else {
 		  _glDrawing->loadDrawing( chooser.filename() );
 		  _slider->resetValues();
+		  // _glDrawing->saveDrawing( "test.dat" );
 	      }
 	      redrawAll();
 	  }

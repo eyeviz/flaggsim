@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-29 21:31:12 shigeo"
+//				Time-stamp: "2024-02-22 23:28:30 shigeo"
 //
 //==============================================================================
 
@@ -1735,8 +1735,9 @@ void Drawing::_assignLabels( void )
 //------------------------------------------------------------------------------
     // Assign a label to each proximity set of polygon components
     cerr << HERE << title << " Constructed the proximity graph " << endl;
-    const unsigned int numLevels = 3;
+    // const unsigned int numLevels = 3; <== power of 2.0
     // const unsigned int numLevels = 4;
+    const unsigned int numLevels = 8;
     _labelPrx.clear();
     _calcNewProximity( 1.0 );
     _labelComponents( _netPrx, _labelPrx );
@@ -1751,11 +1752,11 @@ void Drawing::_assignLabels( void )
 	// double curRatio = ( 1.0 - t ) * 1.0 + t * 0.5;
 	// ------------------------------
 	// linear interpolation from 1.0 to 0.0
-	// double curRatio = 1.0 - ( double )k/( double )(numLevels);
+	double curRatio = 1.0 - ( double )k/( double )(numLevels);
 	// cerr << HERE << ">>>>>>>>>> curRatio*100.0 = " << curRatio*100.0 << endl;
 	// ------------------------------
 	// inverse of the power of 2.0
-	double curRatio = 1.0/pow( 2.0, ( double )k );
+	// double curRatio = 1.0/pow( 2.0, ( double )k );
 	// ------------------------------
 	// inverse of the index plus one
 	// double curRatio = 1.0/( double )(k+1);
@@ -2220,6 +2221,7 @@ void Drawing::_calcDataCost( void )
 	cerr << "[" << setw( 3 ) << i << "] ";
 	for ( unsigned int j = 0; j < _dataCost[ i ].size(); ++j ) {
 	    double cost = _dataCost[ i ][ j ];
+	    cost = ( double )round( COST_SCALE * cost )/COST_SCALE;
 	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " ";
 	}
 	cerr << endl;
@@ -2320,6 +2322,7 @@ void Drawing::_calcSmoothCost( void )
 	cerr << "[" << setw( 3 ) << i << "] ";
 	for ( unsigned int j = 0; j < _smoothCost[ i ].size(); ++j ) {
 	    double cost = _smoothCost[ i ][ j ];
+	    cost = ( double )round( COST_SCALE * cost )/COST_SCALE;
 	    cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " ";
 	}
 	cerr << endl;
@@ -2487,6 +2490,7 @@ void Drawing::_calcLabelCost( void )
     cerr << "      ";
     for ( unsigned int i = 0; i < _labelCost.size(); ++i ) {
 	double cost = _labelCost[ i ];
+	cost = ( double )round( COST_SCALE * cost )/COST_SCALE;
 	cerr << std::fixed << setprecision( 1 ) << setw( 5 ) << cost << " ";
     }
     cerr << endl;
@@ -2910,7 +2914,12 @@ void Drawing::_squareOutlines( void )
 	// ==============================
 	for ( unsigned int k = 0; k < nBands; ++k ) {
 	    Contour contour;
+	    Polygon2 candidate;
 	    contour.polygon() = _bound[ i ];
+#ifdef SIMPLIFICATION_WITH_SCALING
+	    for ( auto k = 0; k < NUM_OF_SCALINGS; ++k )
+		_scalePoly( 0.95, contour.polygon() );
+#endif	// SIMPLIFICATION_WITH_SCALING
 	    contour.reset();
 	    Votes reps = contour.squaring( bandwidth[ k ] );
 	    
@@ -2928,13 +2937,23 @@ void Drawing::_squareOutlines( void )
 		// ====================
 		contour.moderatelySimplify( 10 );
 		unsigned int nPoints = contour.polygon().size();
-		_outline[ i ].push_back( contour.polygon() );
+		candidate = contour.polygon();
+#ifdef SIMPLIFICATION_WITH_SCALING
+		for ( auto k = 0; k < NUM_OF_SCALINGS; ++k )
+		    _scalePoly( 1.0/0.95, candidate );
+#endif	// SIMPLIFICATION_WITH_SCALING
+		_outline[ i ].push_back( candidate );
 		// ====================
 		contour.moderatelySimplify( 8 );
 		if ( nPoints != contour.polygon().size() ) {
 		    cerr << HERE << "========== : " << nPoints
 			 << " => " << contour.polygon().size() << endl;
-		    _outline[ i ].push_back( contour.polygon() );
+		    candidate = contour.polygon();
+#ifdef SIMPLIFICATION_WITH_SCALING
+		    for ( auto k = 0; k < NUM_OF_SCALINGS; ++k )
+			_scalePoly( 1.0/0.95, candidate );
+#endif	// SIMPLIFICATION_WITH_SCALING
+		    _outline[ i ].push_back( candidate );
 		    nPoints = contour.polygon().size();
 		}
 		// ====================
@@ -2942,7 +2961,12 @@ void Drawing::_squareOutlines( void )
 		if ( nPoints != contour.polygon().size() ) {
 		    cerr << HERE << "========== : " << nPoints
 			 << " => " << contour.polygon().size() << endl;
-		    _outline[ i ].push_back( contour.polygon() );
+		    candidate = contour.polygon();
+#ifdef SIMPLIFICATION_WITH_SCALING
+		    for ( auto k = 0; k < NUM_OF_SCALINGS; ++k )
+			_scalePoly( 1.0/0.95, candidate );
+#endif	// SIMPLIFICATION_WITH_SCALING
+		    _outline[ i ].push_back( candidate );
 		    nPoints = contour.polygon().size();
 		}
 		// ====================
@@ -2950,7 +2974,12 @@ void Drawing::_squareOutlines( void )
 		// if ( nPoints != contour.polygon().size() ) {
 		cerr << HERE << "++++++++++ NPoints : " << nPoints
 		     << " => " << contour.polygon().size() << endl;
-		_outline[ i ].push_back( contour.polygon() );
+		candidate = contour.polygon();
+#ifdef SIMPLIFICATION_WITH_SCALING
+		for ( auto k = 0; k < NUM_OF_SCALINGS; ++k )
+		    _scalePoly( 1.0/0.95, candidate );
+#endif	// SIMPLIFICATION_WITH_SCALING
+		_outline[ i ].push_back( candidate );
 		// nPoints = contour.polygon().size();
 	    }
 	}
@@ -2988,6 +3017,7 @@ void Drawing::_squareOutlines( void )
 void Drawing::_scaleBounds( double scale )
 {
     for ( unsigned int i = 0; i < _bound.size(); ++i ) {
+#ifdef SKIP
 	Vector2 sum( 0.0, 0.0 );
 	for ( unsigned int j = 0; j < _bound[ i ].size(); ++j ) {
 	    sum += _bound[ i ][ j ] - CGAL::ORIGIN;
@@ -2997,6 +3027,33 @@ void Drawing::_scaleBounds( double scale )
 	    Vector2 displace = _bound[ i ][ j ] - CGAL::ORIGIN - gcenter;
 	    _bound[ i ][ j ] = CGAL::ORIGIN + scale * displace + gcenter;
 	}
+#endif	// SKIP
+
+	_scalePoly( scale, _bound[ i ] );
+    }
+}
+
+
+//
+//  Drawing::_scalePoly --	shrink the boundary polygon
+//
+//  Inputs
+//	scale	: shrink scale
+//	poly	: polygon
+//
+//  Outputs
+//	none
+//
+void Drawing::_scalePoly( double scale, Polygon2 & poly )
+{
+    Vector2 sum( 0.0, 0.0 );
+    for ( unsigned int j = 0; j < poly.size(); ++j ) {
+	sum += poly[ j ] - CGAL::ORIGIN;
+    }
+    Vector2 gcenter = sum / ( double )poly.size();
+    for ( unsigned int j = 0; j < poly.size(); ++j ) {
+	Vector2 displace = poly[ j ] - CGAL::ORIGIN - gcenter;
+	poly[ j ] = CGAL::ORIGIN + scale * displace + gcenter;
     }
 }
 

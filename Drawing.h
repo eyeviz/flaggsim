@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-29 21:31:32 shigeo"
+//				Time-stamp: "2024-02-22 11:44:08 shigeo"
 //
 //==============================================================================
 
@@ -59,6 +59,11 @@ using namespace std;
 // #define USING_SIMILARITY_CONJOINING
 
 #define AVOID_DUPLICATE_HULL_CANDIDATES
+
+#define SIMPLIFICATION_WITH_SCALING
+#ifdef SIMPLIFICATION_WITH_SCALING
+#define NUM_OF_SCALINGS		(5)
+#endif	// SIMPLIFICATION_WITH_SCALING
 
 
 //------------------------------------------------------------------------------
@@ -404,6 +409,7 @@ class Drawing {
 
     void		_squareOutlines	( void );
     void		_scaleBounds	( double scale );
+    static void		_scalePoly	( double scale, Polygon2 & poly );
 
     void		_clear		( void );
     
