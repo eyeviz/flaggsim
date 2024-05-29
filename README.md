@@ -1,7 +1,6 @@
 # flaggsim
 
-# The program code is tentatively available to the public.
-# We will organize it as soon as possible, hopefully within a month.
+# The program code is tentatively available to the public. We will organize it as soon as possible, hopefully within a month.
 
 This directory contains a sample code for the paper:
 
