@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-02-22 11:44:08 shigeo"
+//				Time-stamp: "2024-02-29 15:06:50 shigeo"
 //
 //==============================================================================
 
@@ -35,6 +35,7 @@ using namespace std;
 // ************************************************************
 // #define AUTOMATIC_CONJOINING
 
+// Please uncomment this to enable previous approach by Nan et al (2011)
 // #define PREVIOUS_GESTALT_CONJOINING
 
 #ifndef PREVIOUS_GESTALT_CONJOINING
@@ -114,9 +115,11 @@ using namespace std;
 #define K_NEIGHBOR		(5)
 // #define K_NEIGHBOR		(8)
 
-//#define NUM_TRIALS		(1)
-#define NUM_TRIALS		(3)
+#define NUM_TRIALS		(1)
+//#define NUM_TRIALS		(3)
 //#define NUM_TRIALS		(501)
+//#define NO_NEED_CHECK_OPTIMIZATION_PATH
+
 
 // #define MAX_QUANTIZATION_LEVEL	(7)
 // #define MAX_QUANTIZATION_LEVEL	(15)
@@ -137,7 +140,7 @@ using namespace std;
 #ifdef USING_SIMILARITY_CONJOINING
 //#define SIMILARITY_LOWER	(0.30)
 // #define SIMILARITY_LOWER	(0.50)
-// #define SIMILARITY_RATIO_LOWER	(0.70) // <==
+// #define SIMILARITY_LOWER	(0.70) // <==
 // #define SIMILARITY_RATIO_LOWER	(0.80)
 #define SIMILARITY_LOWER	(0.90) // <-- OK
 // #define SIMILARITY_RATIO_LOWER	(0.95)

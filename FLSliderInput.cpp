@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2023-11-14 00:16:43 shigeo"
+//				Time-stamp: "2024-02-29 12:57:50 shigeo"
 //
 //==============================================================================
 
@@ -712,7 +712,7 @@ FLSliderInput::FLSliderInput( Adjuster * __adjust,
 //------------------------------------------------------------------------------
 //	For cut thresholds
     _cutThresholdInput		= new Fl_Float_Input( x, bottom, in_w, thickness,
-						      "cut threshold" );
+						      "bin size" );
     _cutThresholdInput->callback( _cutThresholdInputCallback, ( void* )this );
     _cutThresholdInput->when( FL_WHEN_ENTER_KEY | FL_WHEN_NOT_CHANGED );
 

@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-02-22 23:28:30 shigeo"
+//				Time-stamp: "2024-05-29 20:25:06 shigeo"
 //
 //==============================================================================
 
@@ -1540,6 +1540,7 @@ void Drawing::_concaveForLabel( Network & net, const Set & label,
 	}
     }
     // cerr << HERE << " Number of corners in the polygon = " << points.size();
+    // #define SAVE_CONCAVE_HULL_RESULTS
 #ifdef SAVE_CONCAVE_HULL_RESULTS
     //------------------------------------------------------------------------------
     //	Print out the polygon coordinates for debug
@@ -2584,21 +2585,50 @@ void Drawing::_graphCut( void )
     Expansion::nLabels = numLabels;
     vector< unsigned int > optGroup;
     int optEnergy = INFINITY_COST;
+#ifdef NO_NEED_CHECK_OPTIMIZATION_PATH
+    int nCandidates;
+#endif	// NO_NEED_CHECK_OPTIMIZATION_PATH
     // _expand.clear();
     for ( unsigned int m = 0; m < NUM_TRIALS; ++m ) {
 	int curEnergy =
 	    // graph_cut( numPixels, numLabels, edge, weight, dc, lc, curGroup );
 	    iterative_graph_cut( numPixels, numLabels, edge, weight, dc, lc, _expand );
+#ifdef NO_NEED_CHECK_OPTIMIZATION_PATH
+	cerr << HERE << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+	cerr << HERE << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+	cerr << HERE << " iter = " << m << " expand size = " << _expand.size() << endl;
+	cerr << HERE << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+	cerr << HERE << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+#endif	// NO_NEED_CHECK_OPTIMIZATION_PATH
 	if ( curEnergy < optEnergy ) {
+#ifdef NO_NEED_CHECK_OPTIMIZATION_PATH
+	    if ( m != 0 ) {
+		cerr << HERE << " Different optimization path" << endl;
+		getchar();
+	    }
+#endif	// NO_NEED_CHECK_OPTIMIZATION_PATH
 	    optEnergy = curEnergy;
 	    optGroup = _expand.back().group();
 	}
     }
+#ifdef NO_NEED_CHECK_OPTIMIZATION_PATH
+    nCandidates = _expand.size();
+#endif	// NO_NEED_CHECK_OPTIMIZATION_PATH
 	
     // sort expansion samples
     //map< int, Expansion, greater< int >  > expandMap;
     map< int, Expansion > expandMap;
     for ( unsigned int k = 0; k < _expand.size(); ++k ) {
+#ifdef NO_NEED_CHECK_OPTIMIZATION_PATH
+	map< int, Expansion>::iterator it = expandMap.find( _expand[ k ].totalCost() );
+	if ( ( it != expandMap.end() ) &&
+	     ( it->second.group() != _expand[ k ].group() ) ) {
+	    cerr << HERE << " No duplicated groups " << endl;
+	    cerr << HERE << it->second << endl;
+	    cerr << HERE << _expand[ k ].group() << endl;
+	    getchar();
+	}
+#endif	// NO_NEED_CHECK_OPTIMIZATION_PATH
 	expandMap.insert( pair< int, Expansion >( _expand[ k ].totalCost(),
 						  _expand[ k ] ) );
     }
@@ -2607,7 +2637,15 @@ void Drawing::_graphCut( void )
 	  iter != expandMap.end(); iter++ ) {
 	_expand.push_back( iter->second );
     }
-
+    cerr << HERE << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+    cerr << HERE << " Final aggregation pattern size = " << _expand.size() << endl;
+    cerr << HERE << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+#ifdef NO_NEED_CHECK_OPTIMIZATION_PATH
+    if ( ( nCandidates % NUM_TRIALS != 0 ) || ( _expand.size() != nCandidates/NUM_TRIALS ) ) {
+	cerr << HERE << " Different optimization path" << endl;
+	getchar();
+    }
+#endif	// NO_NEED_CHECK_OPTIMIZATION_PATH
 //------------------------------------------------------------------------------
 //	Very important: Delete the last expansion HERE!!
 //------------------------------------------------------------------------------

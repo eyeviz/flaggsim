@@ -4,7 +4,7 @@
 //
 //------------------------------------------------------------------------------
 //
-//				Time-stamp: "2024-02-22 15:49:37 shigeo"
+//				Time-stamp: "2024-05-24 14:49:30 shigeo"
 //
 //==============================================================================
 
@@ -115,7 +115,7 @@ void GLMacro::_string2D( double x, double y, const char *str, int size )
     gl2psText( str, "Helvetica", 10 );
 
 // ++++++++++++++++++++++++++++++
-#define DRAW_STRING_FOR_EPS
+// #define DRAW_STRING_FOR_EPS
 // ++++++++++++++++++++++++++++++
 
 #ifndef DRAW_STRING_FOR_EPS

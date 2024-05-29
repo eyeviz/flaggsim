@@ -159,7 +159,8 @@ int iterative_graph_cut( const unsigned int & num_pixels,
 {
     int energy = INFINITY_COST; 
     int *result = new int[num_pixels];   // stores result of optimization
-
+    int baseSmoothCost = 0;
+    
     // initialize the history
     // history.clear();
     
@@ -204,10 +205,12 @@ int iterative_graph_cut( const unsigned int & num_pixels,
 #endif	// SKIP
 	
 	// now set up a given neighborhood system
+	baseSmoothCost = 0;
 	for ( unsigned int i = 0; i < edge.size(); ++i ) {
 	    unsigned int idS = edge[ i ].first;
 	    unsigned int idT = edge[ i ].second;
 	    gc->setNeighbors( idS, idT, weight[ i ] );
+	    baseSmoothCost += weight[ i ];
 	}
 
 	gc->setDataCost( data );
@@ -248,10 +251,13 @@ int iterative_graph_cut( const unsigned int & num_pixels,
 	int nSteps = gc->nTracks;
 	for ( int m = 0; m < nSteps; ++m ) {
 	    cerr << HERE << " Energy = " << setw( 4 )
-		 << gc->trackCost[ m ][ 0 ]
+		 << gc->trackCost[ m ][ 0 ] - baseSmoothCost
 		 << " ( " << ends;
 	    for ( unsigned int j = 1; j < NUM_COSTS; ++j ) {
-		cerr << setw( 4 ) << gc->trackCost[ m ][ j ] << ends;
+		int curCost = gc->trackCost[ m ][ j ];
+		// If the the cost is for smoothness
+		if ( j == 2 ) curCost -= baseSmoothCost;
+		cerr << setw( 4 ) << curCost << ends;
 		if ( j != NUM_COSTS - 1 ) cerr << "+" << ends;
 	    }
 	    cerr << ") : " << ends;
@@ -277,7 +283,7 @@ int iterative_graph_cut( const unsigned int & num_pixels,
 		step.group().push_back( result[ i ] );
 		step.setTotalCost( gc->trackCost[ m ][ 0 ] );
 		step.setDataCost( gc->trackCost[ m ][ 1 ] );
-		step.setSmoothCost( gc->trackCost[ m ][ 2 ] );
+		step.setSmoothCost( gc->trackCost[ m ][ 2 ] - baseSmoothCost );
 		step.setLabelCost( gc->trackCost[ m ][ 3 ] );
 	    }
 	    history.push_back( step );
