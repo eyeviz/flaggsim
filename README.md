@@ -8,6 +8,7 @@ Interactive Optimization for Cartographic Aggregation of Building Features
 by Shigero Takahashi, Ryo Kokubun, Satoshi Nishimura, Kazuo Misue, and Masatoshi Arikawa.
 
 https://doi.org/10.1111/cgf.15090
+
 https://diglib.eg.org/handle/10.1111/cgf15090
 
 @article{10.1111:cgf.15090,
